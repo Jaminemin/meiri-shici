@@ -1,0 +1,298 @@
+// 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
+import { state, esc, get, post, fail, toast, busy, speak } from './core.js';
+import { feedbackHtml } from './fb.js';
+
+const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((x) => x[1]);
+
+function knownKey(week) {
+  return `ms_known_${state.me.user.id}_${week}`;
+}
+function loadKnown(week, serverCount) {
+  try {
+    const v = JSON.parse(localStorage.getItem(knownKey(week)) || '[]');
+    if (Array.isArray(v) && v.length) return new Set(v);
+  } catch {
+    /* 무시 */
+  }
+  return serverCount >= 10 ? new Set(['all']) : new Set();
+}
+function saveKnown(week, set) {
+  try {
+    localStorage.setItem(knownKey(week), JSON.stringify([...set]));
+  } catch {
+    /* 무시 */
+  }
+}
+
+export async function renderWeek(app, ctx) {
+  app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
+  let d = await get(`/api/weeks/${ctx.week}`);
+  const W = d.week;
+  let tab = ctx.tab;
+  let known = loadKnown(W.week, d.state.words);
+  if (known.has('all')) known = new Set(W.words.map((w) => w.id));
+
+  const tabs = [
+    ['words', '① 단어'],
+    ['pattern', '② 문형·예문'],
+    ['quiz', '③ 퀴즈'],
+    ['writing', '④ 작문 미션'],
+  ];
+
+  function head() {
+    const st = d.state;
+    return `<div class="page-head">
+      <div><a href="#/course" class="muted" style="text-decoration:none">← 15주 과정</a>
+        <h1 style="margin-top:6px">${W.week}주차 · ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
+        <p>🎯 ${esc(W.goal)}</p></div>
+      <div style="text-align:right">${st.done ? '<div class="seal">完成</div>' : `<div class="muted" style="font-size:13px">진행 ${st.steps}/3</div><div class="steps3" style="width:140px"><span class="${st.words >= 10 ? 'on' : ''}"></span><span class="${st.quiz !== null && st.quiz >= d.passQuiz ? 'on' : ''}"></span><span class="${st.writing ? 'on' : ''}"></span></div>`}</div>
+    </div>
+    ${st.done && st.completedAt ? `<div class="notice info">🎉 이 주차를 모두 마쳤어요! ${W.week < d.total ? `<a href="#/week/${W.week + 1}">${W.week + 1}주차로 →</a>` : '15주 과정을 모두 마쳤어요. 정말 수고했어요!'}</div>` : ''}
+    <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${k === 'words' && st.words >= 10 ? ' ✓' : ''}${k === 'quiz' && st.quiz !== null && st.quiz >= d.passQuiz ? ' ✓' : ''}${k === 'writing' && st.writing ? ' ✓' : ''}</button>`).join('')}</div>`;
+  }
+
+  function nav() {
+    return `<div class="row between" style="margin-top:20px">${W.week > 1 ? `<a class="btn" href="#/week/${W.week - 1}">← ${W.week - 1}주차</a>` : '<span></span>'}${W.week < d.total ? `<a class="btn" href="#/week/${W.week + 1}">${W.week + 1}주차 →</a>` : ''}</div>`;
+  }
+
+  function draw() {
+    let body = '';
+    if (tab === 'words') body = wordsTab();
+    if (tab === 'pattern') body = patternTab();
+    if (tab === 'quiz') body = quizIntro();
+    if (tab === 'writing') body = writingTab();
+    app.innerHTML = `<div class="page">${head()}<div id="body">${body}</div>${nav()}</div>`;
+    app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), history.replaceState(null, '', `#/week/${W.week}/${tab}`), draw())));
+    bind();
+  }
+
+  // ---------- 단어 ----------
+  let hideMean = false;
+  function wordsTab() {
+    return `<div class="row between" style="margin-bottom:12px">
+        <span class="muted">외운 단어를 눌러 표시하세요 · <b id="kn">${known.size}</b>/10</span>
+        <div class="row"><label class="row" style="font-size:14px"><input type="checkbox" id="hide" ${hideMean ? 'checked' : ''}> 뜻 가리기(외우기 모드)</label>
+        <button class="btn small" id="all-known">모두 외웠어요</button></div></div>
+      <div class="word-list ${hideMean ? 'hide-mean' : ''}" id="wl">${W.words
+        .map(
+          (w) => `<div class="word ${known.has(w.id) ? 'known' : ''}" data-w="${w.id}">
+          <div><div class="hz zh">${esc(w.hanzi)}</div><div class="py">${esc(w.pinyin)}</div></div>
+          <div class="tools"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button><button class="btn small ${known.has(w.id) ? 'primary' : ''}" data-know="${w.id}">${known.has(w.id) ? '✓ 외움' : '외웠어요'}</button></div>
+          <div class="mn">${esc(w.meaning)}</div></div>`,
+        )
+        .join('')}</div>
+      <div class="row end" style="margin-top:14px"><button class="btn primary" data-go="pattern">다음: 문형·예문 →</button></div>`;
+  }
+
+  let sendTimer = null;
+  function sendKnown() {
+    clearTimeout(sendTimer);
+    sendTimer = setTimeout(async () => {
+      try {
+        const r = await post(`/api/weeks/${W.week}/words`, { count: known.size });
+        d.state = r.state;
+        if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
+      } catch (e) {
+        fail(e);
+      }
+    }, 600);
+  }
+
+  // ---------- 문형 ----------
+  function patternTab() {
+    return `<div class="pattern-box"><div class="ai-label">핵심 문형</div><div class="zh">${esc(W.pattern.form)}</div><p style="margin:8px 0 0">${esc(W.pattern.explain)}</p></div>
+      <div class="card"><h3>예문</h3>${W.examples
+        .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
+        .join('')}</div>
+      <div class="row end"><button class="btn primary" data-go="quiz">다음: 퀴즈 →</button></div>`;
+  }
+
+  // ---------- 퀴즈 ----------
+  let quiz = null;
+  function makeQuiz() {
+    const words = W.words;
+    return shuffle(words).map((w, i) => {
+      const type = i % 3;
+      const others = shuffle(words.filter((x) => x.id !== w.id)).slice(0, 3);
+      const opts = shuffle([w, ...others]);
+      if (type === 0) return { q: '이 단어의 뜻은?', prompt: w.hanzi, zh: true, sub: '', opts: opts.map((o) => ({ label: o.meaning, ok: o.id === w.id })), say: w.hanzi };
+      if (type === 1) return { q: '이 뜻에 맞는 단어는?', prompt: w.meaning, zh: false, sub: '', opts: opts.map((o) => ({ label: o.hanzi, ok: o.id === w.id, zh: true })), say: w.hanzi };
+      return { q: '이 병음에 맞는 한자는?', prompt: w.pinyin, zh: false, py: true, opts: opts.map((o) => ({ label: o.hanzi, ok: o.id === w.id, zh: true })), say: w.hanzi };
+    });
+  }
+  function quizIntro() {
+    const st = d.state;
+    return `<div class="card" style="text-align:center;padding:36px 20px">
+      <div class="seal" style="margin-bottom:14px">测验</div>
+      <h2>${W.week}주차 단어 퀴즈 10문제</h2>
+      <p class="muted">뜻·한자·병음을 고르는 문제예요. ${d.passQuiz}개 이상 맞히면 통과!</p>
+      ${st.quiz !== null ? `<p>최고 점수 <b>${st.quiz}/10</b> · ${st.quizCount}번 풀었어요</p>` : ''}
+      <button class="btn primary big" id="q-start">${st.quiz !== null ? '다시 풀기' : '시작하기'}</button></div>`;
+  }
+  function quizStep() {
+    const body = app.querySelector('#body');
+    const { list, i, score } = quiz;
+    if (i >= list.length) return quizEnd();
+    const it = list[i];
+    body.innerHTML = `<div class="card">
+      <div class="row between"><span class="quiz-q">${i + 1} / ${list.length} · ${esc(it.q)}</span><span class="badge accent">맞힘 ${score}</span></div>
+      <div class="progress" style="margin:6px 0 10px"><div style="width:${(i / list.length) * 100}%"></div></div>
+      <div class="quiz-prompt ${it.zh ? 'zh' : ''} ${it.py ? 'py' : ''}" style="${it.py ? 'font-size:34px' : ''}">${esc(it.prompt)}</div>
+      <div class="choices">${it.opts.map((o, k) => `<button class="choice ${o.zh ? 'zh' : ''}" data-k="${k}" style="${o.zh ? 'font-size:24px' : ''}">${esc(o.label)}</button>`).join('')}</div>
+      <div id="q-next" class="row end" style="margin-top:12px"></div></div>`;
+    body.querySelectorAll('.choice').forEach(
+      (b) =>
+        (b.onclick = () => {
+          const k = Number(b.dataset.k);
+          const ok = it.opts[k].ok;
+          body.querySelectorAll('.choice').forEach((c, j) => {
+            c.disabled = true;
+            if (it.opts[j].ok) c.classList.add('right');
+          });
+          if (!ok) b.classList.add('wrong');
+          else quiz.score++;
+          speak(it.say);
+          const nx = body.querySelector('#q-next');
+          nx.innerHTML = `<span class="muted" style="margin-right:auto">${ok ? '정답! 👏' : '아쉬워요. 초록색이 정답이에요.'}</span><button class="btn primary">${i + 1 < list.length ? '다음 문제' : '결과 보기'}</button>`;
+          nx.querySelector('button').onclick = () => {
+            quiz.i++;
+            quizStep();
+          };
+          nx.querySelector('button').focus();
+        }),
+    );
+  }
+  async function quizEnd() {
+    const body = app.querySelector('#body');
+    const score = quiz.score;
+    body.innerHTML = '<div class="empty">점수 저장 중…</div>';
+    try {
+      const r = await post(`/api/weeks/${W.week}/quiz`, { score });
+      d.state = r.state;
+      if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
+    } catch (e) {
+      fail(e);
+    }
+    const pass = score >= d.passQuiz;
+    body.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px">
+      <div class="fb-score">${score}<small class="muted" style="font-size:20px"> / 10</small></div>
+      <h2 style="margin-top:10px">${pass ? '통과! 🎉' : '조금만 더! 💪'}</h2>
+      <p class="muted">${pass ? '작문 미션으로 배운 단어를 직접 써 보세요.' : `${d.passQuiz}개 이상 맞히면 통과예요. 단어를 한 번 더 보고 다시 도전해 보세요.`}</p>
+      <div class="row" style="justify-content:center"><button class="btn" id="q-retry">다시 풀기</button><button class="btn primary" data-go="${pass ? 'writing' : 'words'}">${pass ? '작문 미션 →' : '단어 다시 보기'}</button></div></div>`;
+    body.querySelector('#q-retry').onclick = () => {
+      quiz = { list: makeQuiz(), i: 0, score: 0 };
+      quizStep();
+    };
+    body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
+    // 머리 부분 진행 표시 갱신
+    const headEl = app.querySelector('.page');
+    if (headEl) app.querySelector('.tabs').outerHTML = (() => {
+      const tmp = document.createElement('div');
+      tmp.innerHTML = head();
+      return tmp.querySelector('.tabs').outerHTML;
+    })();
+    app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), draw())));
+  }
+
+  // ---------- 작문 ----------
+  function writingTab() {
+    return `<div class="card">
+      <div class="ai-label">작문 미션</div><h2 style="margin-top:4px">${esc(W.mission)}</h2>
+      <p class="muted" style="font-size:14px">핵심 문형 <span class="zh">${esc(W.pattern.form)}</span>과 이번 주 단어를 써 보세요. 단어를 누르면 글에 넣어져요.</p>
+      <div class="tags" style="margin-bottom:10px">${W.words.map((w) => `<button class="tag zh" style="border:0;cursor:pointer;font-size:15px" data-ins="${esc(w.hanzi)}" title="${esc(w.pinyin)} · ${esc(w.meaning)}">${esc(w.hanzi)}</button>`).join('')}</div>
+      <textarea id="wr" rows="5" class="zh" style="font-size:18px" maxlength="1500" placeholder="여기에 중국어로 써 보세요. 예: 你好！我叫…"></textarea>
+      <div class="row between" style="margin-top:8px"><span class="muted" style="font-size:13px"><span id="wc">0</span>/1500자 · 중국어 입력기가 없으면 병음 없이 한자만 복사해 써도 돼요.</span>
+      <button class="btn primary" id="wr-send" ${state.me.aiReady ? '' : 'disabled title="AI 첨삭이 설정되지 않았습니다"'}>✨ AI 선생님께 첨삭 받기</button></div>
+    </div>
+    <div id="fb-out"></div>
+    ${d.writings.length ? `<h3 style="margin-top:20px">이 주차의 지난 작문</h3>${d.writings.map((w) => feedbackHtml(w)).join('')}` : ''}`;
+  }
+
+  function bind() {
+    const $ = (s) => app.querySelector(s);
+    app.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
+    // 단어
+    app.querySelectorAll('[data-know]').forEach(
+      (b) =>
+        (b.onclick = (e) => {
+          e.stopPropagation();
+          const id = b.dataset.know;
+          known.has(id) ? known.delete(id) : known.add(id);
+          saveKnown(W.week, known);
+          const card = b.closest('.word');
+          card.classList.toggle('known', known.has(id));
+          b.classList.toggle('primary', known.has(id));
+          b.textContent = known.has(id) ? '✓ 외움' : '외웠어요';
+          $('#kn').textContent = known.size;
+          sendKnown();
+        }),
+    );
+    if ($('#all-known'))
+      $('#all-known').onclick = () => {
+        W.words.forEach((w) => known.add(w.id));
+        saveKnown(W.week, known);
+        sendKnown();
+        draw();
+      };
+    if ($('#hide'))
+      $('#hide').onchange = (e) => {
+        hideMean = e.target.checked;
+        $('#wl').classList.toggle('hide-mean', hideMean);
+      };
+    app.querySelectorAll('.word').forEach((c) => (c.onclick = (e) => !e.target.closest('button') && c.classList.toggle('peek')));
+    // 퀴즈
+    if ($('#q-start'))
+      $('#q-start').onclick = () => {
+        quiz = { list: makeQuiz(), i: 0, score: 0 };
+        quizStep();
+      };
+    // 작문
+    const wr = $('#wr');
+    if (wr) {
+      try {
+        wr.value = localStorage.getItem(`ms_draft_${state.me.user.id}_${W.week}`) || '';
+      } catch {
+        /* 무시 */
+      }
+      $('#wc').textContent = wr.value.length;
+      wr.oninput = () => {
+        $('#wc').textContent = wr.value.length;
+        try {
+          localStorage.setItem(`ms_draft_${state.me.user.id}_${W.week}`, wr.value);
+        } catch {
+          /* 무시 */
+        }
+      };
+      app.querySelectorAll('[data-ins]').forEach(
+        (b) =>
+          (b.onclick = () => {
+            const p = wr.selectionStart ?? wr.value.length;
+            wr.value = wr.value.slice(0, p) + b.dataset.ins + wr.value.slice(wr.selectionEnd ?? p);
+            wr.focus();
+            wr.setSelectionRange(p + b.dataset.ins.length, p + b.dataset.ins.length);
+            wr.oninput();
+          }),
+      );
+      $('#wr-send').onclick = (e) =>
+        busy(e.currentTarget, async () => {
+          const content = wr.value.trim();
+          if (content.length < 4) return toast('조금 더 써 주세요.', 'bad');
+          const r = await post(`/api/weeks/${W.week}/writing`, { content });
+          d.state = r.state;
+          d.writings.unshift(r.writing);
+          try {
+            localStorage.removeItem(`ms_draft_${state.me.user.id}_${W.week}`);
+          } catch {
+            /* 무시 */
+          }
+          $('#fb-out').innerHTML = `<h3 style="margin-top:16px">AI 선생님의 첨삭</h3>${feedbackHtml(r.writing)}`;
+          wr.value = '';
+          $('#wc').textContent = 0;
+          if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
+          $('#fb-out').scrollIntoView({ behavior: 'smooth' });
+        }, 'AI 선생님이 읽는 중…').catch(fail);
+    }
+  }
+
+  draw();
+}

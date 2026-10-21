@@ -1,0 +1,18 @@
+{
+  "name": "meiri-shici",
+  "version": "1.0.0",
+  "description": "每日十词 — 초급 중국어 15주 자기주도 학습 (구글 로그인, 관리자 승인, AI 작문 첨삭)",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "local": "node --env-file=.env server/index.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "postgres": "3.4.5"
+  }
+}
