@@ -169,6 +169,11 @@ route('GET', '/api/me', async (req, res) => {
 });
 
 route('GET', '/api/curriculum', (req, res) => sendJson(res, 200, { weeks: curriculumSummary() }));
+// 로그인 없이 보는 맛보기: 1주차의 단어·문형·예문만 제공(저장·퀴즈·작문은 로그인 후)
+route('GET', '/api/preview', (req, res) => {
+  const w = weekData(1);
+  sendJson(res, 200, { week: { week: w.week, hsk: w.hsk, title: w.title, titleZh: w.titleZh, goal: w.goal, words: w.words, pattern: w.pattern, examples: w.examples, mission: w.mission }, total: TOTAL_WEEKS });
+});
 
 // ---------------- 학습자 ----------------
 route('GET', '/api/dashboard', async (req, res) => {

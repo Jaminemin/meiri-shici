@@ -23,7 +23,7 @@ export async function renderLanding(app) {
         <div class="hero-zh zh" style="margin:16px 0 8px">每日十词</div>
         <h1 style="font-size:28px">하루 열 단어, 15주면 중국어로 말문이 트입니다</h1>
         <p class="lead">한 주에 단어 10개와 핵심 문형 하나. 단어를 외우고, 퀴즈로 확인하고, 직접 쓴 중국어 문장을 AI 선생님이 바로 고쳐 줍니다.</p>
-        <div class="cta">${cta}</div>
+        <div class="cta">${cta}${!u ? '<a class="btn big" href="#/preview">로그인 없이 1주차 둘러보기</a>' : ''}</div>
         ${!u ? '<p class="muted" style="margin-top:12px;font-size:13px">처음 가입하면 관리자가 승인한 뒤부터 학습할 수 있습니다.</p>' : ''}
       </div>
       <div class="hero-visual" style="text-align:center">

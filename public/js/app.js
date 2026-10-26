@@ -1,6 +1,7 @@
 // 화면 이동
 import { state, esc, get, post, fail, toast, speak } from './core.js';
 import { renderLanding, renderPending } from './landing.js';
+import { renderPreview } from './preview.js';
 import { renderHome, renderCourse, renderMyWritings } from './home.js';
 import { renderWeek } from './week.js';
 import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings } from './admin.js';
@@ -68,6 +69,7 @@ async function route() {
     }
     renderChrome(parts[0] || '');
     if (!parts.length) return renderLanding(app);
+    if (parts[0] === 'preview') return renderPreview(app);
     if (!u) {
       location.hash = '#/';
       return;
