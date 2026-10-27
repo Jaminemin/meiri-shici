@@ -3,9 +3,9 @@ import { esc, get, fmtDate, ago } from './core.js';
 import { feedbackHtml } from './fb.js';
 
 export const TRACKS = {
-  listen: { name: '리스닝 수업', tab: 'listen', icon: '🎧', desc: '소리를 듣고 뜻과 한자를 고르는 수업. 단어 발음과 예문을 귀로 익힙니다.' },
-  grammar: { name: '문법 수업', tab: 'grammar', icon: '📖', desc: '문형을 익히고 예문의 빈칸을 채우는 수업. 어순과 쓰임을 정확히 잡습니다.' },
-  writing: { name: '작문 수업', tab: 'writing', icon: '✍️', desc: '배운 단어와 예문을 눌러 문장을 만들고, AI 선생님께 첨삭을 받습니다.' },
+  listen: { name: '듣기 수업', tab: 'listen', icon: '🎧', desc: '문장을 듣고 단어 카드를 올바른 순서로 배열합니다. 글자 없이 귀로 익힙니다.' },
+  writing: { name: '쓰기 수업', tab: 'writing', icon: '✍️', desc: '문장의 빈칸을 순서대로 채우고, 직접 쓴 문장을 AI 선생님께 첨삭받습니다.' },
+  speak: { name: '말하기 수업', tab: 'speak', icon: '🗣️', desc: '뜻을 보고 문장을 떠올려, 섞인 단어 카드를 순서대로 맞힙니다.' },
 };
 
 export function weekCards(weeks, currentWeek, { link = true, tab = '' } = {}) {
