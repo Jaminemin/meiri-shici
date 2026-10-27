@@ -1,9 +1,9 @@
 // 주차당 단어 수 (server/curriculum.js의 WORDS_PER_WEEK와 같아야 함)
 const WORDS_PER_WEEK = 15;
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
-import { state, esc, get, post, fail, toast, busy, speak } from './core.js';
+import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.js';
 import { feedbackHtml } from './fb.js';
-import { arrangeItems, fillItems } from './practice.js';
+import { arrangeItems, sentenceChoiceItems } from './practice.js';
 import { sceneCard } from './scenes.js';
 import { mockItems, scoreMock, MOCK_SECTIONS } from './mock.js';
 
@@ -68,7 +68,7 @@ export async function renderWeek(app, ctx) {
     let body = '';
     if (tab === 'words') body = wordsTab();
     if (tab === 'pattern') body = patternTab();
-    if (tab === 'listen') body = arrTab('listen');
+    if (tab === 'listen') body = listenTab();
     if (tab === 'speak') body = arrTab('speak');
     if (tab === 'quiz') body = quizIntro();
     if (tab === 'writing') body = writingTab();
@@ -126,7 +126,10 @@ export async function renderWeek(app, ctx) {
   // ---------- 듣기·말하기: 단어 카드를 문장 순서대로 배열 (저장 없음) ----------
   let arr = null; // { mode, list, i, score, picked: [pool 인덱스], miss, wrongMsg, solved, autoplay }
   function arrTab(mode) {
-    if (!arr || arr.mode !== mode) arr = { mode, list: arrangeItems(W), i: 0, score: 0, picked: [], miss: false, wrongMsg: false, solved: false, autoplay: true };
+    if (!arr || arr.mode !== mode) {
+      arr = { mode, list: arrangeItems(W), i: 0, score: 0, picked: [], miss: false, wrongMsg: false, solved: false, autoplay: true };
+      practiceNotice();
+    }
     if (!arr.list.length) return '<div class="empty">이 주차는 문장 연습 자료가 아직 없어요.</div>';
     if (arr.i >= arr.list.length) {
       const n = arr.list.length;
@@ -154,44 +157,67 @@ export async function renderWeek(app, ctx) {
       <button class="btn primary big" id="ar-play" style="margin:12px 0">🔊 ${isSpeak ? '문장 듣기' : '다시 듣기'}</button>
       <div class="zh" style="min-height:44px;font-size:24px;margin:8px 0">${picked || '<span class="muted" style="font-size:15px">단어를 순서대로 눌러 주세요</span>'}</div>
       <div class="tags" style="justify-content:center">${it.pool
-        .map((p, k) => `<button class="tag zh" data-ar="${k}" style="font-size:20px;padding:8px 14px;cursor:pointer" ${arr.picked.includes(k) ? 'disabled' : ''}>${esc(p.t)}</button>`)
+        .map((p, k) => `<button class="wpick zh" data-ar="${k}" ${arr.picked.includes(k) ? 'disabled' : ''}>${esc(p.t)}</button>`)
         .join('')}</div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn small" id="ar-undo">↶ 마지막 지우기</button><button class="btn small" id="ar-reset">처음부터</button></div>
       <div id="ar-msg" style="min-height:28px;margin-top:10px">${arr.wrongMsg ? '<span class="muted">순서가 다릅니다. 다시 맞혀 보세요.</span>' : ''}</div></div>`;
   }
 
-  // ---------- 쓰기 연습: 한 문장에 빈칸 3개, 순서대로 고르기 (저장 없음) ----------
-  let fill = null; // { list, i, k, attempt, wrong, score, total }
-  function fillSection() {
-    if (!fill) fill = { list: fillItems(W), i: 0, k: 0, attempt: false, wrong: false, score: 0, total: 0 };
-    if (!fill.list.length) return '';
-    let body;
-    if (fill.i >= fill.list.length) {
-      const msg = fill.score === fill.total ? '모두 맞췄습니다! 축하드려요~' : '아쉽지만 복습 후 다시 시도해보세요~';
-      body = `<div style="text-align:center;padding:20px 0"><div class="fb-score">${fill.score}<small class="muted" style="font-size:20px"> / ${fill.total}</small></div><h2 style="margin-top:8px">${msg}</h2><div class="row" style="justify-content:center"><button class="btn primary" id="fl-again">다시 하기</button></div></div>`;
-    } else {
-      const it = fill.list[fill.i];
-      const done = fill.k >= it.blanks.length;
-      const sentence = it.pieces
-        .map((p) => {
-          if (p.text !== undefined) return esc(p.text);
-          if (done || p.blank < fill.k) return `<span class="fl-filled">${esc(it.blanks[p.blank].answer)}</span>`;
-          if (p.blank === fill.k) return '<span class="fl-cur">＿＿</span>';
-          return '＿＿';
-        })
-        .join('');
-      body = done
-        ? `<div class="zh" style="font-size:26px;margin:16px 0 4px">${sentence}</div><div class="py" style="color:var(--muted,#777)">${esc(it.py)}</div><div style="margin:6px 0 12px">${esc(it.ko)}</div><div class="row" style="justify-content:center"><button class="btn primary" id="fl-next">${fill.i + 1 < fill.list.length ? '다음 문장' : '결과 보기'}</button></div>`
-        : `<div class="zh" style="font-size:26px;margin:16px 0 6px">${sentence}</div>
-          <div class="muted" style="margin-bottom:12px">${esc(it.ko)}</div>
-          <div class="choices">${it.blanks[fill.k].opts.map((o, k) => `<button class="choice zh" data-fl="${k}" style="font-size:22px">${esc(o)}</button>`).join('')}</div>
-          <div id="fl-msg" style="min-height:28px;margin-top:10px">${fill.wrong ? '<span class="muted">아쉬워요. 다시 골라 보세요.</span>' : ''}</div>`;
+  // ---------- 문장 고르기 (듣기·쓰기 공용): 보기 4개 중 맞는 중국어 문장을 고른다 (저장 없음) ----------
+  // st: { list, i, attempt, wrong, solved, score, total, autoplay }
+  const choiceState = () => ({ list: sentenceChoiceItems(W), i: 0, attempt: false, wrong: false, bad: [], solved: false, score: 0, total: 0, autoplay: true });
+  // 연습 점수는 저장되지 않으므로, 이 주차를 열고 처음 풀기 전에 한 번 안내한다.
+  let noticeSeen = false;
+  function practiceNotice() {
+    if (noticeSeen) return;
+    noticeSeen = true;
+    queueMicrotask(() =>
+      modal('<h2>연습 점수 안내</h2><p style="line-height:1.7">이 연습의 점수는 <b>내 학습 기록에 저장되지 않아요.</b><br>부담 없이 여러 번 풀어 보세요.</p><div class="row end"><button class="btn primary" data-close>확인</button></div>'),
+    );
+  }
+  let lq = null; // 듣기
+  let fill = null; // 쓰기 연습
+  function choiceTab(st, p, isListen) {
+    if (!st.list.length) return '<div class="empty">이 주차는 문장 연습 자료가 아직 없어요.</div>';
+    if (st.i >= st.list.length) {
+      const msg = st.score === st.total ? '모두 맞췄습니다! 축하드려요~' : '아쉽지만 복습 후 다시 시도해보세요~';
+      return `<div style="text-align:center;padding:20px 0"><div class="fb-score">${st.score}<small class="muted" style="font-size:20px"> / ${st.total}</small></div><h2 style="margin-top:8px">${msg}</h2><div class="row" style="justify-content:center"><button class="btn primary" id="${p}-again">다시 하기</button></div></div>`;
     }
-    return `<div class="card" style="margin-bottom:16px">
-      <div class="ai-label">쓰기 연습</div>
-      <div class="muted" style="font-size:13px;margin-top:4px">${fill.i < fill.list.length ? `문장 ${fill.i + 1} / ${fill.list.length} · 빈칸을 왼쪽부터 순서대로 채우세요` : ''}</div>
-      ${body}
-    </div>`;
+    const it = st.list[st.i];
+    const n = st.list.length;
+    if (isListen && st.autoplay) {
+      st.autoplay = false;
+      speak(it.zh);
+    }
+    const head = `<div class="muted" style="font-size:13px">${isListen ? '듣기' : '쓰기'} ${st.i + 1} / ${n} · ${isListen ? '소리를 듣고 맞는 중국어 문장을 고르세요' : '뜻을 보고 맞는 중국어 문장을 고르세요'}</div>`;
+    if (st.solved) {
+      return `${head}
+        <div class="zh" style="font-size:26px;margin:16px 0 4px">${esc(it.zh)}</div>
+        <div class="py" style="color:var(--muted,#777)">${esc(it.py)}</div>
+        <div style="margin:6px 0 12px">${esc(it.ko)}</div>
+        <div class="row" style="justify-content:center">${isListen ? `<button class="btn" id="${p}-play-again">🔊 다시 듣기</button>` : ''}<button class="btn primary" id="${p}-next">${st.i + 1 < n ? '다음' : '결과 보기'}</button></div>
+        <div style="margin-top:10px"><span class="${st.wrong ? 'muted' : ''}">${st.wrong ? '정답입니다. 다음에는 한 번에 맞혀 봐요.' : '정답! 👏'}</span></div>`;
+    }
+    return `${head}
+      ${isListen
+        ? `<button class="btn primary big" id="${p}-play" style="margin:12px 0">🔊 다시 듣기</button>`
+        : `<div style="font-size:20px;margin:14px 0 12px">${esc(it.ko)}</div>`}
+      <div class="choices">${it.opts.map((o, k) => `<button class="choice zh ${st.bad.includes(k) ? 'wrong' : ''}" data-${p}="${k}" ${st.bad.includes(k) ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>
+      <div id="${p}-msg" style="min-height:28px;margin-top:10px">${st.wrong ? '<span class="muted">아쉬워요. 다시 골라 보세요.</span>' : ''}</div>`;
+  }
+  function listenTab() {
+    if (!lq) {
+      lq = choiceState();
+      practiceNotice();
+    }
+    return `<div class="card" style="text-align:center;padding:26px 20px">${choiceTab(lq, 'lq', true)}</div>`;
+  }
+  function fillSection() {
+    if (!fill) {
+      fill = choiceState();
+      practiceNotice();
+    }
+    return `<div class="card" style="margin-bottom:16px"><div class="ai-label">쓰기 연습</div><div style="margin-top:6px">${choiceTab(fill, 'fl', false)}</div></div>`;
   }
 
   // ---------- 퀴즈 ----------
@@ -520,38 +546,47 @@ export async function renderWeek(app, ctx) {
         arr = null;
         draw();
       };
-    // 쓰기 연습 (빈칸 3개, 순서대로)
-    app.querySelectorAll('[data-fl]').forEach(
-      (b) =>
-        (b.onclick = () => {
-          const blank = fill.list[fill.i].blanks[fill.k];
-          const ok = blank.opts[Number(b.dataset.fl)] === blank.answer;
-          if (!fill.attempt) {
-            fill.attempt = true;
-            fill.total++;
-            if (ok) fill.score++;
-          }
-          if (ok) {
-            fill.k++;
-            fill.attempt = false;
-            fill.wrong = false;
-          } else fill.wrong = true;
+    // 문장 고르기 (듣기·쓰기 공용)
+    const bindChoice = (st, p, isListen, reset) => {
+      if (!st) return;
+      if (st.i >= st.list.length) {
+        if ($(`#${p}-again`)) $(`#${p}-again`).onclick = () => { reset(); draw(); };
+        return;
+      }
+      if ($(`#${p}-play`)) $(`#${p}-play`).onclick = () => speak(st.list[st.i].zh);
+      if ($(`#${p}-play-again`)) $(`#${p}-play-again`).onclick = () => speak(st.list[st.i].zh);
+      if ($(`#${p}-next`))
+        $(`#${p}-next`).onclick = () => {
+          st.i++;
+          st.attempt = false;
+          st.wrong = false;
+          st.bad = [];
+          st.solved = false;
+          st.autoplay = true;
           draw();
-        }),
-    );
-    if ($('#fl-next'))
-      $('#fl-next').onclick = () => {
-        fill.i++;
-        fill.k = 0;
-        fill.attempt = false;
-        fill.wrong = false;
-        draw();
-      };
-    if ($('#fl-again'))
-      $('#fl-again').onclick = () => {
-        fill = null;
-        draw();
-      };
+        };
+      app.querySelectorAll(`[data-${p}]`).forEach(
+        (b) =>
+          (b.onclick = () => {
+            const ok = Number(b.dataset[p]) === st.list[st.i].answer;
+            if (!st.attempt) {
+              st.attempt = true;
+              st.total++;
+              if (ok) st.score++;
+            }
+            if (ok) {
+              st.solved = true;
+              st.wrong = false;
+            } else {
+              st.wrong = true;
+              st.bad.push(Number(b.dataset[p]));
+            }
+            draw();
+          }),
+      );
+    };
+    bindChoice(lq, 'lq', true, () => (lq = null));
+    bindChoice(fill, 'fl', false, () => (fill = null));
     // 모의고사
     if ($('#m-start'))
       $('#m-start').onclick = () => {
