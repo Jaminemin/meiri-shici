@@ -21,9 +21,9 @@ export async function renderLanding(app) {
       <div>
         <span class="badge accent">HSK 1~3급 · 15주 완성</span>
         <div class="hero-zh zh" style="margin:16px 0 8px">每日十词</div>
-        <h1 style="font-size:28px">하루 열 단어, 15주면 중국어로 말문이 트입니다</h1>
+        <h1 style="font-size:28px">하루 15개 단어, 15주면 HSK 준비가 가능합니다</h1>
         <p class="hook">HSK 막막했나요? 수업하면서 같이 배워봐요.</p>
-        <p class="lead">한 주에 단어 10개와 핵심 문형 하나. 단어를 외우고, 퀴즈로 확인하고, 직접 쓴 중국어 문장을 AI 선생님이 바로 고쳐 줍니다.</p>
+        <p class="lead">하루 15개 단어, 15주면 HSK 준비가 가능합니다. 한 주에 단어 15개와 핵심 문형 15개. 단어를 외우고, 퀴즈로 확인하고, 직접 쓴 중국어 문장을 AI 선생님이 바로 고쳐 줍니다.</p>
         <div class="skill-pick">
           ${[
             ['listen', '듣기', '听', '🎧', 'listen'],
