@@ -1,36 +1,70 @@
 // 대문 페이지(처음 화면). 로그인한 사용자는 바로 대시보드로 보낸다.
 import { state, esc, get } from './core.js';
 
-// 고궁 문 앞의 판다 한 마리 (로컬 좌표 100x130, 발은 y=130에 닿음)
-function panda(x, y, s, flip, animate) {
+// 옷 종류별 색: 한푸(도포)는 청록, 치파오는 붉은색. 띠와 단추는 금색.
+const OUTFIT = {
+  hanfu: { main: '#2f8f7c', trim: '#f3c85a' },
+  qipao: { main: '#c8312b', trim: '#f3c85a' },
+};
+
+// 귀여운 판다 한 마리 (로컬 좌표 100x130, 발은 y=130에 닿음)
+function panda(x, y, s, flip, animate, outfit) {
+  const o = OUTFIT[outfit];
   const tx = flip ? x + 100 * s : x;
   const sx = flip ? -s : s;
+  const hanfu = outfit === 'hanfu';
+  const armFill = hanfu ? o.main : '#1d1d1d';
   const wave = animate
-    ? '<animateTransform attributeName="transform" type="rotate" values="-6 78 68;-38 78 68;-6 78 68" dur="1.6s" repeatCount="indefinite"/>'
+    ? '<animateTransform attributeName="transform" type="rotate" values="0 76 74;-62 76 74;0 76 74" dur="1.8s" repeatCount="indefinite"/>'
     : '';
+  const robe = hanfu
+    ? `<path d="M36 70 Q50 64 64 70 L78 124 Q50 129 22 124 Z" fill="${o.main}"/>
+       <path d="M42 70 L50 88 L58 70 Z" fill="#fff"/>
+       <rect x="30" y="97" width="40" height="6" rx="3" fill="${o.trim}"/>`
+    : `<path d="M37 68 Q50 63 63 68 L67 124 Q50 129 33 124 Z" fill="${o.main}"/>
+       <rect x="41" y="60" width="18" height="9" rx="4" fill="${o.trim}"/>
+       <circle cx="50" cy="80" r="2.4" fill="${o.trim}"/><circle cx="50" cy="91" r="2.4" fill="${o.trim}"/><circle cx="50" cy="102" r="2.4" fill="${o.trim}"/>`;
   return `<g transform="translate(${tx} ${y}) scale(${sx} ${s})">
-    <ellipse cx="36" cy="121" rx="12" ry="9" fill="#1d1d1d"/>
-    <ellipse cx="64" cy="121" rx="12" ry="9" fill="#1d1d1d"/>
-    <ellipse cx="50" cy="84" rx="31" ry="35" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
-    <ellipse cx="22" cy="82" rx="10" ry="18" fill="#1d1d1d" transform="rotate(18 22 82)"/>
-    <g>${wave}<ellipse cx="78" cy="82" rx="10" ry="18" fill="#1d1d1d" transform="rotate(-18 78 82)"/></g>
-    <circle cx="30" cy="20" r="9" fill="#1d1d1d"/>
-    <circle cx="70" cy="20" r="9" fill="#1d1d1d"/>
-    <circle cx="50" cy="42" r="26" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
-    <ellipse cx="39" cy="42" rx="8" ry="10" fill="#1d1d1d" transform="rotate(-18 39 42)"/>
-    <ellipse cx="61" cy="42" rx="8" ry="10" fill="#1d1d1d" transform="rotate(18 61 42)"/>
-    <circle cx="40" cy="41" r="2.8" fill="#fff"/>
-    <circle cx="60" cy="41" r="2.8" fill="#fff"/>
-    <ellipse cx="50" cy="52" rx="4" ry="3" fill="#1d1d1d"/>
-    <path d="M44 58 Q50 63 56 58" fill="none" stroke="#1d1d1d" stroke-width="2" stroke-linecap="round"/>
-    <circle cx="32" cy="54" r="3.5" fill="#f2a1a1" opacity=".7"/>
-    <circle cx="68" cy="54" r="3.5" fill="#f2a1a1" opacity=".7"/>
+    <ellipse cx="41" cy="126" rx="9" ry="6" fill="#1d1d1d"/>
+    <ellipse cx="59" cy="126" rx="9" ry="6" fill="#1d1d1d"/>
+    <ellipse cx="50" cy="92" rx="28" ry="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
+    ${robe}
+    <ellipse cx="20" cy="92" rx="${hanfu ? 10 : 7}" ry="${hanfu ? 17 : 12}" fill="${armFill}"/>
+    <g>${wave}
+      <ellipse cx="80" cy="92" rx="${hanfu ? 10 : 7}" ry="${hanfu ? 17 : 12}" fill="${armFill}"/>
+      ${hanfu ? '' : '<circle cx="80" cy="102" r="5" fill="#fff"/>'}
+    </g>
+    <circle cx="25" cy="14" r="11" fill="#1d1d1d"/>
+    <circle cx="75" cy="14" r="11" fill="#1d1d1d"/>
+    <circle cx="50" cy="40" r="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
+    <ellipse cx="37" cy="42" rx="9" ry="11" fill="#1d1d1d" transform="rotate(-20 37 42)"/>
+    <ellipse cx="63" cy="42" rx="9" ry="11" fill="#1d1d1d" transform="rotate(20 63 42)"/>
+    <circle cx="38" cy="40" r="4.5" fill="#fff"/>
+    <circle cx="62" cy="40" r="4.5" fill="#fff"/>
+    <circle cx="39" cy="41" r="2.4" fill="#1d1d1d"/>
+    <circle cx="63" cy="41" r="2.4" fill="#1d1d1d"/>
+    <circle cx="40" cy="39" r="1" fill="#fff"/>
+    <circle cx="64" cy="39" r="1" fill="#fff"/>
+    <ellipse cx="50" cy="50" rx="3.6" ry="2.6" fill="#1d1d1d"/>
+    <path d="M45 55 Q47.5 58 50 55 Q52.5 58 55 55" fill="none" stroke="#1d1d1d" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="29" cy="51" r="4" fill="#f7a8a8" opacity=".8"/>
+    <circle cx="71" cy="51" r="4" fill="#f7a8a8" opacity=".8"/>
   </g>`;
+}
+
+// 대나무 한 그루 (밑동 base, 높이 h)
+function bamboo(x, base, h) {
+  const top = base - h;
+  let g = `<rect x="${x - 5}" y="${top}" width="10" height="${h}" rx="4" fill="#6fae5d"/>`;
+  for (let yy = base - 26; yy > top + 12; yy -= 26) g += `<rect x="${x - 6}" y="${yy}" width="12" height="3" rx="1.5" fill="#3f7d3a"/>`;
+  g += `<path d="M${x} ${top + 14} q 30 -12 46 6 q -28 10 -46 -6 z" fill="#86c46e"/>`;
+  g += `<path d="M${x} ${top + 34} q -30 -12 -44 6 q 28 10 44 -6 z" fill="#7ab864"/>`;
+  return `<g>${g}</g>`;
 }
 
 // 고궁 정문 그림: 붉은 성벽, 두 겹 지붕, 열리는 문, 그 앞의 판다 네 마리
 function palaceSvg(animate) {
-  const s = 0.9;
+  const s = 0.92;
   const gy = 306; // 땅 높이
   const py = gy - 130 * s;
   const studs = (cx, ys) => ys.map((cy) => `<circle cx="${cx}" cy="${cy}" r="2.6" fill="#e0a92e"/>`).join('');
@@ -65,10 +99,11 @@ function palaceSvg(animate) {
     </g>
     <rect x="268" y="302" width="104" height="8" fill="#c8b48e"/>
     <rect x="0" y="${gy}" width="640" height="${360 - gy}" fill="#e6d5b5"/>
-    ${panda(60, py, s, false, animate)}
-    ${panda(150, py, s, false, animate)}
-    ${panda(400, py, s, true, animate)}
-    ${panda(490, py, s, true, animate)}
+    ${bamboo(22, 306, 250)}${bamboo(44, 306, 190)}${bamboo(612, 306, 240)}${bamboo(596, 306, 180)}
+    ${panda(56, py, s, false, animate, 'hanfu')}
+    ${panda(150, py, s, false, animate, 'qipao')}
+    ${panda(394, py, s, true, animate, 'qipao')}
+    ${panda(488, py, s, true, animate, 'hanfu')}
   </svg>`;
 }
 
