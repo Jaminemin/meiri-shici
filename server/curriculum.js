@@ -1,6 +1,8 @@
 // 每日十词 15주 학습 내용 (HSK 1~3급 수준). 한 주에 단어 10개 + 핵심 문형 + 예문 + 작문 미션.
 // 단어 형식: [한자, 병음, 뜻]
 
+import { EXTRA_EXAMPLES } from './examples15.js';
+
 export const WEEKS = [
   {
     week: 1, hsk: 1, title: '인사와 자기소개', titleZh: '你好！',
@@ -247,10 +249,12 @@ export const WEEKS = [
 export function weekData(n) {
   const w = WEEKS.find((x) => x.week === Number(n));
   if (!w) return null;
+  // 주차당 예문 15문장: 기본 예문 + 추가 예문(examples15.js)
+  const examples = [...w.examples, ...(EXTRA_EXAMPLES[w.week] || [])].slice(0, 15);
   return {
     ...w,
     words: w.words.map(([hanzi, pinyin, meaning], i) => ({ id: `${w.week}-${i + 1}`, hanzi, pinyin, meaning })),
-    examples: w.examples.map(([zh, py, ko]) => ({ zh, py, ko })),
+    examples: examples.map(([zh, py, ko]) => ({ zh, py, ko })),
   };
 }
 

@@ -190,31 +190,52 @@ export async function renderWeek(app, ctx) {
     const { list, i, score } = quiz;
     if (i >= list.length) return quizEnd();
     const it = list[i];
-    body.innerHTML = `<div class="card">
-      <div class="row between"><span class="quiz-q">${i + 1} / ${list.length} · ${esc(it.q)}</span><span class="badge accent">맞힘 ${score}</span></div>
-      <div class="progress" style="margin:6px 0 10px"><div style="width:${(i / list.length) * 100}%"></div></div>
-      <div class="quiz-prompt ${it.zh ? 'zh' : ''} ${it.py ? 'py' : ''}" style="${it.py ? 'font-size:34px' : ''}">${esc(it.prompt)}</div>
-      <div class="choices">${it.opts.map((o, k) => `<button class="choice ${o.zh ? 'zh' : ''}" data-k="${k}" style="${o.zh ? 'font-size:24px' : ''}">${esc(o.label)}</button>`).join('')}</div>
-      <div id="q-next" class="row end" style="margin-top:12px"></div></div>`;
-    body.querySelectorAll('.choice').forEach(
+    const dots = list.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('');
+    body.innerHTML = `
+      <div class="q3-top"><span class="muted">${i + 1} / ${list.length}</span><span class="badge accent">맞힘 ${score}</span></div>
+      <div class="q3-progress">${dots}</div>
+      <div class="q3-wrap">
+        <div class="q3-card" id="q3-card">
+          <div class="q3-kicker">${esc(it.q)}</div>
+          <div class="q3-prompt ${it.zh ? 'zh' : ''} ${it.py ? 'py' : ''}">${esc(it.prompt)}</div>
+          <button class="q3-speak" id="q3-speak" aria-label="발음 듣기">🔊 듣기</button>
+        </div>
+      </div>
+      <div class="q3-choices">${it.opts.map((o, k) => `<button class="q3-choice ${o.zh ? 'zh' : ''}" data-k="${k}">${esc(o.label)}</button>`).join('')}</div>
+      <div id="q-next" class="q3-feedback" hidden></div>`;
+
+    // 카드가 마우스를 따라 살짝 기울어지는 입체 효과
+    const card = body.querySelector('#q3-card');
+    card.onpointermove = (e) => {
+      const r = card.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      card.style.transform = `rotateX(${(-y * 14).toFixed(1)}deg) rotateY(${(x * 18).toFixed(1)}deg)`;
+    };
+    card.onpointerleave = () => (card.style.transform = '');
+    body.querySelector('#q3-speak').onclick = () => speak(it.say);
+    speak(it.say);
+
+    body.querySelectorAll('.q3-choice').forEach(
       (b) =>
         (b.onclick = () => {
           const k = Number(b.dataset.k);
           const ok = it.opts[k].ok;
-          body.querySelectorAll('.choice').forEach((c, j) => {
+          body.querySelectorAll('.q3-choice').forEach((c, j) => {
             c.disabled = true;
             if (it.opts[j].ok) c.classList.add('right');
           });
           if (!ok) b.classList.add('wrong');
           else quiz.score++;
-          speak(it.say);
           const nx = body.querySelector('#q-next');
-          nx.innerHTML = `<span class="muted" style="margin-right:auto">${ok ? '정답! 👏' : '아쉬워요. 초록색이 정답이에요.'}</span><button class="btn primary">${i + 1 < list.length ? '다음 문제' : '결과 보기'}</button>`;
-          nx.querySelector('button').onclick = () => {
+          nx.hidden = false;
+          nx.innerHTML = `<div class="q3-msg ${ok ? 'good' : 'bad'}"><b>${ok ? '정답이에요! 👏' : '아쉬워요'}</b>${ok ? '' : `<span>정답: ${esc(it.opts.find((o) => o.ok).label)}</span>`}</div>
+            <button class="btn primary big" id="q3-next">${i + 1 < list.length ? '다음 문제 →' : '결과 보기 →'}</button>`;
+          nx.querySelector('#q3-next').onclick = () => {
             quiz.i++;
             quizStep();
           };
-          nx.querySelector('button').focus();
+          nx.querySelector('#q3-next').focus();
         }),
     );
   }
