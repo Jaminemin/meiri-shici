@@ -9,7 +9,7 @@ import { HttpError, sendJson, redirect, readJsonBody, nowIso, clampStr } from '.
 import { readSession, sessionCookie, clearCookie, tempCookie, parseCookies } from './lib/session.js';
 import { authUrl, exchangeCode, fetchUserInfo } from './lib/google.js';
 import { initDb, db, dbReady, log, getSetting, setSetting } from './lib/db.js';
-import { checkQuota, correctWriting } from './lib/ai.js';
+import { checkQuota, correctWriting, checkSentence } from './lib/ai.js';
 import { WEEKS, COURSES, courseOf, localWeek, weekData, curriculumSummary, WORDS_PER_WEEK } from './curriculum.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -281,6 +281,16 @@ route('POST', '/api/weeks/:n/writing', async (req, res, { p, body }) => {
   const r = await touchProgress(u.id, n, () => db()`UPDATE progress SET writing_done = true WHERE user_id = ${u.id} AND week = ${n}`);
   await log(u.id, '작문 제출', `${n}주차 작문 (AI 점수 ${score})`);
   sendJson(res, 200, { writing: w, ...r, quota });
+});
+
+route('POST', '/api/check-sentence', async (req, res, { body }) => {
+  const u = await requireUser(req);
+  const text = clampStr(body.content, 300).trim();
+  if (text.length < 2) throw new HttpError(400, '확인할 문장을 입력해 주세요.', 'too_short');
+  const quota = checkQuota(u.id);
+  const result = await checkSentence(text);
+  await log(u.id, '문장 확인', text.slice(0, 40));
+  sendJson(res, 200, { result, quota });
 });
 
 route('GET', '/api/writings', async (req, res) => {
