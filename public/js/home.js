@@ -1,5 +1,5 @@
 // 사용자 대시보드, 15주 과정, 내 작문
-import { esc, get, fmtDate, ago } from './core.js';
+import { esc, get, post, fmtDate, ago, toast } from './core.js';
 import { feedbackHtml } from './fb.js';
 
 export const TRACKS = {
@@ -74,8 +74,12 @@ export async function renderHome(app) {
   const tw = d.todayWord;
   app.innerHTML = `
   <div class="page">
-    <div class="page-head"><div><h1>${esc(d.user.name)}님, 加油！</h1><p>${s.studiedToday ? '오늘도 공부했어요. 잘하고 있어요!' : '오늘 아직 공부하지 않았어요. 단어 몇 개만 봐도 좋아요.'}</p></div>
+    <div class="page-head"><div><h1>${esc(d.user.name)}님, 加油！</h1><p>${s.attendedToday ? '오늘 출석했어요. 잘하고 있어요!' : '오늘 아직 출석 전이에요. 출석체크를 하고 시작해 볼까요?'}</p></div>
       <a class="btn primary big" href="#/week/${d.current.week}">${d.current.week}주차 ${esc(d.current.title)} 이어 하기 →</a></div>
+    <div class="card attend-card">
+      <div><div class="ai-label">오늘의 출석</div><b style="font-size:18px">${s.attendedToday ? '✓ 출석 완료' : '아직 출석체크 전'}</b><div class="muted" style="font-size:13px">출석은 달력에 표시되고 연속 학습일에 더해집니다.</div></div>
+      <button class="btn ${s.attendedToday ? '' : 'primary'}" id="attend-btn" ${s.attendedToday ? 'disabled' : ''}>${s.attendedToday ? '출석 완료' : '출석체크 하기'}</button>
+    </div>
     <div class="stats">
       <div class="stat"><div class="label">완료한 주차</div><div class="value">${s.doneWeeks}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.doneWeeks / s.totalWeeks) * 100}%"></div></div></div>
       <div class="stat"><div class="label">외운 단어</div><div class="value">${s.wordsLearned}<small class="muted" style="font-size:16px"> / ${s.totalWords}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.wordsLearned / s.totalWords) * 100}%"></div></div></div>
@@ -99,6 +103,19 @@ export async function renderHome(app) {
       ${d.recentWritings.map((w) => `<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span><span class="badge">${w.week}주차</span> <span class="zh">${esc(w.preview)}</span></span><span><b>${w.score ?? '–'}</b>점 <small class="muted">${ago(w.created_at)}</small></span></div>`).join('') || '<div class="empty" style="padding:16px">아직 작문이 없어요. 주차마다 작문 미션이 있어요.</div>'}
     </div>
   </div>`;
+  const attend = app.querySelector('#attend-btn');
+  if (attend)
+    attend.onclick = async () => {
+      attend.disabled = true;
+      try {
+        await post('/api/attendance', {});
+        toast('출석체크 완료! 오늘도 화이팅 🎉');
+        renderHome(app);
+      } catch (e) {
+        attend.disabled = false;
+        toast(e.message, 'bad');
+      }
+    };
 }
 
 export async function renderCourse(app) {

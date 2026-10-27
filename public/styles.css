@@ -1,4 +1,4 @@
-/* 每日十词 — 깔끔한 학습 화면 */
+/* 每日十五词 — 깔끔한 학습 화면 */
 :root {
   --bg: #f6f7fb;
   --surface: #ffffff;
@@ -282,7 +282,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 #theme-btn svg { width: 18px; height: 18px; }
 .rel-n { color: var(--ink-2); font-weight: 700; font-variant-numeric: tabular-nums; }
 
-/* ---------- 每日十词 전용 ---------- */
+/* ---------- 每日十五词 전용 ---------- */
 .brand-mark.zh { font-family: 'Noto Serif SC', 'Noto Serif KR', serif; font-size: 15px; }
 .topnav { display: flex; gap: 4px; margin-left: 12px; }
 .topnav a { padding: 6px 12px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; }
@@ -442,3 +442,37 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .fl-cur { display:inline-block; padding:0 6px; border-bottom:2px dashed var(--accent,#4f46e5); animation: fl-pulse 1.2s ease-in-out infinite; }
 @keyframes fl-pulse { 50% { opacity:.45; } }
 @media (prefers-reduced-motion: reduce) { .fl-cur { animation:none; } }
+
+/* ---------- 대문: 고궁 문과 판다 ---------- */
+:root { --burgundy: #7b1c2a; }
+:root[data-theme='dark'] { --burgundy: #e08a97; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) { --burgundy: #e08a97; }
+}
+.gate-hero { text-align: center; padding: 36px 0 28px; }
+.gate-title { font-size: clamp(44px, 9vw, 72px); font-weight: 800; color: var(--burgundy); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
+.gate-sub { margin: 10px 0 18px; color: var(--muted); font-size: 16px; }
+.gate-scene { max-width: 640px; margin: 0 auto; }
+.gate-scene svg { width: 100%; height: auto; display: block; border-radius: 18px; }
+.gate-panel { margin-top: 22px; animation: gate-rise 0.8s 1.7s both; }
+.gate-panel .cta { justify-content: center; }
+.door-l { animation: door-open-l 1.4s 0.5s cubic-bezier(0.6, 0, 0.3, 1) both; }
+.door-r { animation: door-open-r 1.4s 0.5s cubic-bezier(0.6, 0, 0.3, 1) both; }
+.gate-glow { animation: gate-glow 1.2s 0.9s both; }
+@keyframes door-open-l { to { transform: translateX(-30px); } }
+@keyframes door-open-r { to { transform: translateX(30px); } }
+@keyframes gate-glow { from { opacity: 0; } to { opacity: 1; } }
+@keyframes gate-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.gate-hero.reduced .door-l { transform: translateX(-30px); }
+.gate-hero.reduced .door-r { transform: translateX(30px); }
+@media (prefers-reduced-motion: reduce) {
+  .door-l, .door-r, .gate-glow, .gate-panel { animation: none; }
+  .door-l { transform: translateX(-30px); }
+  .door-r { transform: translateX(30px); }
+}
+.intro { text-align: center; padding: 8px 0 24px; }
+.intro .hook { font-size: 20px; font-weight: 700; margin: 0 0 6px; }
+.intro .lead { max-width: 640px; margin: 0 auto; color: var(--ink-2); }
+.intro .skill-pick { margin-top: 16px; }
+
+.attend-card { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }

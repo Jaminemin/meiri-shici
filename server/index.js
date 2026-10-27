@@ -1,4 +1,4 @@
-// 每日十词 서버. Railway에서 npm start로 실행한다.
+// 每日十五词 서버. Railway에서 npm start로 실행한다.
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -81,7 +81,7 @@ function kstDate(d) {
 }
 
 async function streakOf(userId) {
-  const rows = await db()`SELECT DISTINCT to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS d FROM activity WHERE user_id = ${userId} AND action IN ('단어 학습', '퀴즈', '작문 제출') ORDER BY d DESC LIMIT 400`;
+  const rows = await db()`SELECT DISTINCT to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS d FROM activity WHERE user_id = ${userId} AND action IN ('단어 학습', '퀴즈', '작문 제출', '출석') ORDER BY d DESC LIMIT 400`;
   const days = new Set(rows.map((r) => r.d));
   let n = 0;
   const today = kstDate(Date.now());
@@ -184,6 +184,7 @@ route('GET', '/api/dashboard', async (req, res) => {
   const done = weeks.filter((w) => w.done).length;
   const current = weeks.find((w) => !w.done) || weeks[weeks.length - 1];
   const s = await streakOf(u.id);
+  const [att] = await db()`SELECT 1 FROM activity WHERE user_id = ${u.id} AND action = '출석' AND to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') = ${kstDate(Date.now())} LIMIT 1`;
   const writings = await db()`SELECT id, week, score, created_at, left(content, 80) AS preview FROM writings WHERE user_id = ${u.id} ORDER BY created_at DESC LIMIT 5`;
   const today = weekData(current.week);
   const dayIdx = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
@@ -192,6 +193,7 @@ route('GET', '/api/dashboard', async (req, res) => {
     weeks,
     summary: {
       doneWeeks: done,
+      attendedToday: Boolean(att),
       totalWeeks: TOTAL_WEEKS,
       wordsLearned: weeks.reduce((a, w) => a + w.words, 0),
       totalWords: TOTAL_WEEKS * WORDS_PER_WEEK,
@@ -214,6 +216,15 @@ route('GET', '/api/weeks/:n', async (req, res, { p }) => {
   const [row] = await db()`SELECT * FROM progress WHERE user_id = ${u.id} AND week = ${n}`;
   const writings = await db()`SELECT id, content, feedback, score, created_at FROM writings WHERE user_id = ${u.id} AND week = ${n} ORDER BY created_at DESC LIMIT 10`;
   sendJson(res, 200, { week: weekData(n), state: weekState(row), writings, total: TOTAL_WEEKS, passQuiz: PASS_QUIZ });
+});
+
+// 출석체크: 하루에 한 번, 활동 기록에 '출석'으로 남긴다 (달력과 연속 학습일에 반영)
+route('POST', '/api/attendance', async (req, res) => {
+  const u = await requireUser(req);
+  const today = kstDate(Date.now());
+  const [hit] = await db()`SELECT 1 FROM activity WHERE user_id = ${u.id} AND action = '출석' AND to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') = ${today} LIMIT 1`;
+  if (!hit) await log(u.id, '출석', today);
+  sendJson(res, 200, { ok: true, attendedToday: true, already: Boolean(hit) });
 });
 
 route('POST', '/api/weeks/:n/words', async (req, res, { p, body }) => {
@@ -365,7 +376,7 @@ route('GET', '/api/admin/export.csv', async (req, res) => {
   const st = { approved: '승인', pending: '대기', rejected: '거절', suspended: '정지' };
   const lines = [['이름', '이메일', '역할', '상태', '가입일', '최근 활동', `완료 주차(/${TOTAL_WEEKS})`, '작문 수'].map(esc).join(',')];
   for (const r of rows) lines.push([r.name, r.email, r.role === 'admin' ? '관리자' : '학습자', st[r.status] || r.status, r.created_at && kstDate(r.created_at), r.last_active_at && kstDate(r.last_active_at), r.done_weeks, r.writings].map(esc).join(','));
-  res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent('每日十词_회원목록.csv')}`, 'Cache-Control': 'no-store' });
+  res.writeHead(200, { 'Content-Type': 'text/csv; charset=utf-8', 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent('每日十五词_회원목록.csv')}`, 'Cache-Control': 'no-store' });
   res.end('﻿' + lines.join('\r\n'));
 });
 
@@ -423,7 +434,7 @@ initDb()
   .catch((e) => console.error('[DB] 연결 실패:', e.message))
   .finally(() => {
     server.listen(config.port, () => {
-      console.log(`每日十词 서버 시작: ${config.baseUrl} (포트 ${config.port})`);
+      console.log(`每日十五词 서버 시작: ${config.baseUrl} (포트 ${config.port})`);
       console.log(`  구글 로그인: ${config.googleReady ? '설정됨' : '미설정'} · DB: ${dbReady() ? '연결됨' : '미연결'} · AI: ${config.aiReady ? '설정됨' : '미설정'} · 관리자: ${config.adminEmails.join(', ') || '(없음)'}`);
     });
   });
