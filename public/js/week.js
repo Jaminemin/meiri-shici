@@ -5,6 +5,7 @@ import { state, esc, get, post, fail, toast, busy, speak } from './core.js';
 import { feedbackHtml } from './fb.js';
 import { arrangeItems, fillItems } from './practice.js';
 import { sceneCard } from './scenes.js';
+import { mockItems, scoreMock, MOCK_SECTIONS } from './mock.js';
 
 const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((x) => x[1]);
 
@@ -44,6 +45,7 @@ export async function renderWeek(app, ctx) {
     ['quiz', '⑤ 퀴즈'],
     ['writing', '⑥ 쓰기'],
   ];
+  if (W.mock) tabs.push(['mock', '⑦ 모의고사']);
 
   function head() {
     const st = d.state;
@@ -69,6 +71,7 @@ export async function renderWeek(app, ctx) {
     if (tab === 'speak') body = arrTab('speak');
     if (tab === 'quiz') body = quizIntro();
     if (tab === 'writing') body = writingTab();
+    if (tab === 'mock') body = mockIntro();
     app.innerHTML = `<div class="page">${head()}<div id="body">${body}</div>${nav()}</div>`;
     app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), history.replaceState(null, '', `#/week/${W.gid}/${tab}`), draw())));
     bind();
@@ -316,6 +319,99 @@ export async function renderWeek(app, ctx) {
     ${d.writings.length ? `<h3 style="margin-top:20px">이 주차의 지난 작문</h3>${d.writings.map((w) => feedbackHtml(w)).join('')}` : ''}`;
   }
 
+  // ---------- 모의고사: 주차마다 듣기·문법·독해 문항을 퀴즈처럼 풀고 바로 채점 (저장 없음) ----------
+  let mock = null; // { i, picks: [선택 번호], ok }
+  const SEC_LABEL = { listen: '듣기', grammar: '문법', reading: '독해' };
+  function mockIntro() {
+    const items = mockItems(W.mock);
+    return `<div class="card" style="text-align:center;padding:36px 20px">
+      <div class="seal" style="margin-bottom:14px">模拟</div>
+      <h2>${W.week}주차 모의고사 ${items.length}문제</h2>
+      <p class="muted">듣기 ${W.mock.listening.length} · 문법 ${W.mock.grammar.length} · 독해 ${W.mock.reading.questions.length} 문항이에요. 문제마다 바로 채점돼요.</p>
+      <button class="btn primary big" id="m-start">시작하기</button></div>`;
+  }
+  function mockStep() {
+    const body = app.querySelector('#body');
+    const items = mockItems(W.mock);
+    const { i } = mock;
+    if (i >= items.length) return mockEnd(items);
+    const it = items[i];
+    const dots = items.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('');
+    let kicker = '';
+    let prompt = '';
+    if (it.sec === 'listen') {
+      kicker = '듣고 알맞은 답을 고르세요';
+      prompt = `<button class="q3-speak" id="m-speak" aria-label="다시 듣기">🔊 다시 듣기</button>`;
+    } else if (it.sec === 'grammar') {
+      kicker = '빈칸에 알맞은 말은?';
+      prompt = `<div class="q3-prompt zh">${esc(it.q)}</div>`;
+    } else {
+      kicker = '지문을 읽고 답하세요';
+      prompt = `<div class="zh" style="text-align:left;line-height:1.8;font-size:16px">${esc(it.passage.zh)}</div><div class="zh" style="margin-top:12px;font-weight:600;text-align:left">${esc(it.q)}</div>`;
+    }
+    body.innerHTML = `
+      <div class="q3-top"><span class="muted">${SEC_LABEL[it.sec]} · ${i + 1} / ${items.length}</span><span class="badge accent">맞힘 ${mock.ok}</span></div>
+      <div class="q3-progress">${dots}</div>
+      <div class="q3-wrap"><div class="q3-card">
+        <div class="q3-kicker">${esc(kicker)}</div>
+        ${prompt}
+      </div></div>
+      ${it.sec === 'listen' ? `<p class="zh" style="text-align:center;margin:6px 0 0;font-weight:600">${esc(it.q)}</p>` : ''}
+      <div class="q3-choices">${it.options.map((o, k) => `<button class="q3-choice ${it.sec !== 'listen' && /[\u4e00-\u9fff]/.test(o) ? 'zh' : ''}" data-k="${k}">${esc(o)}</button>`).join('')}</div>
+      <div id="q-next" class="q3-feedback" hidden></div>`;
+
+    const speakIt = () => it.sec === 'listen' && speak(it.zh);
+    const sp = body.querySelector('#m-speak');
+    if (sp) sp.onclick = () => speak(it.zh);
+    speakIt();
+
+    body.querySelectorAll('.q3-choice').forEach(
+      (b) =>
+        (b.onclick = () => {
+          const k = Number(b.dataset.k);
+          const ok = k === it.answer;
+          mock.picks[i] = k;
+          if (ok) mock.ok++;
+          body.querySelectorAll('.q3-choice').forEach((c, j) => {
+            c.disabled = true;
+            if (j === it.answer) c.classList.add('right');
+          });
+          if (!ok) b.classList.add('wrong');
+          let extra = '';
+          if (it.sec === 'listen') extra = `<span class="zh">${esc(it.zh)}</span>`;
+          if (it.sec === 'grammar') extra = `<span>${esc(it.explain)}</span>`;
+          if (it.sec === 'reading') extra = `<details><summary>지문 해석 보기</summary><p style="margin:8px 0 0">${esc(it.passage.ko)}</p></details>`;
+          const nx = body.querySelector('#q-next');
+          nx.hidden = false;
+          nx.innerHTML = `<div class="q3-msg ${ok ? 'good' : 'bad'}"><b>${ok ? '정답이에요! 👏' : '아쉬워요'}</b>${ok ? '' : `<span>정답: ${esc(it.options[it.answer])}</span>`}${extra}</div>
+            <button class="btn primary big" id="m-next">${i + 1 < items.length ? '다음 문제 →' : '결과 보기 →'}</button>`;
+          nx.querySelector('#m-next').onclick = () => {
+            mock.i++;
+            mockStep();
+          };
+          nx.querySelector('#m-next').focus();
+        }),
+    );
+  }
+  function mockEnd(items) {
+    const body = app.querySelector('#body');
+    const s = scoreMock(items, mock.picks);
+    const total = items.length;
+    const rows = MOCK_SECTIONS.map(
+      (sec) => `<div class="row between" style="margin:6px 0"><span>${sec.label}</span><b>${s[sec.key].ok} / ${s[sec.key].total}</b></div>`,
+    ).join('');
+    body.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px">
+      <div class="fb-score">${mock.ok}<small class="muted" style="font-size:20px"> / ${total}</small></div>
+      <h2 style="margin-top:10px">${mock.ok === total ? '모두 맞췄습니다! 🎉' : mock.ok >= total * 0.6 ? '잘했어요! 틀린 문제를 다시 확인해 보세요.' : '아쉬워요. 단어와 문형을 다시 보고 도전해 보세요.'}</h2>
+      <div style="max-width:320px;margin:16px auto 0;text-align:left">${rows}</div>
+      <div class="row" style="justify-content:center;margin-top:18px"><button class="btn primary" id="m-retry">다시 풀기</button><button class="btn" data-go="writing">쓰기 미션 →</button></div></div>`;
+    body.querySelector('#m-retry').onclick = () => {
+      mock = { i: 0, picks: [], ok: 0 };
+      mockStep();
+    };
+    body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
+  }
+
   function bind() {
     const $ = (s) => app.querySelector(s);
     app.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
@@ -428,6 +524,12 @@ export async function renderWeek(app, ctx) {
       $('#fl-again').onclick = () => {
         fill = null;
         draw();
+      };
+    // 모의고사
+    if ($('#m-start'))
+      $('#m-start').onclick = () => {
+        mock = { i: 0, picks: [], ok: 0 };
+        mockStep();
       };
     // 퀴즈
     if ($('#q-start'))

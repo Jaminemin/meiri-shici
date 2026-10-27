@@ -10,7 +10,7 @@ const OUTFIT = {
 // 대문에서 고르는 과목 (준비 중인 과목은 ready=false)
 const LEVELS = [
   { key: 'travel', name: '여행 중국어', level: '초급', icon: '✈️', ready: true },
-  { key: 'hsk', name: 'HSK 중국어', level: '중급', icon: '📘', ready: false },
+  { key: 'hsk', name: 'HSK 중국어', level: '중급', icon: '📘', ready: true },
   { key: 'emcee', name: '사회자 중국어', level: '고급', icon: '🎤', ready: false },
 ];
 
