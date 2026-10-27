@@ -5,6 +5,9 @@ import { state, esc, get } from './core.js';
 const OUTFIT = {
   hanfu: { main: '#2f8f7c', trim: '#f3c85a' },
   qipao: { main: '#c8312b', trim: '#f3c85a' },
+  travel: { main: '#3b8ea5', trim: '#f3c85a' },
+  student: { main: '#3d5a9e', trim: '#ffffff' },
+  suit: { main: '#ffffff', trim: '#c8312b' },
 };
 
 // 대문에서 고르는 과목 (준비 중인 과목은 ready=false)
@@ -31,16 +34,40 @@ function panda(x, y, s, flip, animate, outfit) {
     : `<path d="M37 68 Q50 63 63 68 L67 124 Q50 129 33 124 Z" fill="${o.main}"/>
        <rect x="41" y="60" width="18" height="9" rx="4" fill="${o.trim}"/>
        <circle cx="50" cy="80" r="2.4" fill="${o.trim}"/><circle cx="50" cy="91" r="2.4" fill="${o.trim}"/><circle cx="50" cy="102" r="2.4" fill="${o.trim}"/>`;
+  const suit = outfit === 'suit';
+  const backpack = outfit === 'travel'
+    ? '<rect x="20" y="64" width="60" height="58" rx="12" fill="#e07b39" stroke="#1d1d1d" stroke-width="2"/><path d="M34 70 V110 M66 70 V110" stroke="#b85a24" stroke-width="3"/>'
+    : '';
+  const suitRobe = suit
+    ? `<path d="M37 68 Q50 63 63 68 L67 124 Q50 129 33 124 Z" fill="#fff" stroke="#1d1d1d" stroke-width="1.5"/>
+       <path d="M44 68 L50 90 L56 68 Z" fill="#e6e6e6" stroke="#1d1d1d" stroke-width="1"/>
+       <rect x="47" y="88" width="6" height="22" rx="2" fill="${o.trim}"/>`
+    : '';
+  const mic = suit
+    ? '<rect x="76" y="88" width="10" height="14" rx="5" fill="#555" stroke="#1d1d1d" stroke-width="1"/><line x1="81" y1="102" x2="81" y2="116" stroke="#1d1d1d" stroke-width="2"/>'
+    : '';
+  const book = outfit === 'student'
+    ? '<rect x="68" y="92" width="26" height="18" rx="2" fill="#e8553b" stroke="#1d1d1d" stroke-width="1.5"/><line x1="81" y1="92" x2="81" y2="110" stroke="#fff" stroke-width="2"/>'
+    : '';
+  const glasses = outfit === 'student'
+    ? '<circle cx="38" cy="41" r="8" fill="none" stroke="#1d1d1d" stroke-width="1.6"/><circle cx="62" cy="41" r="8" fill="none" stroke="#1d1d1d" stroke-width="1.6"/><line x1="46" y1="41" x2="54" y2="41" stroke="#1d1d1d" stroke-width="1.6"/>'
+    : '';
+  const bow = suit
+    ? '<path d="M70 9 L62 4 V14 Z M70 9 L78 4 V14 Z" fill="#f7a8a8" stroke="#1d1d1d" stroke-width="1"/><circle cx="70" cy="9" r="2" fill="#c8312b"/>'
+    : '';
   return `<g transform="translate(${tx} ${y}) scale(${sx} ${s})">
+    ${backpack}
     <ellipse cx="41" cy="126" rx="9" ry="6" fill="#1d1d1d"/>
     <ellipse cx="59" cy="126" rx="9" ry="6" fill="#1d1d1d"/>
     <ellipse cx="50" cy="92" rx="28" ry="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
-    ${robe}
+    ${robe}${suitRobe}
     <ellipse cx="20" cy="92" rx="${hanfu ? 10 : 7}" ry="${hanfu ? 17 : 12}" fill="${armFill}"/>
     <g>${wave}
       <ellipse cx="80" cy="92" rx="${hanfu ? 10 : 7}" ry="${hanfu ? 17 : 12}" fill="${armFill}"/>
-      ${hanfu ? '' : '<circle cx="80" cy="102" r="5" fill="#fff"/>'}
+      ${hanfu || suit || book ? '' : '<circle cx="80" cy="102" r="5" fill="#fff"/>'}
+      ${book}${mic}
     </g>
+    ${bow}
     <circle cx="25" cy="14" r="11" fill="#1d1d1d"/>
     <circle cx="75" cy="14" r="11" fill="#1d1d1d"/>
     <circle cx="50" cy="40" r="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
@@ -54,6 +81,7 @@ function panda(x, y, s, flip, animate, outfit) {
     <circle cx="64" cy="39" r="1" fill="#fff"/>
     <ellipse cx="50" cy="50" rx="3.6" ry="2.6" fill="#1d1d1d"/>
     <path d="M45 55 Q47.5 58 50 55 Q52.5 58 55 55" fill="none" stroke="#1d1d1d" stroke-width="1.6" stroke-linecap="round"/>
+    ${glasses}
     <circle cx="29" cy="51" r="4" fill="#f7a8a8" opacity=".8"/>
     <circle cx="71" cy="51" r="4" fill="#f7a8a8" opacity=".8"/>
   </g>`;
@@ -69,7 +97,7 @@ function bamboo(x, base, h) {
   return `<g>${g}</g>`;
 }
 
-// 고궁 정문 그림: 붉은 성벽, 두 겹 지붕, 열리는 문, 그 앞의 판다 네 마리
+// 고궁 정문 그림: 붉은 성벽, 두 겹 지붕, 열리는 문, 그 앞의 판다 세 마리 (여행자·학생·아나운서)
 // 고궁 뒤 중국 대도시 건물 실루엣: 상하이 동방명주, 베이징 CCTV 본부, 광저우 전망탑, 선전 평안 금융센터
 function skylineSvg() {
   const body = '#8aa3be';
@@ -111,7 +139,7 @@ function palaceSvg(animate) {
   const gy = 306; // 땅 높이
   const py = gy - 130 * s;
   const studs = (cx, ys) => ys.map((cy) => `<circle cx="${cx}" cy="${cy}" r="2.6" fill="#e0a92e"/>`).join('');
-  return `<svg viewBox="0 0 640 360" role="img" aria-label="중국 고궁 문 앞에서 판다 네 마리가 손을 흔들며 인사하는 그림">
+  return `<svg viewBox="0 0 640 360" role="img" aria-label="중국 고궁 문 앞에서 판다 세 마리가 손을 흔들며 인사하는 그림">
     <defs>
       <linearGradient id="pal-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf1de"/><stop offset="1" stop-color="#f6dcbb"/></linearGradient>
       <radialGradient id="pal-glow" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffe2a0"/><stop offset="1" stop-color="#ffe2a0" stop-opacity="0"/></radialGradient>
@@ -144,10 +172,9 @@ function palaceSvg(animate) {
     <rect x="268" y="302" width="104" height="8" fill="#c8b48e"/>
     <rect x="0" y="${gy}" width="640" height="${360 - gy}" fill="#e6d5b5"/>
     ${bamboo(22, 306, 250)}${bamboo(44, 306, 190)}${bamboo(612, 306, 240)}${bamboo(596, 306, 180)}
-    ${panda(56, py, s, false, animate, 'hanfu')}
-    ${panda(150, py, s, false, animate, 'qipao')}
-    ${panda(394, py, s, true, animate, 'qipao')}
-    ${panda(488, py, s, true, animate, 'hanfu')}
+    ${panda(60, py, s, false, animate, 'travel')}
+    ${panda(190, py, s, false, animate, 'student')}
+    ${panda(420, py, s, true, animate, 'suit')}
   </svg>`;
 }
 
