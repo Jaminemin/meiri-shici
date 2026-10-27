@@ -33,7 +33,7 @@ export async function renderWeek(app, ctx) {
   let d = await get(`/api/weeks/${ctx.week}`);
   const W = d.week;
   let tab = ctx.tab;
-  let known = loadKnown(W.week, d.state.words);
+  let known = loadKnown(W.gid, d.state.words);
   if (known.has('all')) known = new Set(W.words.map((w) => w.id));
 
   const tabs = [
@@ -53,12 +53,12 @@ export async function renderWeek(app, ctx) {
         <p>🎯 ${esc(W.goal)}</p></div>
       <div style="text-align:right">${st.done ? '<div class="seal">完成</div>' : `<div class="muted" style="font-size:13px">진행 ${st.steps}/3</div><div class="steps3" style="width:140px"><span class="${st.words >= W.words.length ? 'on' : ''}"></span><span class="${st.quiz !== null && st.quiz >= d.passQuiz ? 'on' : ''}"></span><span class="${st.writing ? 'on' : ''}"></span></div>`}</div>
     </div>
-    ${st.done && st.completedAt ? `<div class="notice info">🎉 이 주차를 모두 마쳤어요! ${W.week < d.total ? `<a href="#/week/${W.week + 1}">${W.week + 1}주차로 →</a>` : '15주 과정을 모두 마쳤어요. 정말 수고했어요!'}</div>` : ''}
+    ${st.done && st.completedAt ? `<div class="notice info">🎉 이 주차를 모두 마쳤어요! ${W.week < d.total ? `<a href="#/week/${W.gid + 1}">${W.week + 1}주차로 →</a>` : '15주 과정을 모두 마쳤어요. 정말 수고했어요!'}</div>` : ''}
     <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${k === 'words' && st.words >= W.words.length ? ' ✓' : ''}${k === 'quiz' && st.quiz !== null && st.quiz >= d.passQuiz ? ' ✓' : ''}${k === 'writing' && st.writing ? ' ✓' : ''}</button>`).join('')}</div>`;
   }
 
   function nav() {
-    return `<div class="row between" style="margin-top:20px">${W.week > 1 ? `<a class="btn" href="#/week/${W.week - 1}">← ${W.week - 1}주차</a>` : '<span></span>'}${W.week < d.total ? `<a class="btn" href="#/week/${W.week + 1}">${W.week + 1}주차 →</a>` : ''}</div>`;
+    return `<div class="row between" style="margin-top:20px">${W.week > 1 ? `<a class="btn" href="#/week/${W.gid - 1}">← ${W.week - 1}주차</a>` : '<span></span>'}${W.week < d.total ? `<a class="btn" href="#/week/${W.gid + 1}">${W.week + 1}주차 →</a>` : ''}</div>`;
   }
 
   function draw() {
@@ -70,7 +70,7 @@ export async function renderWeek(app, ctx) {
     if (tab === 'quiz') body = quizIntro();
     if (tab === 'writing') body = writingTab();
     app.innerHTML = `<div class="page">${head()}<div id="body">${body}</div>${nav()}</div>`;
-    app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), history.replaceState(null, '', `#/week/${W.week}/${tab}`), draw())));
+    app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), history.replaceState(null, '', `#/week/${W.gid}/${tab}`), draw())));
     bind();
   }
 
@@ -97,7 +97,7 @@ export async function renderWeek(app, ctx) {
     clearTimeout(sendTimer);
     sendTimer = setTimeout(async () => {
       try {
-        const r = await post(`/api/weeks/${W.week}/words`, { count: known.size });
+        const r = await post(`/api/weeks/${W.gid}/words`, { count: known.size });
         d.state = r.state;
         if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
       } catch (e) {
@@ -108,7 +108,7 @@ export async function renderWeek(app, ctx) {
 
   // ---------- 문형 ----------
   function patternTab() {
-    return `${sceneCard(W.week)}<div class="card"><h3>핵심 문형 ${W.patterns.length}개</h3>${W.patterns
+    return `${W.course === 'travel' ? sceneCard(W.week) : ''}<div class="card"><h3>핵심 문형 ${W.patterns.length}개</h3>${W.patterns
         .map(
           (p, i) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="muted" style="font-size:12px">${i + 1}</div><div class="zh" style="font-weight:600">${esc(p.form)}</div><div style="margin-top:2px">${esc(p.explain)}</div>${p.zh ? `<div class="zh" style="margin-top:6px">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div>` : ''}</div>${p.zh ? `<button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button>` : ''}</div></div>`,
         )
@@ -271,7 +271,7 @@ export async function renderWeek(app, ctx) {
     const score = quiz.score;
     body.innerHTML = '<div class="empty">점수 저장 중…</div>';
     try {
-      const r = await post(`/api/weeks/${W.week}/quiz`, { score });
+      const r = await post(`/api/weeks/${W.gid}/quiz`, { score });
       d.state = r.state;
       if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
     } catch (e) {
@@ -326,7 +326,7 @@ export async function renderWeek(app, ctx) {
           e.stopPropagation();
           const id = b.dataset.know;
           known.has(id) ? known.delete(id) : known.add(id);
-          saveKnown(W.week, known);
+          saveKnown(W.gid, known);
           const card = b.closest('.word');
           card.classList.toggle('known', known.has(id));
           b.classList.toggle('primary', known.has(id));
@@ -338,7 +338,7 @@ export async function renderWeek(app, ctx) {
     if ($('#all-known'))
       $('#all-known').onclick = () => {
         W.words.forEach((w) => known.add(w.id));
-        saveKnown(W.week, known);
+        saveKnown(W.gid, known);
         sendKnown();
         draw();
       };
@@ -439,7 +439,7 @@ export async function renderWeek(app, ctx) {
     const wr = $('#wr');
     if (wr) {
       try {
-        wr.value = localStorage.getItem(`ms_draft_${state.me.user.id}_${W.week}`) || '';
+        wr.value = localStorage.getItem(`ms_draft_${state.me.user.id}_${W.gid}`) || '';
       } catch {
         /* 무시 */
       }
@@ -447,7 +447,7 @@ export async function renderWeek(app, ctx) {
       wr.oninput = () => {
         $('#wc').textContent = wr.value.length;
         try {
-          localStorage.setItem(`ms_draft_${state.me.user.id}_${W.week}`, wr.value);
+          localStorage.setItem(`ms_draft_${state.me.user.id}_${W.gid}`, wr.value);
         } catch {
           /* 무시 */
         }
@@ -479,11 +479,11 @@ export async function renderWeek(app, ctx) {
         busy(e.currentTarget, async () => {
           const content = wr.value.trim();
           if (content.length < 4) return toast('조금 더 써 주세요.', 'bad');
-          const r = await post(`/api/weeks/${W.week}/writing`, { content });
+          const r = await post(`/api/weeks/${W.gid}/writing`, { content });
           d.state = r.state;
           d.writings.unshift(r.writing);
           try {
-            localStorage.removeItem(`ms_draft_${state.me.user.id}_${W.week}`);
+            localStorage.removeItem(`ms_draft_${state.me.user.id}_${W.gid}`);
           } catch {
             /* 무시 */
           }

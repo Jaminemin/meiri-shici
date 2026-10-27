@@ -69,14 +69,14 @@ async function route() {
     }
     renderChrome(parts[0] || '');
     if (!parts.length) return renderLanding(app);
-    if (parts[0] === 'preview') return renderPreview(app);
+    if (parts[0] === 'preview') return renderPreview(app, parts[1] || 'travel');
     if (!u) {
       location.hash = '#/';
       return;
     }
     if (parts[0] === 'pending' || u.status !== 'approved') return renderPending(app);
     const ctx = { params, rerender: route };
-    if (parts[0] === 'home') return renderHome(app, ctx);
+    if (parts[0] === 'home') return renderHome(app, { ...ctx, course: parts[1] || 'travel' });
     if (parts[0] === 'course') return renderCourse(app, ctx);
     if (parts[0] === 'track') return renderTrack(app, parts[1]);
     if (parts[0] === 'writings') return renderMyWritings(app, ctx);

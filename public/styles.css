@@ -483,3 +483,18 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .scene-line { padding: 6px 0; border-bottom: 1px solid var(--line); }
 .scene-line:last-child { border-bottom: 0; }
 @media (max-width: 640px) { .scene-card { grid-template-columns: 1fr; } }
+
+/* ---------- 과목 고르기 (대문 · 홈) ---------- */
+.level-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 640px; margin: 18px auto 0; }
+.level-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 10px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none; box-shadow: 0 6px 18px rgba(20, 20, 60, 0.06); transition: transform 0.15s ease; }
+.level-card:hover { transform: translateY(-2px); }
+.level-card b { font-size: 15px; }
+.level-card .level-icon { font-size: 26px; }
+.level-card .level-tag { position: absolute; top: 8px; left: 10px; font-size: 11px; font-weight: 700; color: var(--burgundy); }
+.level-card.soon { opacity: 0.6; }
+.course-pick { margin-bottom: 16px; }
+.course-card { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
+.course-card.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft, rgba(79, 70, 229, 0.15)) inset; }
+.course-card.soon { opacity: 0.6; }
+.course-card .course-level { font-size: 12px; font-weight: 700; color: var(--burgundy); }
+@media (max-width: 520px) { .level-pick { gap: 8px; } .level-card b { font-size: 13px; } }

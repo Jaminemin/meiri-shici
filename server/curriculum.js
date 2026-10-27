@@ -249,9 +249,25 @@ export const WEEKS = [
   },
 ];
 
-export function weekData(n) {
-  const w = WEEKS.find((x) => x.week === Number(n));
-  if (!w) return null;
+// 과정 목록. 주차 번호(gid)는 과정마다 다르게 준다: 여행 1~15, HSK 101~115, 사회자 201~215.
+// 기존 진도와 저장 기록은 여행 과정(1~15) 번호를 그대로 쓴다.
+export const COURSES = {
+  travel: { key: 'travel', name: '여행 중국어', level: '초급', offset: 0, ready: true, weeks: WEEKS },
+  hsk: { key: 'hsk', name: 'HSK 중국어', level: '중급', offset: 100, ready: false, weeks: [] },
+  emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: false, weeks: [] },
+};
+
+export function courseOf(gid) {
+  const n = Number(gid);
+  return Object.values(COURSES).find((c) => n > c.offset && n <= c.offset + c.weeks.length) || null;
+}
+
+export function weekData(gid) {
+  const n = Number(gid);
+  const course = courseOf(n);
+  if (!course) return null;
+  const local = n - course.offset;
+  const w = course.weeks.find((x) => x.week === local);
   // 주차당 예문 15문장: 기본 예문 + 추가 예문(examples15.js)
   const examples = [...w.examples, ...(EXTRA_EXAMPLES[w.week] || [])].slice(0, 15);
   // 주차당 단어 15개: 기본 10개 + 추가 5개(vocab15.js). 핵심 문형 15개(vocab15.js).
@@ -259,12 +275,23 @@ export function weekData(n) {
   const patterns = (PATTERNS[w.week] || [[w.pattern.form, w.pattern.explain, '', '']]).map(([form, explain, zh, ko]) => ({ form, explain, zh, ko }));
   return {
     ...w,
-    words: allWords.map(([hanzi, pinyin, meaning], i) => ({ id: `${w.week}-${i + 1}`, hanzi, pinyin, meaning })),
+    gid: n,
+    week: local,
+    course: course.key,
+    words: allWords.map(([hanzi, pinyin, meaning], i) => ({ id: `${n}-${i + 1}`, hanzi, pinyin, meaning })),
     patterns,
     examples: examples.map(([zh, py, ko]) => ({ zh, py, ko })),
   };
 }
 
-export function curriculumSummary() {
-  return WEEKS.map((w) => ({ week: w.week, hsk: w.hsk, title: w.title, titleZh: w.titleZh, goal: w.goal, sample: w.words.slice(0, 3).map((x) => x[0]) }));
+// 과정의 주차 목록 (gid 포함)
+export function curriculumSummary(courseKey = 'travel') {
+  const c = COURSES[courseKey] || COURSES.travel;
+  return c.weeks.map((w) => ({ gid: c.offset + w.week, week: w.week, hsk: w.hsk, title: w.title, titleZh: w.titleZh, goal: w.goal, sample: w.words.slice(0, 3).map((x) => x[0]) }));
+}
+
+// 주차 번호(gid)를 과정 안의 주차 번호로
+export function localWeek(gid) {
+  const c = courseOf(gid);
+  return c ? Number(gid) - c.offset : Number(gid);
 }

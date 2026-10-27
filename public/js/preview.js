@@ -1,13 +1,17 @@
 // 로그인 없이 보는 1주차 맛보기 (단어·문형·예문만, 저장·퀴즈·작문 없음)
 import { state, esc, get, speak } from './core.js';
 
-export async function renderPreview(app) {
+export async function renderPreview(app, course = 'travel') {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   let d;
   try {
-    d = await get('/api/preview');
+    d = await get(`/api/preview?course=${encodeURIComponent(course)}`);
   } catch (e) {
     app.innerHTML = `<div class="page"><div class="notice bad">맛보기를 불러오지 못했습니다. (${esc(e.message)})</div><a class="btn" href="#/">처음으로</a></div>`;
+    return;
+  }
+  if (d.notReady) {
+    app.innerHTML = `<div class="page"><div class="card" style="text-align:center;padding:40px 20px"><h2>${esc(d.course.name)} · 준비 중</h2><p class="muted">이 과목의 자료를 만들고 있어요. 준비되면 여기에서 맛보기를 볼 수 있습니다.</p><a class="btn" href="#/">처음으로</a></div></div>`;
     return;
   }
   const W = d.week;

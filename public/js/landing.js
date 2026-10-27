@@ -7,6 +7,13 @@ const OUTFIT = {
   qipao: { main: '#c8312b', trim: '#f3c85a' },
 };
 
+// 대문에서 고르는 과목 (준비 중인 과목은 ready=false)
+const LEVELS = [
+  { key: 'travel', name: '여행 중국어', level: '초급', icon: '✈️', ready: true },
+  { key: 'hsk', name: 'HSK 중국어', level: '중급', icon: '📘', ready: false },
+  { key: 'emcee', name: '사회자 중국어', level: '고급', icon: '🎤', ready: false },
+];
+
 // 귀여운 판다 한 마리 (로컬 좌표 100x130, 발은 y=130에 닿음)
 function panda(x, y, s, flip, animate, outfit) {
   const o = OUTFIT[outfit];
@@ -116,12 +123,6 @@ export async function renderLanding(app) {
     return;
   }
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  let weeks = [];
-  try {
-    weeks = (await get('/api/curriculum')).weeks;
-  } catch {
-    /* 목차를 못 불러와도 대문은 보여 준다 */
-  }
   const loginBtn = me.googleReady
     ? `<a class="btn primary big" href="/auth/google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#fff" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></svg> 구글 계정으로 로그인하기</a>`
     : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
@@ -130,49 +131,17 @@ export async function renderLanding(app) {
   <div class="page">
     <section class="gate-hero${reduced ? ' reduced' : ''}">
       <h1 class="gate-title zh">每日十五词</h1>
-      <p class="gate-sub">15단어 · 15문장 · 15주, HSK로 가는 길</p>
+      <p class="gate-sub hook">HSK 막막했나요? 수업하면서 같이 배워봐요.</p>
       <div class="gate-scene">${palaceSvg(!reduced)}</div>
+      <div class="level-pick">
+        ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="#/preview/${c.key}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.ready ? '1주차 맛보기 →' : '준비 중'}</span></a>`).join('')}
+      </div>
       <div class="gate-panel">
         <div class="cta">${loginBtn}<a class="btn big" href="#/preview">로그인 없이 1주차 둘러보기</a></div>
         <p class="muted" style="margin:12px 0 0;font-size:13px">처음 가입하면 관리자가 승인한 뒤부터 학습할 수 있습니다.</p>
       </div>
     </section>
 
-    <section class="intro">
-      <p class="hook">HSK 막막했나요? 수업하면서 같이 배워봐요.</p>
-      <p class="lead">하루 15개 단어, 15주면 HSK 준비가 가능합니다. 한 주에 단어 15개와 핵심 문형 15개. 단어를 외우고, 퀴즈로 확인하고, 직접 쓴 중국어 문장을 AI 선생님이 바로 고쳐 줍니다.</p>
-      <div class="skill-pick">
-        ${[
-          ['listen', '듣기', '听', '🎧'],
-          ['writing', '쓰기', '写', '✍️'],
-          ['speak', '말하기', '说', '🗣️'],
-        ]
-          .map(([key, ko, zh, icon]) => `<a class="skill-card" href="#/preview"><span class="skill-icon">${icon}</span><span class="skill-zh zh">${zh}</span><span class="skill-ko">${ko}</span></a>`)
-          .join('')}
-      </div>
-    </section>
-
-    <div class="section-title">학습 방법</div>
-    <h2>한 주는 이렇게 공부해요</h2>
-    <div class="steps">
-      <div class="step"><h3>단어 15개</h3><p>한자·병음·뜻을 보고 🔊로 발음을 들은 뒤 외운 단어에 표시합니다.</p></div>
-      <div class="step"><h3>문형 15개와 예문 15문장</h3><p>그 주의 핵심 문형을 익히고, 실제로 쓰는 예문을 듣고 따라 읽습니다.</p></div>
-      <div class="step"><h3>듣기·말하기·쓰기 연습</h3><p>소리로 문장을 맞히고, 섞인 단어를 순서대로 배열하고, 빈칸을 채웁니다.</p></div>
-      <div class="step"><h3>퀴즈와 작문 미션</h3><p>퀴즈에서 8개 이상 맞히면 통과, 배운 표현으로 쓴 문장은 AI 선생님이 고쳐 줍니다.</p></div>
-    </div>
-
-    <div class="section-title">15주 과정</div>
-    <h2>무엇을 배우나요</h2>
-    <div class="week-grid">${weeks
-      .map((w) => `<div class="week-card"><div class="wn">${w.week}주차 · HSK ${w.hsk}</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div><div class="muted" style="font-size:12px;margin-top:6px">${esc(w.goal)}</div></div>`)
-      .join('')}</div>
-
-    <div class="section-title">회원 안내</div>
-    <div class="grid2">
-      <div class="card"><h3>가입과 승인</h3><p>구글 계정으로 가입하면 관리자에게 가입 알림이 갑니다. 관리자가 승인하면 바로 학습을 시작할 수 있습니다. 운영 방식에 따라 자동 승인(개방형)으로 열릴 수도 있습니다.</p></div>
-      <div class="card"><h3>내 학습 기록</h3><p>매일 출석체크를 하고, 주차별 진도, 외운 단어 수, 퀴즈 점수, 연속 학습일, AI 첨삭 기록이 내 대시보드에 모입니다.</p></div>
-    </div>
-    <div class="footer">每日十五词 · 한중문화AI데이터분석 과제 · 발음은 브라우저의 중국어 음성을 사용합니다.</div>
   </div>`;
 }
 
