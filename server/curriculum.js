@@ -2,6 +2,9 @@
 // 단어 형식: [한자, 병음, 뜻]
 
 import { EXTRA_EXAMPLES } from './examples15.js';
+import { EXTRA_WORDS, PATTERNS } from './vocab15.js';
+
+export const WORDS_PER_WEEK = 15;
 
 export const WEEKS = [
   {
@@ -251,9 +254,13 @@ export function weekData(n) {
   if (!w) return null;
   // 주차당 예문 15문장: 기본 예문 + 추가 예문(examples15.js)
   const examples = [...w.examples, ...(EXTRA_EXAMPLES[w.week] || [])].slice(0, 15);
+  // 주차당 단어 15개: 기본 10개 + 추가 5개(vocab15.js). 핵심 문형 15개(vocab15.js).
+  const allWords = [...w.words, ...(EXTRA_WORDS[w.week] || [])];
+  const patterns = (PATTERNS[w.week] || [[w.pattern.form, w.pattern.explain, '', '']]).map(([form, explain, zh, ko]) => ({ form, explain, zh, ko }));
   return {
     ...w,
-    words: w.words.map(([hanzi, pinyin, meaning], i) => ({ id: `${w.week}-${i + 1}`, hanzi, pinyin, meaning })),
+    words: allWords.map(([hanzi, pinyin, meaning], i) => ({ id: `${w.week}-${i + 1}`, hanzi, pinyin, meaning })),
+    patterns,
     examples: examples.map(([zh, py, ko]) => ({ zh, py, ko })),
   };
 }

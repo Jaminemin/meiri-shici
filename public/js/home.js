@@ -13,8 +13,8 @@ export function weekCards(weeks, currentWeek, { link = true, tab = '' } = {}) {
     .map(
       (w) => `<${link ? `a href="#/week/${w.week}${tab ? `/${tab}` : ''}"` : 'div'} class="week-card ${w.done ? 'done' : ''} ${w.week === currentWeek ? 'current' : ''}">
       <div class="wn">${w.week}주차 · HSK ${w.hsk}</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div>
-      <div class="steps3" title="단어 · 퀴즈 · 작문"><span class="${w.words >= 10 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
-      <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/10 · 퀴즈 ${w.quiz ?? '–'}/10 · 작문 ${w.writing ? '✓' : '–'}</div>
+      <div class="steps3" title="단어 · 퀴즈 · 작문"><span class="${w.words >= 15 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/15 · 퀴즈 ${w.quiz ?? '–'}/10 · 작문 ${w.writing ? '✓' : '–'}</div>
     </${link ? 'a' : 'div'}>`,
     )
     .join('')}</div>`;

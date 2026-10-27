@@ -44,10 +44,17 @@ export async function renderPreview(app) {
         .join('')}
     </div>
 
-    <div class="section-title">② 핵심 문형</div>
-    <div class="card">
-      <h3 class="zh">${esc(W.pattern.form)}</h3>
-      <p>${esc(W.pattern.explain)}</p>
+    <div class="section-title">② 핵심 문형 ${W.patterns.length}개</div>
+    <div class="grid2">
+      ${W.patterns
+        .map(
+          (p) => `<div class="card">
+            <div class="zh" style="font-weight:600">${esc(p.form)}</div>
+            <div style="margin-top:4px">${esc(p.explain)}</div>
+            ${p.zh ? `<div class="zh" style="margin-top:8px">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div>` : ''}
+          </div>`,
+        )
+        .join('')}
     </div>
 
     <div class="section-title">예문</div>

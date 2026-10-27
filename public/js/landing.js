@@ -47,7 +47,7 @@ export async function renderLanding(app) {
     <div class="section-title">학습 방법</div>
     <h2>한 주는 이렇게 공부해요</h2>
     <div class="steps">
-      <div class="step"><h3>단어 10개</h3><p>한자·병음·뜻을 보고 🔊로 발음을 들은 뒤 외운 단어에 표시합니다.</p></div>
+      <div class="step"><h3>단어 15개</h3><p>한자·병음·뜻을 보고 🔊로 발음을 들은 뒤 외운 단어에 표시합니다.</p></div>
       <div class="step"><h3>문형과 예문</h3><p>그 주의 핵심 문형 하나와 실제로 쓰는 예문을 익힙니다.</p></div>
       <div class="step"><h3>퀴즈 10문제</h3><p>뜻·한자·병음을 고르는 퀴즈에서 8개 이상 맞히면 통과입니다.</p></div>
       <div class="step"><h3>작문 미션 + AI 첨삭</h3><p>배운 표현으로 문장을 쓰면 AI 선생님이 고친 문장과 이유를 알려 줍니다.</p></div>

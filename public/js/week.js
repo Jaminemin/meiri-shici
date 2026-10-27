@@ -1,3 +1,5 @@
+// 주차당 단어 수 (server/curriculum.js의 WORDS_PER_WEEK와 같아야 함)
+const WORDS_PER_WEEK = 15;
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
 import { state, esc, get, post, fail, toast, busy, speak } from './core.js';
 import { feedbackHtml } from './fb.js';
@@ -14,7 +16,7 @@ function loadKnown(week, serverCount) {
   } catch {
     /* 무시 */
   }
-  return serverCount >= 10 ? new Set(['all']) : new Set();
+  return serverCount >= WORDS_PER_WEEK ? new Set(['all']) : new Set();
 }
 function saveKnown(week, set) {
   try {
@@ -47,10 +49,10 @@ export async function renderWeek(app, ctx) {
       <div><a href="#/course" class="muted" style="text-decoration:none">← 15주 과정</a>
         <h1 style="margin-top:6px">${W.week}주차 · ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
         <p>🎯 ${esc(W.goal)}</p></div>
-      <div style="text-align:right">${st.done ? '<div class="seal">完成</div>' : `<div class="muted" style="font-size:13px">진행 ${st.steps}/3</div><div class="steps3" style="width:140px"><span class="${st.words >= 10 ? 'on' : ''}"></span><span class="${st.quiz !== null && st.quiz >= d.passQuiz ? 'on' : ''}"></span><span class="${st.writing ? 'on' : ''}"></span></div>`}</div>
+      <div style="text-align:right">${st.done ? '<div class="seal">完成</div>' : `<div class="muted" style="font-size:13px">진행 ${st.steps}/3</div><div class="steps3" style="width:140px"><span class="${st.words >= W.words.length ? 'on' : ''}"></span><span class="${st.quiz !== null && st.quiz >= d.passQuiz ? 'on' : ''}"></span><span class="${st.writing ? 'on' : ''}"></span></div>`}</div>
     </div>
     ${st.done && st.completedAt ? `<div class="notice info">🎉 이 주차를 모두 마쳤어요! ${W.week < d.total ? `<a href="#/week/${W.week + 1}">${W.week + 1}주차로 →</a>` : '15주 과정을 모두 마쳤어요. 정말 수고했어요!'}</div>` : ''}
-    <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${k === 'words' && st.words >= 10 ? ' ✓' : ''}${k === 'quiz' && st.quiz !== null && st.quiz >= d.passQuiz ? ' ✓' : ''}${k === 'writing' && st.writing ? ' ✓' : ''}</button>`).join('')}</div>`;
+    <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${k === 'words' && st.words >= W.words.length ? ' ✓' : ''}${k === 'quiz' && st.quiz !== null && st.quiz >= d.passQuiz ? ' ✓' : ''}${k === 'writing' && st.writing ? ' ✓' : ''}</button>`).join('')}</div>`;
   }
 
   function nav() {
@@ -74,7 +76,7 @@ export async function renderWeek(app, ctx) {
   let hideMean = false;
   function wordsTab() {
     return `<div class="row between" style="margin-bottom:12px">
-        <span class="muted">외운 단어를 눌러 표시하세요 · <b id="kn">${known.size}</b>/10</span>
+        <span class="muted">외운 단어를 눌러 표시하세요 · <b id="kn">${known.size}</b>/${W.words.length}</span>
         <div class="row"><label class="row" style="font-size:14px"><input type="checkbox" id="hide" ${hideMean ? 'checked' : ''}> 뜻 가리기(외우기 모드)</label>
         <button class="btn small" id="all-known">모두 외웠어요</button></div></div>
       <div class="word-list ${hideMean ? 'hide-mean' : ''}" id="wl">${W.words
@@ -104,7 +106,11 @@ export async function renderWeek(app, ctx) {
 
   // ---------- 문형 ----------
   function patternTab() {
-    return `<div class="pattern-box"><div class="ai-label">핵심 문형</div><div class="zh">${esc(W.pattern.form)}</div><p style="margin:8px 0 0">${esc(W.pattern.explain)}</p></div>
+    return `<div class="card"><h3>핵심 문형 ${W.patterns.length}개</h3>${W.patterns
+        .map(
+          (p, i) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="muted" style="font-size:12px">${i + 1}</div><div class="zh" style="font-weight:600">${esc(p.form)}</div><div style="margin-top:2px">${esc(p.explain)}</div>${p.zh ? `<div class="zh" style="margin-top:6px">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div>` : ''}</div>${p.zh ? `<button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button>` : ''}</div></div>`,
+        )
+        .join('')}</div>
       <div class="card"><h3>예문</h3>${W.examples
         .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
         .join('')}</div>
