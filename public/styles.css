@@ -450,7 +450,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   :root:not([data-theme='light']) { --burgundy: #e08a97; }
 }
 .gate-hero { text-align: center; padding: 36px 0 28px; }
-.gate-title { font-size: clamp(44px, 9vw, 72px); font-weight: 800; color: var(--burgundy); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
+.gate-title { font-size: clamp(31px, 6.3vw, 50px); font-weight: 800; color: var(--burgundy); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
 .gate-sub { margin: 10px 0 18px; color: var(--muted); font-size: 16px; }
 .gate-scene { max-width: 640px; margin: 0 auto; }
 .gate-scene svg { width: 100%; height: auto; display: block; border-radius: 18px; }

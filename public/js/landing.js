@@ -168,7 +168,7 @@ export async function renderLanding(app) {
   <div class="page">
     <section class="gate-hero${reduced ? ' reduced' : ''}">
       <h1 class="gate-title zh">每日十五词</h1>
-      <p class="gate-sub hook">HSK 막막했나요? 수업하면서 같이 배워봐요.</p>
+      <p class="gate-sub hook">초급/중급/고급 중국어란게 별거 있나요?</p>
       <div class="gate-scene">${palaceSvg(!reduced)}</div>
       <div class="level-pick">
         ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="#/preview/${c.key}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.ready ? '1주차 맛보기 →' : '준비 중'}</span></a>`).join('')}
