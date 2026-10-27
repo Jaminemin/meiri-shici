@@ -6,6 +6,7 @@ import { EXTRA_WORDS, PATTERNS } from './vocab15.js';
 import { TRAVEL_DRAFT_WEEKS } from './travel.js';
 import { HSK_DRAFT_WEEKS } from './hsk.js';
 import { EMCEE_DRAFT_WEEKS } from './emcee.js';
+import { FORM_PY } from './formpy.js';
 
 export const WORDS_PER_WEEK = 15;
 
@@ -280,7 +281,7 @@ export function weekData(gid) {
   // 문형 예문 병음: 직접 적은 값이 없으면 같은 코스 예문 목록에서 같은 문장의 병음을 찾아 채운다
   const coursePy = new Map();
   if (draft) course.weeks.forEach((x) => x.examples.forEach(([zh, py]) => coursePy.set(zh, py)));
-  const patterns = rawPatterns.map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || coursePy.get(zh) || '' }));
+  const patterns = rawPatterns.map(([form, explain, zh, ko, py]) => ({ form, formPy: FORM_PY[form] || '', explain, zh, ko, py: py || coursePy.get(zh) || '' }));
   return {
     ...w,
     gid: n,
