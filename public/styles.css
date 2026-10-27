@@ -1,41 +1,41 @@
-/* 每日十词 — 종이 위 붉은 인주 같은 차분한 화면 */
+/* 每日十词 — 깔끔한 학습 화면 */
 :root {
-  --bg: #f7f3ec;
-  --surface: #fffdf9;
-  --surface-2: #efece4;
-  --line: #ddd8cc;
-  --ink: #1e2724;
-  --ink-2: #4d5a55;
-  --muted: #7a857f;
-  --accent: #b23a2e;
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #f1f3f8;
+  --line: #e4e7ef;
+  --ink: #111827;
+  --ink-2: #374151;
+  --muted: #6b7280;
+  --accent: #4f46e5;
   --accent-ink: #ffffff;
-  --accent-soft: #f6e0dc;
-  --accent-2: #1f6a5a;
-  --warn-bg: #fff4d6;
-  --warn-line: #e3c36b;
-  --warn-ink: #6b4b06;
-  --bad: #b3412f;
-  --bad-soft: #f8e1dc;
-  --good: #2c7a4b;
-  --bar: #b23a2e;
-  --bar-soft: #ecc4bd;
-  --shadow: 0 1px 2px rgba(30, 39, 36, 0.06), 0 4px 16px rgba(30, 39, 36, 0.05);
-  --radius: 12px;
+  --accent-soft: #eef0ff;
+  --accent-2: #0d9488;
+  --warn-bg: #fffbeb;
+  --warn-line: #fcd34d;
+  --warn-ink: #92400e;
+  --bad: #dc2626;
+  --bad-soft: #fee2e2;
+  --good: #059669;
+  --bar: #4f46e5;
+  --bar-soft: #c7d2fe;
+  --shadow: 0 1px 2px rgba(17, 24, 39, 0.04), 0 6px 20px rgba(17, 24, 39, 0.06);
+  --radius: 16px;
   --font: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --serif: 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  --serif: 'Noto Serif SC', 'Noto Serif KR', 'Nanum Myeongjo', serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #141917; --surface: #1b211f; --surface-2: #232b28; --line: #34403b; --ink: #e8ece9; --ink-2: #b7c2bd; --muted: #87948e;
-    --accent: #ec8a7c; --accent-ink: #1a0f0d; --accent-soft: #3d2420; --accent-2: #6fcfb0; --warn-bg: #352b12; --warn-line: #7a6223; --warn-ink: #f0d58f;
-    --bad: #ec8a78; --bad-soft: #3a211c; --good: #6fcf97; --bar: #ec8a7c; --bar-soft: #5a3530; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
+    --bg: #0f1117; --surface: #181b24; --surface-2: #20242f; --line: #2c3240; --ink: #eef0f6; --ink-2: #c4c9d6; --muted: #8b93a6;
+    --accent: #8b8cf8; --accent-ink: #0f1117; --accent-soft: #262a4a; --accent-2: #5eead4; --warn-bg: #2b2412; --warn-line: #6b5520; --warn-ink: #fcd34d;
+    --bad: #f87171; --bad-soft: #3a1f23; --good: #6ee7b7; --bar: #8b8cf8; --bar-soft: #3b3f73; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
-  --bg: #141917; --surface: #1b211f; --surface-2: #232b28; --line: #34403b; --ink: #e8ece9; --ink-2: #b7c2bd; --muted: #87948e;
-  --accent: #ec8a7c; --accent-ink: #1a0f0d; --accent-soft: #3d2420; --accent-2: #6fcfb0; --warn-bg: #352b12; --warn-line: #7a6223; --warn-ink: #f0d58f;
-  --bad: #ec8a78; --bad-soft: #3a211c; --good: #6fcf97; --bar: #ec8a7c; --bar-soft: #5a3530; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
+  --bg: #0f1117; --surface: #181b24; --surface-2: #20242f; --line: #2c3240; --ink: #eef0f6; --ink-2: #c4c9d6; --muted: #8b93a6;
+  --accent: #8b8cf8; --accent-ink: #0f1117; --accent-soft: #262a4a; --accent-2: #5eead4; --warn-bg: #2b2412; --warn-line: #6b5520; --warn-ink: #fcd34d;
+  --bad: #f87171; --bad-soft: #3a1f23; --good: #6ee7b7; --bar: #8b8cf8; --bar-soft: #3b3f73; --shadow: 0 1px 2px rgba(0,0,0,.3); color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -350,3 +350,18 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .brand { white-space: nowrap; }
 .switch { flex-wrap: wrap; }
 @media (max-width: 560px) { .user-chip .badge { display: none; } table.list .muted { word-break: break-all; } }
+
+/* ---------- 수업 선택 · 달력 · 맛보기 (추가) ---------- */
+.section-title { font-size: 13px; font-weight: 700; letter-spacing: .04em; color: var(--accent); margin: 28px 0 6px; text-transform: uppercase; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+.track-card { text-decoration: none; color: var(--ink); display: flex; flex-direction: column; gap: 6px; transition: transform .15s, box-shadow .15s; }
+.track-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(17, 24, 39, .10); }
+.track-icon { font-size: 30px; }
+.track-go { margin-top: auto; padding-top: 8px; color: var(--accent); font-weight: 700; font-size: 14px; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+.cal .dow { font-size: 11px; color: var(--muted); padding: 4px 0; }
+.cal span { min-height: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 10px; font-size: 13px; color: var(--ink-2); position: relative; }
+.cal span.on { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.cal span.on i { font-style: normal; font-size: 10px; line-height: 1; }
+.cal span.today { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (max-width: 860px) { .grid3 { grid-template-columns: 1fr; } }

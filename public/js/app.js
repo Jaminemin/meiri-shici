@@ -2,7 +2,7 @@
 import { state, esc, get, post, fail, toast, speak } from './core.js';
 import { renderLanding, renderPending } from './landing.js';
 import { renderPreview } from './preview.js';
-import { renderHome, renderCourse, renderMyWritings } from './home.js';
+import { renderHome, renderCourse, renderMyWritings, renderTrack } from './home.js';
 import { renderWeek } from './week.js';
 import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings } from './admin.js';
 
@@ -78,6 +78,7 @@ async function route() {
     const ctx = { params, rerender: route };
     if (parts[0] === 'home') return renderHome(app, ctx);
     if (parts[0] === 'course') return renderCourse(app, ctx);
+    if (parts[0] === 'track') return renderTrack(app, parts[1]);
     if (parts[0] === 'writings') return renderMyWritings(app, ctx);
     if (parts[0] === 'week' && parts[1]) return renderWeek(app, { ...ctx, week: Number(parts[1]), tab: parts[2] || 'words' });
     if (parts[0] === 'admin') {

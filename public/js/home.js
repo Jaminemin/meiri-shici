@@ -2,10 +2,16 @@
 import { esc, get, fmtDate, ago } from './core.js';
 import { feedbackHtml } from './fb.js';
 
-export function weekCards(weeks, currentWeek, { link = true } = {}) {
+export const TRACKS = {
+  listen: { name: '리스닝 수업', tab: 'listen', icon: '🎧', desc: '소리를 듣고 뜻과 한자를 고르는 수업. 단어 발음과 예문을 귀로 익힙니다.' },
+  grammar: { name: '문법 수업', tab: 'grammar', icon: '📖', desc: '문형을 익히고 예문의 빈칸을 채우는 수업. 어순과 쓰임을 정확히 잡습니다.' },
+  writing: { name: '작문 수업', tab: 'writing', icon: '✍️', desc: '배운 단어와 예문을 눌러 문장을 만들고, AI 선생님께 첨삭을 받습니다.' },
+};
+
+export function weekCards(weeks, currentWeek, { link = true, tab = '' } = {}) {
   return `<div class="week-grid">${weeks
     .map(
-      (w) => `<${link ? `a href="#/week/${w.week}"` : 'div'} class="week-card ${w.done ? 'done' : ''} ${w.week === currentWeek ? 'current' : ''}">
+      (w) => `<${link ? `a href="#/week/${w.week}${tab ? `/${tab}` : ''}"` : 'div'} class="week-card ${w.done ? 'done' : ''} ${w.week === currentWeek ? 'current' : ''}">
       <div class="wn">${w.week}주차 · HSK ${w.hsk}</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div>
       <div class="steps3" title="단어 · 퀴즈 · 작문"><span class="${w.words >= 10 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
       <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/10 · 퀴즈 ${w.quiz ?? '–'}/10 · 작문 ${w.writing ? '✓' : '–'}</div>
@@ -27,6 +33,40 @@ export function heatmap(days) {
   return `<div class="heat">${cells.join('')}</div><div class="row between muted" style="font-size:11px;margin-top:4px"><span>4주 전</span><span>오늘</span></div>`;
 }
 
+export function calendar(days) {
+  const set = new Set(days || []);
+  const kst = new Date(Date.now() + 9 * 3600 * 1000);
+  const y = kst.getUTCFullYear();
+  const m = kst.getUTCMonth();
+  const today = kst.toISOString().slice(0, 10);
+  const first = new Date(Date.UTC(y, m, 1));
+  const count = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  const cells = [];
+  for (let i = 0; i < first.getUTCDay(); i++) cells.push('<span></span>');
+  for (let day = 1; day <= count; day++) {
+    const k = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const cls = [set.has(k) ? 'on' : '', k === today ? 'today' : ''].join(' ');
+    cells.push(`<span class="${cls}" title="${k}${set.has(k) ? ' · 출석' : ''}">${day}${set.has(k) ? '<i>✓</i>' : ''}</span>`);
+  }
+  const week = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="dow">${w}</span>`).join('');
+  const done = [...set].filter((k) => k.startsWith(`${y}-${String(m + 1).padStart(2, '0')}`)).length;
+  return `<div class="row between" style="margin-bottom:8px"><b>${y}년 ${m + 1}월</b><span class="muted" style="font-size:13px">이번 달 출석 ${done}일</span></div>
+    <div class="cal">${week}${cells.join('')}</div>`;
+}
+
+export async function renderTrack(app, key) {
+  const t = TRACKS[key];
+  if (!t) {
+    app.innerHTML = '<div class="page"><div class="empty">없는 수업입니다. <a href="#/home">처음으로</a></div></div>';
+    return;
+  }
+  const d = await get('/api/dashboard');
+  app.innerHTML = `<div class="page">
+    <div class="page-head"><div><a href="#/home" class="muted" style="text-decoration:none">← 홈</a><h1 style="margin-top:6px">${t.icon} ${t.name}</h1><p>${t.desc}</p></div></div>
+    <div class="card"><div class="card-head"><h2>15주 중 고르기</h2><span class="muted" style="font-size:13px">주차를 누르면 ${t.name} 화면으로 이동합니다</span></div>${weekCards(d.weeks, d.current.week, { tab: t.tab })}</div>
+  </div>`;
+}
+
 export async function renderHome(app) {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   const d = await get('/api/dashboard');
@@ -42,11 +82,17 @@ export async function renderHome(app) {
       <div class="stat"><div class="label">연속 학습일</div><div class="value">${s.streak}<small class="muted" style="font-size:16px">일</small></div><div class="sub">지금까지 ${s.totalDays}일 공부</div></div>
       <div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>
     </div>
+    <div class="section-title">수업 고르기</div>
+    <div class="grid3">
+      ${Object.entries(TRACKS)
+        .map(([k, t]) => `<a class="card track-card" href="#/track/${k}"><div class="track-icon">${t.icon}</div><h3>${t.name}</h3><p class="muted" style="font-size:14px">${t.desc}</p><span class="track-go">15주 보기 →</span></a>`)
+        .join('')}
+    </div>
     <div class="grid2" style="gap:16px">
       <div class="card today-word"><div class="ai-label">오늘의 단어 · ${d.current.week}주차</div>
         <div class="row" style="align-items:flex-end"><span class="hz zh">${esc(tw.hanzi)}</span><button class="speak" data-speak="${esc(tw.hanzi)}" aria-label="발음 듣기">🔊</button></div>
         <div class="py" style="font-size:18px">${esc(tw.pinyin)}</div><div>${esc(tw.meaning)}</div></div>
-      <div class="card"><h3>최근 4주 학습 기록</h3>${heatmap(s.days)}</div>
+      <div class="card"><h3>출석 달력</h3>${calendar(s.days)}</div>
     </div>
     <div class="card"><div class="card-head"><h2>15주 진도</h2><span class="muted" style="font-size:13px">막대 3칸 = 단어 · 퀴즈 · 작문</span></div>${weekCards(d.weeks, d.current.week)}</div>
     <div class="card"><div class="card-head"><h3>최근 작문</h3><a href="#/writings">전체 보기 →</a></div>

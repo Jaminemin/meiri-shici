@@ -35,8 +35,10 @@ export async function renderWeek(app, ctx) {
   const tabs = [
     ['words', '① 단어'],
     ['pattern', '② 문형·예문'],
-    ['quiz', '③ 퀴즈'],
-    ['writing', '④ 작문 미션'],
+    ['listen', '③ 듣기'],
+    ['grammar', '④ 문법'],
+    ['quiz', '⑤ 퀴즈'],
+    ['writing', '⑥ 작문 미션'],
   ];
 
   function head() {
@@ -59,6 +61,8 @@ export async function renderWeek(app, ctx) {
     let body = '';
     if (tab === 'words') body = wordsTab();
     if (tab === 'pattern') body = patternTab();
+    if (tab === 'listen') body = listenTab();
+    if (tab === 'grammar') body = grammarTab();
     if (tab === 'quiz') body = quizIntro();
     if (tab === 'writing') body = writingTab();
     app.innerHTML = `<div class="page">${head()}<div id="body">${body}</div>${nav()}</div>`;
@@ -104,7 +108,59 @@ export async function renderWeek(app, ctx) {
       <div class="card"><h3>예문</h3>${W.examples
         .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
         .join('')}</div>
-      <div class="row end"><button class="btn primary" data-go="quiz">다음: 퀴즈 →</button></div>`;
+      <div class="row end"><button class="btn primary" data-go="listen">다음: 듣기 연습 →</button></div>`;
+  }
+
+  // ---------- 듣기 연습 (소리 듣고 뜻 고르기, 저장 없음) ----------
+  let listen = null;
+  function makeListen() {
+    return shuffle(W.words).slice(0, Math.min(6, W.words.length)).map((w) => {
+      const others = shuffle(W.words.filter((x) => x.id !== w.id)).slice(0, 3);
+      return { say: w.hanzi, ok: w.meaning, opts: shuffle([w, ...others]).map((o) => o.meaning) };
+    });
+  }
+  function listenTab() {
+    if (!listen) listen = { list: makeListen(), i: 0, score: 0 };
+    if (listen.i >= listen.list.length) {
+      const n = listen.list.length;
+      const msg = listen.score === n ? '모두 맞췄습니다! 축하드려요~' : '아쉽지만 복습 후 다시 시도해보세요~';
+      return `<div class="card" style="text-align:center;padding:36px 20px"><div class="fb-score">${listen.score}<small class="muted" style="font-size:20px"> / ${n}</small></div><h2 style="margin-top:10px">${msg}</h2><div class="row" style="justify-content:center"><button class="btn primary" id="ln-again">다시 듣기</button></div></div>`;
+    }
+    const it = listen.list[listen.i];
+    return `<div class="card" style="text-align:center;padding:30px 20px">
+      <div class="muted" style="font-size:13px">듣기 ${listen.i + 1} / ${listen.list.length}</div>
+      <button class="btn primary big" id="ln-play" style="margin:14px 0">🔊 다시 듣기</button>
+      <div class="choices">${it.opts.map((o, k) => `<button class="choice" data-ln="${k}">${esc(o)}</button>`).join('')}</div>
+      <div id="ln-msg" style="min-height:28px;margin-top:10px"></div></div>`;
+  }
+
+  // ---------- 문법 연습 (예문 빈칸 채우기) ----------
+  let grammar = null;
+  function makeGrammar() {
+    const items = [];
+    W.examples.forEach((ex) => {
+      const target = W.words.find((w) => ex.zh.includes(w.hanzi));
+      if (!target) return;
+      const others = shuffle(W.words.filter((x) => x.id !== target.id)).slice(0, 3);
+      items.push({ sentence: ex.zh.replace(target.hanzi, '＿＿'), ko: ex.ko, ok: target.hanzi, opts: shuffle([target, ...others]).map((o) => o.hanzi) });
+    });
+    return items;
+  }
+  function grammarTab() {
+    if (!grammar) grammar = { list: makeGrammar(), i: 0, score: 0 };
+    if (!grammar.list.length) return '<div class="empty">이 주차는 빈칸 문법 연습 문제가 아직 없어요.</div>';
+    if (grammar.i >= grammar.list.length) {
+      const n = grammar.list.length;
+      const msg = grammar.score === n ? '모두 맞췄습니다! 축하드려요~' : '아쉽지만 복습 후 다시 시도해보세요~';
+      return `<div class="card" style="text-align:center;padding:36px 20px"><div class="fb-score">${grammar.score}<small class="muted" style="font-size:20px"> / ${n}</small></div><h2 style="margin-top:10px">${msg}</h2><div class="row" style="justify-content:center"><button class="btn primary" id="gr-again">다시 풀기</button></div></div>`;
+    }
+    const it = grammar.list[grammar.i];
+    return `<div class="card">
+      <div class="muted" style="font-size:13px">문법 ${grammar.i + 1} / ${grammar.list.length} · 빈칸에 알맞은 단어를 고르세요</div>
+      <div class="zh" style="font-size:24px;margin:14px 0 4px">${esc(it.sentence)}</div>
+      <div class="muted" style="margin-bottom:12px">${esc(it.ko)}</div>
+      <div class="choices">${it.opts.map((o, k) => `<button class="choice zh" data-gr="${k}" style="font-size:22px">${esc(o)}</button>`).join('')}</div>
+      <div id="gr-msg" style="min-height:28px;margin-top:10px"></div></div>`;
   }
 
   // ---------- 퀴즈 ----------
@@ -176,7 +232,7 @@ export async function renderWeek(app, ctx) {
     const pass = score >= d.passQuiz;
     body.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px">
       <div class="fb-score">${score}<small class="muted" style="font-size:20px"> / 10</small></div>
-      <h2 style="margin-top:10px">${pass ? '통과! 🎉' : '조금만 더! 💪'}</h2>
+      <h2 style="margin-top:10px">${score === 10 ? '모두 맞췄습니다! 축하드려요~ 🎉' : pass ? '통과! 🎉' : '아쉽지만 복습 후 다시 시도해보세요~'}</h2>
       <p class="muted">${pass ? '작문 미션으로 배운 단어를 직접 써 보세요.' : `${d.passQuiz}개 이상 맞히면 통과예요. 단어를 한 번 더 보고 다시 도전해 보세요.`}</p>
       <div class="row" style="justify-content:center"><button class="btn" id="q-retry">다시 풀기</button><button class="btn primary" data-go="${pass ? 'writing' : 'words'}">${pass ? '작문 미션 →' : '단어 다시 보기'}</button></div></div>`;
     body.querySelector('#q-retry').onclick = () => {
@@ -198,8 +254,12 @@ export async function renderWeek(app, ctx) {
   function writingTab() {
     return `<div class="card">
       <div class="ai-label">작문 미션</div><h2 style="margin-top:4px">${esc(W.mission)}</h2>
-      <p class="muted" style="font-size:14px">핵심 문형 <span class="zh">${esc(W.pattern.form)}</span>과 이번 주 단어를 써 보세요. 단어를 누르면 글에 넣어져요.</p>
+      <p class="muted" style="font-size:14px">배운 단어와 예문을 눌러서 문장을 만들어 보세요. 직접 입력해도 돼요.</p>
+      <div class="ai-label" style="margin-top:6px">단어</div>
       <div class="tags" style="margin-bottom:10px">${W.words.map((w) => `<button class="tag zh" style="border:0;cursor:pointer;font-size:15px" data-ins="${esc(w.hanzi)}" title="${esc(w.pinyin)} · ${esc(w.meaning)}">${esc(w.hanzi)}</button>`).join('')}</div>
+      <div class="ai-label">예문</div>
+      <div class="tags" style="margin-bottom:10px">${W.examples.map((e) => `<button class="tag zh" style="border:0;cursor:pointer;font-size:14px" data-ins="${esc(e.zh)}" title="${esc(e.ko)}">${esc(e.zh)}</button>`).join('')}</div>
+      <div class="row" style="margin-bottom:8px"><button class="btn small" id="wr-undo">↶ 마지막 입력 지우기</button><button class="btn small" id="wr-clear">전체 지우기</button></div>
       <textarea id="wr" rows="5" class="zh" style="font-size:18px" maxlength="1500" placeholder="여기에 중국어로 써 보세요. 예: 你好！我叫…"></textarea>
       <div class="row between" style="margin-top:8px"><span class="muted" style="font-size:13px"><span id="wc">0</span>/1500자 · 중국어 입력기가 없으면 병음 없이 한자만 복사해 써도 돼요.</span>
       <button class="btn primary" id="wr-send" ${state.me.aiReady ? '' : 'disabled title="AI 첨삭이 설정되지 않았습니다"'}>✨ AI 선생님께 첨삭 받기</button></div>
@@ -240,6 +300,48 @@ export async function renderWeek(app, ctx) {
         $('#wl').classList.toggle('hide-mean', hideMean);
       };
     app.querySelectorAll('.word').forEach((c) => (c.onclick = (e) => !e.target.closest('button') && c.classList.toggle('peek')));
+    // 듣기
+    if ($('#ln-play'))
+      $('#ln-play').onclick = () => speak(listen.list[listen.i].say);
+    app.querySelectorAll('[data-ln]').forEach(
+      (b) =>
+        (b.onclick = () => {
+          const it = listen.list[listen.i];
+          const ok = it.opts[Number(b.dataset.ln)] === it.ok;
+          if (ok) listen.score++;
+          app.querySelectorAll('[data-ln]').forEach((c) => (c.disabled = true));
+          $('#ln-msg').innerHTML = `<span class="${ok ? '' : 'muted'}">${ok ? '정답! 👏' : `아쉬워요. 정답은 “${esc(it.ok)}”예요.`}</span> <button class="btn small primary" id="ln-next" style="margin-left:8px">${listen.i + 1 < listen.list.length ? '다음' : '결과 보기'}</button>`;
+          $('#ln-next').onclick = () => {
+            listen.i++;
+            draw();
+          };
+        }),
+    );
+    if ($('#ln-again'))
+      $('#ln-again').onclick = () => {
+        listen = null;
+        draw();
+      };
+    // 문법
+    app.querySelectorAll('[data-gr]').forEach(
+      (b) =>
+        (b.onclick = () => {
+          const it = grammar.list[grammar.i];
+          const ok = it.opts[Number(b.dataset.gr)] === it.ok;
+          if (ok) grammar.score++;
+          app.querySelectorAll('[data-gr]').forEach((c) => (c.disabled = true));
+          $('#gr-msg').innerHTML = `<span>${ok ? '정답! 👏' : `아쉬워요. 정답은 “${esc(it.ok)}”예요.`}</span> <button class="btn small primary" id="gr-next" style="margin-left:8px">${grammar.i + 1 < grammar.list.length ? '다음' : '결과 보기'}</button>`;
+          $('#gr-next').onclick = () => {
+            grammar.i++;
+            draw();
+          };
+        }),
+    );
+    if ($('#gr-again'))
+      $('#gr-again').onclick = () => {
+        grammar = null;
+        draw();
+      };
     // 퀴즈
     if ($('#q-start'))
       $('#q-start').onclick = () => {
@@ -263,16 +365,29 @@ export async function renderWeek(app, ctx) {
           /* 무시 */
         }
       };
+      let lastIns = '';
       app.querySelectorAll('[data-ins]').forEach(
         (b) =>
           (b.onclick = () => {
             const p = wr.selectionStart ?? wr.value.length;
             wr.value = wr.value.slice(0, p) + b.dataset.ins + wr.value.slice(wr.selectionEnd ?? p);
+            lastIns = b.dataset.ins;
             wr.focus();
             wr.setSelectionRange(p + b.dataset.ins.length, p + b.dataset.ins.length);
             wr.oninput();
           }),
       );
+      $('#wr-undo').onclick = () => {
+        if (lastIns && wr.value.endsWith(lastIns)) wr.value = wr.value.slice(0, -lastIns.length);
+        else wr.value = wr.value.trimEnd().replace(/[^\s]+$/, '').trimEnd();
+        lastIns = '';
+        wr.oninput();
+      };
+      $('#wr-clear').onclick = () => {
+        wr.value = '';
+        lastIns = '';
+        wr.oninput();
+      };
       $('#wr-send').onclick = (e) =>
         busy(e.currentTarget, async () => {
           const content = wr.value.trim();
