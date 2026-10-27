@@ -45,7 +45,8 @@ export async function renderWeek(app, ctx) {
     ['quiz', '⑤ 퀴즈'],
     ['writing', '⑥ 쓰기'],
   ];
-  if (W.mock) tabs.push(['mock', '⑦ 모의고사']);
+  const MOCK_NAME = W.course === 'emcee' ? '멘트 퀴즈' : '모의고사';
+  if (W.mock) tabs.push(['mock', '⑦ ' + MOCK_NAME]);
 
   function head() {
     const st = d.state;
@@ -113,7 +114,7 @@ export async function renderWeek(app, ctx) {
   function patternTab() {
     return `${W.course === 'travel' ? sceneCard(W.week, W.scene) : ''}<div class="card"><h3>핵심 문형 ${W.patterns.length}개</h3>${W.patterns
         .map(
-          (p, i) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="muted" style="font-size:12px">${i + 1}</div><div class="zh" style="font-weight:600">${esc(p.form)}</div><div style="margin-top:2px">${esc(p.explain)}</div>${p.zh ? `<div class="zh" style="margin-top:6px">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div>` : ''}</div>${p.zh ? `<button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button>` : ''}</div></div>`,
+          (p, i) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="muted" style="font-size:12px">${i + 1}</div><div class="zh" style="font-weight:600">${esc(p.form)}</div><div style="margin-top:2px">${esc(p.explain)}</div>${p.zh ? `<div class="zh" style="margin-top:6px">${esc(p.zh)}</div>${p.py ? `<div class="py">${esc(p.py)}</div>` : ''}<div class="muted">${esc(p.ko)}</div>` : ''}</div>${p.zh ? `<button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button>` : ''}</div></div>`,
         )
         .join('')}</div>
       <div class="card"><h3>예문</h3>${W.examples
@@ -326,7 +327,7 @@ export async function renderWeek(app, ctx) {
     const items = mockItems(W.mock);
     return `<div class="card" style="text-align:center;padding:36px 20px">
       <div class="seal" style="margin-bottom:14px">模拟</div>
-      <h2>${W.week}주차 모의고사 ${items.length}문제</h2>
+      <h2>${W.week}주차 ${MOCK_NAME} ${items.length}문제</h2>
       <p class="muted">듣기 ${W.mock.listening.length} · 문법 ${W.mock.grammar.length} · 독해 ${W.mock.reading.questions.length} 문항이에요. 문제마다 바로 채점돼요.</p>
       <button class="btn primary big" id="m-start">시작하기</button></div>`;
   }

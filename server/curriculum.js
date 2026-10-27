@@ -5,6 +5,7 @@ import { EXTRA_EXAMPLES } from './examples15.js';
 import { EXTRA_WORDS, PATTERNS } from './vocab15.js';
 import { TRAVEL_DRAFT_WEEKS } from './travel.js';
 import { HSK_DRAFT_WEEKS } from './hsk.js';
+import { EMCEE_DRAFT_WEEKS } from './emcee.js';
 
 export const WORDS_PER_WEEK = 15;
 
@@ -256,7 +257,7 @@ export const WEEKS = [
 export const COURSES = {
   travel: { key: 'travel', name: '여행 중국어', level: '초급', offset: 0, ready: true, weeks: TRAVEL_DRAFT_WEEKS },
   hsk: { key: 'hsk', name: 'HSK 중국어', level: '중급', offset: 100, ready: true, weeks: HSK_DRAFT_WEEKS },
-  emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: false, weeks: [] },
+  emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: true, weeks: EMCEE_DRAFT_WEEKS },
 };
 
 export function courseOf(gid) {
@@ -276,7 +277,10 @@ export function weekData(gid) {
   const examples = draft ? w.examples : [...w.examples, ...(EXTRA_EXAMPLES[w.week] || [])].slice(0, 15);
   const allWords = draft ? w.words : [...w.words, ...(EXTRA_WORDS[w.week] || [])];
   const rawPatterns = draft ? w.patterns : (PATTERNS[w.week] || [[w.pattern.form, w.pattern.explain, '', '']]);
-  const patterns = rawPatterns.map(([form, explain, zh, ko]) => ({ form, explain, zh, ko }));
+  // 문형 예문 병음: 직접 적은 값이 없으면 같은 코스 예문 목록에서 같은 문장의 병음을 찾아 채운다
+  const coursePy = new Map();
+  if (draft) course.weeks.forEach((x) => x.examples.forEach(([zh, py]) => coursePy.set(zh, py)));
+  const patterns = rawPatterns.map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || coursePy.get(zh) || '' }));
   return {
     ...w,
     gid: n,

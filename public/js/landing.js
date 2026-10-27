@@ -11,7 +11,7 @@ const OUTFIT = {
 const LEVELS = [
   { key: 'travel', name: '여행 중국어', level: '초급', icon: '✈️', ready: true },
   { key: 'hsk', name: 'HSK 중국어', level: '중급', icon: '📘', ready: true },
-  { key: 'emcee', name: '사회자 중국어', level: '고급', icon: '🎤', ready: false },
+  { key: 'emcee', name: '사회자 중국어', level: '고급', icon: '🎤', ready: true },
 ];
 
 // 귀여운 판다 한 마리 (로컬 좌표 100x130, 발은 y=130에 닿음)
@@ -167,9 +167,8 @@ export async function renderLanding(app) {
   app.innerHTML = `
   <div class="page">
     <section class="gate-hero${reduced ? ' reduced' : ''}">
-      <h1 class="gate-title zh">每日十五词</h1>
-      <p class="gate-sub hook">초급/중급/고급 중국어란게 별거 있나요?</p>
-      <div class="gate-scene">${palaceSvg(!reduced)}</div>
+      <p class="gate-sub hook">초급부터 고급까지! 다양한 시나리오로 함께 배워봐요</p>
+      <div class="gate-scene">${palaceSvg(!reduced)}<h1 class="gate-title zh">每日十五词</h1></div>
       <div class="level-pick">
         ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="#/preview/${c.key}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.ready ? '1주차 맛보기 →' : '준비 중'}</span></a>`).join('')}
       </div>
