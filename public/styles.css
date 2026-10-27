@@ -421,3 +421,18 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   .q3-choice.zh { font-size: 21px; }
 }
 @media (prefers-reduced-motion: reduce) { .q3-card, .q3-choice { transition: none; } .q3-choice.wrong { animation: none; } }
+
+/* ---------- 대문: 듣기 · 쓰기 · 말하기 선택 ---------- */
+.hook { font-size: 17px; font-weight: 700; color: var(--accent); margin: 6px 0 4px; }
+.skill-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 18px 0 8px; max-width: 520px; }
+.skill-card {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 10px; border-radius: 18px; text-decoration: none; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line); box-shadow: 0 6px 0 var(--line), 0 12px 24px -16px rgba(17,24,39,.3);
+  transition: transform .12s ease, box-shadow .12s ease, border-color .2s;
+}
+.skill-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 9px 0 var(--line), 0 16px 26px -16px rgba(17,24,39,.35); }
+.skill-card:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--line); }
+.skill-icon { font-size: 26px; }
+.skill-zh { font-size: 22px; font-weight: 800; color: var(--accent); }
+.skill-ko { font-size: 14px; font-weight: 700; }
+@media (max-width: 560px) { .skill-pick { gap: 8px; } .skill-card { padding: 12px 6px; } }
