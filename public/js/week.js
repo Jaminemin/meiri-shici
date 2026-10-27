@@ -45,7 +45,8 @@ export async function renderWeek(app, ctx) {
     ['quiz', '⑤ 퀴즈'],
     ['writing', '⑥ 쓰기'],
   ];
-  if (W.mock) tabs.push(['mock', '⑦ 모의고사']);
+  const MOCK_NAME = W.course === 'emcee' ? '멘트 퀴즈' : '모의고사';
+  if (W.mock) tabs.push(['mock', '⑦ ' + MOCK_NAME]);
 
   function head() {
     const st = d.state;
@@ -326,7 +327,7 @@ export async function renderWeek(app, ctx) {
     const items = mockItems(W.mock);
     return `<div class="card" style="text-align:center;padding:36px 20px">
       <div class="seal" style="margin-bottom:14px">模拟</div>
-      <h2>${W.week}주차 모의고사 ${items.length}문제</h2>
+      <h2>${W.week}주차 ${MOCK_NAME} ${items.length}문제</h2>
       <p class="muted">듣기 ${W.mock.listening.length} · 문법 ${W.mock.grammar.length} · 독해 ${W.mock.reading.questions.length} 문항이에요. 문제마다 바로 채점돼요.</p>
       <button class="btn primary big" id="m-start">시작하기</button></div>`;
   }

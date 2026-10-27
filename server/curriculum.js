@@ -5,6 +5,7 @@ import { EXTRA_EXAMPLES } from './examples15.js';
 import { EXTRA_WORDS, PATTERNS } from './vocab15.js';
 import { TRAVEL_DRAFT_WEEKS } from './travel.js';
 import { HSK_DRAFT_WEEKS } from './hsk.js';
+import { EMCEE_DRAFT_WEEKS } from './emcee.js';
 
 export const WORDS_PER_WEEK = 15;
 
@@ -256,7 +257,7 @@ export const WEEKS = [
 export const COURSES = {
   travel: { key: 'travel', name: '여행 중국어', level: '초급', offset: 0, ready: true, weeks: TRAVEL_DRAFT_WEEKS },
   hsk: { key: 'hsk', name: 'HSK 중국어', level: '중급', offset: 100, ready: true, weeks: HSK_DRAFT_WEEKS },
-  emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: false, weeks: [] },
+  emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: true, weeks: EMCEE_DRAFT_WEEKS },
 };
 
 export function courseOf(gid) {
