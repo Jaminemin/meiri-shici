@@ -22,7 +22,8 @@
   --shadow: 0 1px 2px rgba(17, 24, 39, 0.04), 0 6px 20px rgba(17, 24, 39, 0.06);
   --radius: 16px;
   --font: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
-  --serif: 'Noto Serif SC', 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  --serif: SimSun, 'Noto Serif SC', 'Noto Serif KR', 'Nanum Myeongjo', serif;
+  --zh: SimSun, 'Noto Serif SC', 'Songti SC', serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -283,13 +284,13 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .rel-n { color: var(--ink-2); font-weight: 700; font-variant-numeric: tabular-nums; }
 
 /* ---------- 每日十五词 전용 ---------- */
-.brand-mark.zh { font-family: 'Noto Serif SC', 'Noto Serif KR', serif; font-size: 15px; }
+.brand-mark.zh { font-family: var(--zh); font-size: 15px; }
 .topnav { display: flex; gap: 4px; margin-left: 12px; }
 .topnav a { padding: 6px 12px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; }
 .topnav a.on, .topnav a:hover { background: var(--accent-soft); color: var(--accent); }
 .topnav .count { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 0 6px; font-size: 11px; margin-left: 4px; }
 .page { max-width: 1080px; margin: 0 auto; padding: 24px 20px 60px; }
-.zh { font-family: 'Noto Serif SC', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', serif; }
+.zh { font-family: var(--zh); }
 .py { color: var(--accent-2); font-size: 14px; }
 .week-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
 .week-card { display: block; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; position: relative; transition: .15s; }
@@ -298,7 +299,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .week-card .wt { font-weight: 800; margin: 2px 0; }
 .week-card .wz { font-size: 13px; color: var(--muted); }
 .week-card.done { background: var(--accent-soft); border-color: var(--accent); }
-.week-card.done::after { content: '完'; position: absolute; top: 10px; right: 12px; width: 28px; height: 28px; border: 2px solid var(--accent); color: var(--accent); border-radius: 6px; display: grid; place-items: center; font-family: 'Noto Serif SC', serif; font-weight: 900; transform: rotate(-8deg); }
+.week-card.done::after { content: '完'; position: absolute; top: 10px; right: 12px; width: 28px; height: 28px; border: 2px solid var(--accent); color: var(--accent); border-radius: 6px; display: grid; place-items: center; font-family: var(--zh); font-weight: 900; transform: rotate(-8deg); }
 .week-card.current { box-shadow: 0 0 0 2px var(--accent); }
 .steps3 { display: flex; gap: 4px; margin-top: 8px; }
 .steps3 span { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-2); }
@@ -329,7 +330,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .choice:disabled { cursor: default; opacity: 0.55; box-shadow: none; }
 .choice.right { background: #d9efe2; border-color: #2c7a4b; color: #134a2c; }
 .choice.wrong, .choice.wrong:disabled { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); opacity: 1; transform: none; }
-.wpick { display: inline-block; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); font: inherit; font-family: 'Noto Serif SC', 'Noto Sans SC', 'PingFang SC', serif; font-size: 22px; color: var(--ink); cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.wpick { display: inline-block; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); font: inherit; font-family: var(--zh); font-size: 22px; color: var(--ink); cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
 .wpick:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); transform: translateY(-1px); }
 .wpick:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
 .fb-score { font-size: 44px; font-weight: 900; color: var(--accent); line-height: 1; }
@@ -342,7 +343,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .heat i.on { background: var(--accent); }
 .today-word .hz { font-size: 64px; font-weight: 700; line-height: 1.1; }
 .hero-zh { font-size: 76px; font-weight: 900; color: var(--accent); line-height: 1; letter-spacing: .04em; }
-.seal { display: inline-grid; place-items: center; width: 64px; height: 64px; border: 3px solid var(--accent); color: var(--accent); border-radius: 10px; font-family: 'Noto Serif SC', serif; font-weight: 900; font-size: 22px; line-height: 1.05; transform: rotate(-6deg); text-align: center; }
+.seal { display: inline-grid; place-items: center; width: 64px; height: 64px; border: 3px solid var(--accent); color: var(--accent); border-radius: 10px; font-family: var(--zh); font-weight: 900; font-size: 22px; line-height: 1.05; transform: rotate(-6deg); text-align: center; }
 .user-row { display: flex; align-items: center; gap: 10px; }
 .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-weight: 800; flex: none; overflow: hidden; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
