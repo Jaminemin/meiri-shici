@@ -124,15 +124,42 @@ export function loadScript(src) {
   return loaded.get(src);
 }
 
+// 중국 본토(zh-CN) 음성 중 자연스럽다고 알려진 것을 우선 고른다.
+const PREFERRED_ZH = [/Xiaoxiao|Yunxi|Yunyang|Xiaoyi|Yunjian|Xiaochen|Xiaomo|Xiaohan|Xiaorui|Xiaoshuang|Xiaoyou/i, /Google 普通话|Google.*Mandarin/i, /Ting-Ting|Tingting/i];
+let zhVoice = null;
+function pickZhVoice() {
+  const all = speechSynthesis.getVoices();
+  const zh = all.filter((x) => /^zh[-_]CN/i.test(x.lang));
+  const pool = zh.length ? zh : all.filter((x) => /^zh/i.test(x.lang));
+  if (!pool.length) return null;
+  for (const re of PREFERRED_ZH) {
+    const hit = pool.find((x) => re.test(x.name));
+    if (hit) return hit;
+  }
+  return pool[0];
+}
+// 음성 목록은 비동기로 로드되므로, 로드되면 한 번 골라 둔다.
+try {
+  if ('speechSynthesis' in window) {
+    zhVoice = pickZhVoice();
+    speechSynthesis.addEventListener('voiceschanged', () => (zhVoice = pickZhVoice()));
+  }
+} catch {
+  /* 무시 */
+}
+
 export function speak(text) {
   try {
+    if (!('speechSynthesis' in window)) throw new Error('no speech');
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'zh-CN';
-    u.rate = 0.85;
-    const v = speechSynthesis.getVoices().find((x) => /zh[-_]CN/i.test(x.lang));
-    if (v) u.voice = v;
+    u.rate = 0.9;
+    u.pitch = 1;
+    zhVoice = zhVoice || pickZhVoice();
+    if (zhVoice) u.voice = zhVoice;
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
+    if (!zhVoice) toast('이 기기에는 중국어 음성이 없어 기본 음성으로 읽습니다.', 'bad');
   } catch {
     toast('이 브라우저에서는 발음 듣기를 쓸 수 없습니다.', 'bad');
   }

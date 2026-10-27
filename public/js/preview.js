@@ -51,7 +51,7 @@ export async function renderPreview(app) {
           (p) => `<div class="card">
             <div class="zh" style="font-weight:600">${esc(p.form)}</div>
             <div style="margin-top:4px">${esc(p.explain)}</div>
-            ${p.zh ? `<div class="zh" style="margin-top:8px">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div>` : ''}
+            ${p.zh ? `<div class="row" style="flex-wrap:nowrap;align-items:flex-start;margin-top:8px"><div style="flex:1"><div class="zh">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div></div><button class="btn" data-say="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div>` : ''}
           </div>`,
         )
         .join('')}
@@ -62,9 +62,14 @@ export async function renderPreview(app) {
       ${W.examples
         .map(
           (x) => `<div class="card">
-            <div class="zh" style="font-size:20px;font-weight:600">${esc(x.zh)}</div>
-            <div class="py" style="color:var(--muted,#777)">${esc(x.py)}</div>
-            <div style="margin-top:4px">${esc(x.ko)}</div>
+            <div class="row" style="flex-wrap:nowrap;align-items:flex-start">
+              <div style="flex:1">
+                <div class="zh" style="font-size:20px;font-weight:600">${esc(x.zh)}</div>
+                <div class="py" style="color:var(--muted,#777)">${esc(x.py)}</div>
+                <div style="margin-top:4px">${esc(x.ko)}</div>
+              </div>
+              <button class="btn" data-say="${esc(x.zh)}" aria-label="예문 듣기">🔊</button>
+            </div>
           </div>`,
         )
         .join('')}
