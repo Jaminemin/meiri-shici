@@ -476,3 +476,10 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .intro .skill-pick { margin-top: 16px; }
 
 .attend-card { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+
+/* ---------- 주차 상황 그림 ---------- */
+.scene-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 18px; align-items: center; margin-bottom: 16px; }
+.scene-art svg { width: 100%; height: auto; display: block; border-radius: 14px; }
+.scene-line { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.scene-line:last-child { border-bottom: 0; }
+@media (max-width: 640px) { .scene-card { grid-template-columns: 1fr; } }
