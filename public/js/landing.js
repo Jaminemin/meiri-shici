@@ -70,6 +70,42 @@ function bamboo(x, base, h) {
 }
 
 // 고궁 정문 그림: 붉은 성벽, 두 겹 지붕, 열리는 문, 그 앞의 판다 네 마리
+// 고궁 뒤 중국 대도시 건물 실루엣: 상하이 동방명주, 베이징 CCTV 본부, 광저우 전망탑, 선전 평안 금융센터
+function skylineSvg() {
+  const body = '#8aa3be';
+  const lit = '#d5e4f0';
+  return `<g class="skyline">
+    <g>
+      <rect x="69" y="60" width="2" height="62" fill="${body}"/>
+      <path d="M62 236 L66 190 L74 190 L78 236 Z" fill="${body}"/>
+      <circle cx="70" cy="186" r="13" fill="#b7c9dc" stroke="${body}" stroke-width="2"/>
+      <circle cx="70" cy="150" r="9" fill="#b7c9dc" stroke="${body}" stroke-width="2"/>
+      <circle cx="70" cy="122" r="6" fill="#b7c9dc" stroke="${body}" stroke-width="2"/>
+    </g>
+    <g>
+      <path d="M116 236 L132 100 L140 100 L126 236 Z" fill="${body}"/>
+      <path d="M160 236 L164 100 L172 100 L168 236 Z" fill="${body}"/>
+      <rect x="132" y="100" width="40" height="10" fill="${body}"/>
+      <rect x="136" y="150" width="30" height="6" fill="${body}"/>
+      <rect x="144" y="130" width="14" height="4" fill="${lit}"/>
+      <rect x="140" y="160" width="20" height="4" fill="${lit}"/>
+    </g>
+    <g>
+      <path d="M516 236 L526 150 L531 110 L538 110 L543 150 L553 236 Z" fill="${body}"/>
+      <ellipse cx="534" cy="110" rx="14" ry="4" fill="${body}"/>
+      <line x1="534" y1="110" x2="534" y2="80" stroke="${body}" stroke-width="2"/>
+      <line x1="526" y1="150" x2="543" y2="150" stroke="${lit}" stroke-width="2"/>
+      <line x1="522" y1="190" x2="547" y2="190" stroke="${lit}" stroke-width="2"/>
+    </g>
+    <g>
+      <rect x="606" y="110" width="28" height="126" fill="${body}"/>
+      <path d="M606 110 L620 62 L634 110 Z" fill="${body}"/>
+      <rect x="614" y="140" width="4" height="4" fill="${lit}"/>
+      <rect x="622" y="170" width="4" height="4" fill="${lit}"/>
+    </g>
+  </g>`;
+}
+
 function palaceSvg(animate) {
   const s = 0.92;
   const gy = 306; // 땅 높이
@@ -82,6 +118,7 @@ function palaceSvg(animate) {
     </defs>
     <rect width="640" height="360" fill="url(#pal-sky)"/>
     <circle cx="540" cy="72" r="24" fill="#fbd38d" opacity=".85"/>
+    ${skylineSvg()}
     <rect x="0" y="236" width="640" height="72" fill="#d9bb8c" opacity=".55"/>
     <rect x="40" y="208" width="560" height="100" fill="#9d2433"/>
     <rect x="40" y="208" width="560" height="10" fill="#6f1826"/>
