@@ -1,7 +1,7 @@
 // 주차당 단어 수 (server/curriculum.js의 WORDS_PER_WEEK와 같아야 함)
 const WORDS_PER_WEEK = 15;
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
-import { state, esc, get, post, fail, toast, busy, speak } from './core.js';
+import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.js';
 import { feedbackHtml } from './fb.js';
 import { arrangeItems, sentenceChoiceItems } from './practice.js';
 import { sceneCard } from './scenes.js';
@@ -126,7 +126,10 @@ export async function renderWeek(app, ctx) {
   // ---------- 듣기·말하기: 단어 카드를 문장 순서대로 배열 (저장 없음) ----------
   let arr = null; // { mode, list, i, score, picked: [pool 인덱스], miss, wrongMsg, solved, autoplay }
   function arrTab(mode) {
-    if (!arr || arr.mode !== mode) arr = { mode, list: arrangeItems(W), i: 0, score: 0, picked: [], miss: false, wrongMsg: false, solved: false, autoplay: true };
+    if (!arr || arr.mode !== mode) {
+      arr = { mode, list: arrangeItems(W), i: 0, score: 0, picked: [], miss: false, wrongMsg: false, solved: false, autoplay: true };
+      practiceNotice();
+    }
     if (!arr.list.length) return '<div class="empty">이 주차는 문장 연습 자료가 아직 없어요.</div>';
     if (arr.i >= arr.list.length) {
       const n = arr.list.length;
@@ -154,7 +157,7 @@ export async function renderWeek(app, ctx) {
       <button class="btn primary big" id="ar-play" style="margin:12px 0">🔊 ${isSpeak ? '문장 듣기' : '다시 듣기'}</button>
       <div class="zh" style="min-height:44px;font-size:24px;margin:8px 0">${picked || '<span class="muted" style="font-size:15px">단어를 순서대로 눌러 주세요</span>'}</div>
       <div class="tags" style="justify-content:center">${it.pool
-        .map((p, k) => `<button class="tag zh" data-ar="${k}" style="font-size:20px;padding:8px 14px;cursor:pointer" ${arr.picked.includes(k) ? 'disabled' : ''}>${esc(p.t)}</button>`)
+        .map((p, k) => `<button class="wpick zh" data-ar="${k}" ${arr.picked.includes(k) ? 'disabled' : ''}>${esc(p.t)}</button>`)
         .join('')}</div>
       <div class="row" style="justify-content:center;margin-top:12px"><button class="btn small" id="ar-undo">↶ 마지막 지우기</button><button class="btn small" id="ar-reset">처음부터</button></div>
       <div id="ar-msg" style="min-height:28px;margin-top:10px">${arr.wrongMsg ? '<span class="muted">순서가 다릅니다. 다시 맞혀 보세요.</span>' : ''}</div></div>`;
@@ -162,7 +165,16 @@ export async function renderWeek(app, ctx) {
 
   // ---------- 문장 고르기 (듣기·쓰기 공용): 보기 4개 중 맞는 중국어 문장을 고른다 (저장 없음) ----------
   // st: { list, i, attempt, wrong, solved, score, total, autoplay }
-  const choiceState = () => ({ list: sentenceChoiceItems(W), i: 0, attempt: false, wrong: false, solved: false, score: 0, total: 0, autoplay: true });
+  const choiceState = () => ({ list: sentenceChoiceItems(W), i: 0, attempt: false, wrong: false, bad: [], solved: false, score: 0, total: 0, autoplay: true });
+  // 연습 점수는 저장되지 않으므로, 이 주차를 열고 처음 풀기 전에 한 번 안내한다.
+  let noticeSeen = false;
+  function practiceNotice() {
+    if (noticeSeen) return;
+    noticeSeen = true;
+    queueMicrotask(() =>
+      modal('<h2>연습 점수 안내</h2><p style="line-height:1.7">이 연습의 점수는 <b>내 학습 기록에 저장되지 않아요.</b><br>부담 없이 여러 번 풀어 보세요.</p><div class="row end"><button class="btn primary" data-close>확인</button></div>'),
+    );
+  }
   let lq = null; // 듣기
   let fill = null; // 쓰기 연습
   function choiceTab(st, p, isListen) {
@@ -190,15 +202,21 @@ export async function renderWeek(app, ctx) {
       ${isListen
         ? `<button class="btn primary big" id="${p}-play" style="margin:12px 0">🔊 다시 듣기</button>`
         : `<div style="font-size:20px;margin:14px 0 12px">${esc(it.ko)}</div>`}
-      <div class="choices">${it.opts.map((o, k) => `<button class="choice zh" data-${p}="${k}" style="font-size:22px">${esc(o)}</button>`).join('')}</div>
+      <div class="choices">${it.opts.map((o, k) => `<button class="choice zh ${st.bad.includes(k) ? 'wrong' : ''}" data-${p}="${k}" ${st.bad.includes(k) ? 'disabled' : ''}>${esc(o)}</button>`).join('')}</div>
       <div id="${p}-msg" style="min-height:28px;margin-top:10px">${st.wrong ? '<span class="muted">아쉬워요. 다시 골라 보세요.</span>' : ''}</div>`;
   }
   function listenTab() {
-    if (!lq) lq = choiceState();
+    if (!lq) {
+      lq = choiceState();
+      practiceNotice();
+    }
     return `<div class="card" style="text-align:center;padding:26px 20px">${choiceTab(lq, 'lq', true)}</div>`;
   }
   function fillSection() {
-    if (!fill) fill = choiceState();
+    if (!fill) {
+      fill = choiceState();
+      practiceNotice();
+    }
     return `<div class="card" style="margin-bottom:16px"><div class="ai-label">쓰기 연습</div><div style="margin-top:6px">${choiceTab(fill, 'fl', false)}</div></div>`;
   }
 
@@ -542,6 +560,7 @@ export async function renderWeek(app, ctx) {
           st.i++;
           st.attempt = false;
           st.wrong = false;
+          st.bad = [];
           st.solved = false;
           st.autoplay = true;
           draw();
@@ -558,7 +577,10 @@ export async function renderWeek(app, ctx) {
             if (ok) {
               st.solved = true;
               st.wrong = false;
-            } else st.wrong = true;
+            } else {
+              st.wrong = true;
+              st.bad.push(Number(b.dataset[p]));
+            }
             draw();
           }),
       );

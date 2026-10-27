@@ -321,10 +321,14 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .quiz-q { font-size: 15px; color: var(--muted); margin-bottom: 6px; }
 .quiz-prompt { font-size: 38px; font-weight: 700; margin: 8px 0 16px; }
 .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.choice { padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font: inherit; font-size: 16px; cursor: pointer; text-align: left; color: var(--ink); }
-.choice:hover:not(:disabled) { border-color: var(--accent); }
+.choice { padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); font: inherit; font-size: 20px; line-height: 1.5; cursor: pointer; text-align: left; color: var(--ink); transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.choice:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); transform: translateY(-1px); }
+.choice:disabled { cursor: default; opacity: 0.55; box-shadow: none; }
 .choice.right { background: #d9efe2; border-color: #2c7a4b; color: #134a2c; }
-.choice.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.choice.wrong, .choice.wrong:disabled { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); opacity: 1; transform: none; }
+.wpick { display: inline-block; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); font: inherit; font-family: 'Noto Serif SC', 'Noto Sans SC', 'PingFang SC', serif; font-size: 22px; color: var(--ink); cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.wpick:hover:not(:disabled) { border-color: var(--accent); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08); transform: translateY(-1px); }
+.wpick:disabled { opacity: 0.3; cursor: default; box-shadow: none; }
 .fb-score { font-size: 44px; font-weight: 900; color: var(--accent); line-height: 1; }
 .fb-corrected { font-size: 22px; line-height: 1.6; }
 .err { border-left: 3px solid var(--accent); padding: 6px 12px; margin-bottom: 8px; font-size: 14px; }
