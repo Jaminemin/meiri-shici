@@ -25,6 +25,18 @@ function navLinks(active) {
   return links.map(([k, l]) => `<a href="#/${k}" class="${active === k ? 'on' : ''}">${l}${k === 'admin' && state.pendingCount ? `<span class="count">${state.pendingCount}</span>` : ''}</a>`).join('');
 }
 
+// 집 모양 안에 판다 얼굴을 넣은 아이콘: 과목 선택 메인으로 돌아가기
+const HOME_ICON = `<svg viewBox="0 0 40 40" aria-hidden="true">
+  <path d="M5 19 L20 6 L35 19" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 18 V34 Q9 36 11 36 H29 Q31 36 31 34 V18" fill="var(--accent-soft, #eef0ff)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="20" cy="27" r="7" fill="#fff"/>
+  <circle cx="14.6" cy="20.4" r="2.6" fill="var(--ink, #222)"/>
+  <circle cx="25.4" cy="20.4" r="2.6" fill="var(--ink, #222)"/>
+  <ellipse cx="16.8" cy="26.4" rx="2" ry="2.5" fill="var(--ink, #222)" transform="rotate(-18 16.8 26.4)"/>
+  <ellipse cx="23.2" cy="26.4" rx="2" ry="2.5" fill="var(--ink, #222)" transform="rotate(18 23.2 26.4)"/>
+  <circle cx="20" cy="30.6" r="0.9" fill="var(--ink, #222)"/>
+</svg>`;
+
 function renderChrome(active) {
   const html = navLinks(active);
   document.getElementById('topnav').innerHTML = html;
@@ -39,7 +51,7 @@ function renderChrome(active) {
     box.innerHTML = '';
     return;
   }
-  box.innerHTML = `<span class="avatar">${u.picture ? `<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">` : esc((u.name || '?').slice(0, 1))}</span><span class="nm">${esc(u.name)}</span>${u.role === 'admin' ? '<span class="badge accent">관리자</span>' : ''}<button class="btn small" id="logout">로그아웃</button>`;
+  box.innerHTML = `<a class="home-btn" href="#/" title="초급~고급 과목 선택 메인으로" aria-label="메인페이지로 돌아가기">${HOME_ICON}</a><span class="avatar">${u.picture ? `<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">` : esc((u.name || '?').slice(0, 1))}</span><span class="nm">${esc(u.name)}</span>${u.role === 'admin' ? '<span class="badge accent">관리자</span>' : ''}<button class="btn small" id="logout">로그아웃</button>`;
   box.querySelector('#logout').onclick = async () => {
     await post('/auth/logout').catch(() => {});
     state.me.user = null;
