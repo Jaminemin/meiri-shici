@@ -86,16 +86,22 @@ const BACKDROP = {
     <rect x="60" y="162" width="46" height="34" rx="6" fill="#3a6fb0"/><rect x="290" y="162" width="46" height="34" rx="6" fill="#c0392b"/>`,
 };
 
-// 사람 한 명 (가운데 x 기준, 머리 높이 y=100)
-function person(cx, shirt, hair, skin, flip) {
+// 판다 한 마리 (가운데 x 기준, 머리 중심 y=100). 조끼 색으로 두 판다를 구분한다.
+function pandaFigure(cx, vest, flip) {
   const s = flip ? -1 : 1;
   return `<g transform="translate(${cx} 0) scale(${s} 1) translate(${-cx} 0)">
-    <rect x="${cx - 24}" y="128" width="48" height="66" rx="16" fill="${shirt}"/>
-    <rect x="${cx - 10}" y="190" width="9" height="20" fill="#3b3b4f"/><rect x="${cx + 1}" y="190" width="9" height="20" fill="#3b3b4f"/>
-    <circle cx="${cx}" cy="100" r="22" fill="${skin}"/>
-    <path d="M${cx - 22} 98 Q${cx - 22} 74 ${cx} 76 Q${cx + 22} 74 ${cx + 22} 98 Q${cx + 16} 86 ${cx} 86 Q${cx - 16} 86 ${cx - 22} 98 Z" fill="${hair}"/>
-    <circle cx="${cx - 8}" cy="102" r="2" fill="#2b2b2b"/><circle cx="${cx + 8}" cy="102" r="2" fill="#2b2b2b"/>
-    <path d="M${cx - 6} 112 Q${cx} 116 ${cx + 6} 112" fill="none" stroke="#2b2b2b" stroke-width="2" stroke-linecap="round"/>
+    <rect x="${cx - 30}" y="132" width="12" height="46" rx="6" fill="#1d1d1d"/>
+    <rect x="${cx + 18}" y="132" width="12" height="46" rx="6" fill="#1d1d1d"/>
+    <rect x="${cx - 24}" y="128" width="48" height="66" rx="18" fill="#fff" stroke="#2b2b2b" stroke-width="2"/>
+    <rect x="${cx - 14}" y="138" width="28" height="30" rx="8" fill="${vest}"/>
+    <rect x="${cx - 10}" y="190" width="9" height="20" rx="4" fill="#1d1d1d"/><rect x="${cx + 1}" y="190" width="9" height="20" rx="4" fill="#1d1d1d"/>
+    <circle cx="${cx - 17}" cy="80" r="8" fill="#1d1d1d"/><circle cx="${cx + 17}" cy="80" r="8" fill="#1d1d1d"/>
+    <circle cx="${cx}" cy="100" r="24" fill="#fff" stroke="#2b2b2b" stroke-width="2"/>
+    <ellipse cx="${cx - 9}" cy="100" rx="6.5" ry="7.5" fill="#1d1d1d" transform="rotate(-15 ${cx - 9} 100)"/>
+    <ellipse cx="${cx + 9}" cy="100" rx="6.5" ry="7.5" fill="#1d1d1d" transform="rotate(15 ${cx + 9} 100)"/>
+    <circle cx="${cx - 8}" cy="100" r="2" fill="#fff"/><circle cx="${cx + 10}" cy="100" r="2" fill="#fff"/>
+    <ellipse cx="${cx}" cy="112" rx="3.2" ry="2.4" fill="#1d1d1d"/>
+    <path d="M${cx - 4} 118 Q${cx} 121 ${cx + 4} 118" fill="none" stroke="#2b2b2b" stroke-width="1.8" stroke-linecap="round"/>
   </g>`;
 }
 
@@ -112,7 +118,7 @@ function bubble(side, zh) {
     <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="#fff" stroke="#7b1c2a" stroke-width="2"/>
     <path d="M${tx - 8} ${y + h - 1} L${tx} ${y + h + 12} L${tx + 8} ${y + h - 1} Z" fill="#fff" stroke="#7b1c2a" stroke-width="2" stroke-linejoin="round"/>
     <rect x="${tx - 9}" y="${y + h - 3}" width="18" height="4" fill="#fff"/>
-    ${rows.map((r, k) => `<text x="${x + w / 2}" y="${y + 24 + k * 22}" font-size="15" text-anchor="middle" fill="#1d1d1d" font-family="sans-serif">${esc(r)}</text>`).join('')}
+    ${rows.map((r, k) => `<text x="${x + w / 2}" y="${y + 24 + k * 22}" font-size="16" text-anchor="middle" fill="#1d1d1d" font-family="SimSun, 'Noto Serif SC', serif">${esc(r)}</text>`).join('')}
   </g>`;
 }
 
@@ -120,17 +126,13 @@ export function sceneSvg(week, scene) {
   const sc = scene || SCENES[week];
   if (!sc) return '';
   const back = BACKDROP[sc.place]();
-  const looks = [
-    ['#4f7cd6', '#2b2b2b', '#f1c9a0'],
-    ['#e08a5b', '#5a3a1f', '#e9b98f'],
-  ];
-  const [a, b] = looks;
+  const [a, b] = [['#4f7cd6'], ['#e08a5b']];
   const bubbles = sc.bubbles[0] ? bubble('l', sc.bubbles[0][0]) : '';
   const bubbles2 = sc.bubbles[1] ? bubble('r', sc.bubbles[1][0]) : '';
   return `<svg viewBox="0 0 400 240" role="img" aria-label="${esc(sc.title)}: ${esc(sc.desc)}">
     ${back}
-    ${person(120, a[0], a[1], a[2], false)}
-    ${person(280, b[0], b[1], b[2], true)}
+    ${pandaFigure(120, a[0], false)}
+    ${pandaFigure(280, b[0], true)}
     ${bubbles}${bubbles2}
   </svg>`;
 }
