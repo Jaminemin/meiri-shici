@@ -123,3 +123,44 @@ answer 도구로 첨삭 결과를 제출하라.`;
     },
   });
 }
+
+// 사회자(고급) 전용: 궁금한 문장을 바로 확인한다. 저장하지 않는다.
+export async function checkSentence(text) {
+  const system = `너는 한국인 고급 중국어 학습자(사회자 중국어)를 돕는 중국어 선생님이다.
+학습자가 행사 진행 중 쓰고 싶은 중국어 문장이 맞는지 확인해 준다.
+- 문법, 어휘, 어순이 맞는지 본다.
+- 행사 사회자 말투에 맞는지 본다. 내빈에게는 您, 各位, 请允许我 같은 존댓말을 쓰는 것이 자연스럽다.
+- 틀린 곳만 고치고, 맞는 표현은 바꾸지 않는다.
+- 설명은 모두 한국어로 쉽게 쓴다. 병음은 성조 부호를 붙여 정확하게 쓴다.
+- 학습자가 중국어가 아닌 글(한국어 등)을 썼으면 그 뜻을 중국어 문장으로 옮겨 corrected에 쓴다.`;
+  const user = `[학습자가 확인하려는 문장]
+${text}
+
+answer 도구로 확인 결과를 제출하라.`;
+  const str = (d) => ({ type: 'string', description: d });
+  return callClaudeJson({
+    system,
+    user,
+    maxTokens: 1500,
+    schema: {
+      type: 'object',
+      properties: {
+        verdict: { type: 'string', enum: ['good', 'fix', 'rewrite'], description: 'good=맞고 자연스러움, fix=작은 수정 필요, rewrite=다시 쓰는 것이 좋음' },
+        corrected: str('고친 문장(중국어). 맞으면 원문 그대로'),
+        correctedPinyin: str('고친 문장의 병음(성조 부호 포함)'),
+        translation: str('고친 문장의 한국어 뜻'),
+        notes: {
+          type: 'array',
+          description: '고친 부분 목록(없으면 빈 배열)',
+          items: {
+            type: 'object',
+            properties: { original: str('원래 표현'), fixed: str('고친 표현'), reason: str('왜 고쳤는지 한국어로 쉽게') },
+            required: ['original', 'fixed', 'reason'],
+          },
+        },
+        mcTip: str('행사 사회 상황에서 쓸 때의 한마디 팁(한국어)'),
+      },
+      required: ['verdict', 'corrected', 'correctedPinyin', 'translation', 'notes', 'mcTip'],
+    },
+  });
+}

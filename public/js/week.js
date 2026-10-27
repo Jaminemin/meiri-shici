@@ -303,8 +303,34 @@ export async function renderWeek(app, ctx) {
   }
 
   // ---------- 작문 ----------
+  // 사회자(고급) 전용: 궁금한 문장을 바로 AI로 확인 (저장하지 않음)
+  function sentenceCheckCard() {
+    return `<div class="card" style="border:2px solid var(--accent-2, #c8312b)">
+      <div class="ai-label">🎤 사회자 문장 바로 확인</div>
+      <h3 style="margin:4px 0 6px">이 문장 맞나요?</h3>
+      <p class="muted" style="font-size:14px">행사 중 쓰고 싶은 문장을 넣으면 AI가 맞는지, 사회자 말투에 맞는지 바로 봐 줘요. 저장되지 않아요.</p>
+      <textarea id="ck-in" rows="3" class="zh" style="font-size:17px" maxlength="300" placeholder="예: 请各位嘉宾入场就座。"></textarea>
+      <div class="row between" style="margin-top:8px"><span class="muted" style="font-size:13px">한국어로 써도 중국어로 옮겨 드려요</span>
+      <button class="btn primary" id="ck-send" ${state.me.aiReady ? '' : 'disabled title="AI 확인이 설정되지 않았습니다"'}>✨ AI로 확인하기</button></div>
+      <div id="ck-out"></div>
+    </div>`;
+  }
+  function checkResultHtml(r) {
+    const label = { good: ['✅', '맞는 문장이에요'], fix: ['✏️', '작은 수정이 필요해요'], rewrite: ['🔄', '다시 쓰는 것이 좋아요'] }[r.verdict] || ['✏️', '확인 결과'];
+    const notes = (r.notes || []).length
+      ? `<ul style="margin:8px 0 0;padding-left:18px">${r.notes.map((n) => `<li><span class="zh">${esc(n.original)}</span> → <b class="zh">${esc(n.fixed)}</b><br><span class="muted" style="font-size:14px">${esc(n.reason)}</span></li>`).join('')}</ul>`
+      : '';
+    return `<div class="card" style="margin-top:12px">
+      <div class="ai-label">${label[0]} ${label[1]}</div>
+      <div class="zh" style="font-size:22px;font-weight:600;margin-top:6px">${esc(r.corrected)} <button class="speak" data-speak="${esc(r.corrected)}" aria-label="문장 듣기">🔊</button></div>
+      <div class="py">${esc(r.correctedPinyin)}</div>
+      <div style="margin-top:4px">${esc(r.translation)}</div>
+      ${notes}
+      ${r.mcTip ? `<p style="margin:10px 0 0;font-size:14px"><b>사회자 팁</b> · ${esc(r.mcTip)}</p>` : ''}
+    </div>`;
+  }
   function writingTab() {
-    return `${fillSection()}<div class="card">
+    return `${W.course === 'emcee' ? sentenceCheckCard() : ''}${fillSection()}<div class="card">
       <div class="ai-label">작문 미션</div><h2 style="margin-top:4px">${esc(W.mission)}</h2>
       <p class="muted" style="font-size:14px">배운 단어와 예문을 눌러서 문장을 만들어 보세요. 직접 입력해도 돼요.</p>
       <div class="ai-label" style="margin-top:6px">단어</div>
@@ -578,6 +604,15 @@ export async function renderWeek(app, ctx) {
         lastIns = '';
         wr.oninput();
       };
+      if ($('#ck-send')) {
+        $('#ck-send').onclick = (e) =>
+          busy(e.currentTarget, async () => {
+            const content = $('#ck-in').value.trim();
+            if (content.length < 2) return toast('확인할 문장을 입력해 주세요.', 'bad');
+            const r = await post('/api/check-sentence', { content });
+            $('#ck-out').innerHTML = checkResultHtml(r.result);
+          }, 'AI가 문장을 보는 중…').catch(fail);
+      }
       $('#wr-send').onclick = (e) =>
         busy(e.currentTarget, async () => {
           const content = wr.value.trim();
