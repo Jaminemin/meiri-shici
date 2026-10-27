@@ -14,7 +14,7 @@ import { WEEKS, COURSES, courseOf, localWeek, weekData, curriculumSummary, WORDS
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(here, '..', 'public');
-const TOTAL_WEEKS = WEEKS.length;
+const TOTAL_WEEKS = COURSES.travel.weeks.length;
 const PASS_QUIZ = 8; // 10문제 중 8개 이상이면 통과
 
 // ---------------- 사용자 ----------------

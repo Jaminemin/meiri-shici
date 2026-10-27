@@ -3,6 +3,7 @@
 
 import { EXTRA_EXAMPLES } from './examples15.js';
 import { EXTRA_WORDS, PATTERNS } from './vocab15.js';
+import { TRAVEL_DRAFT_WEEKS } from './travel.js';
 
 export const WORDS_PER_WEEK = 15;
 
@@ -252,7 +253,7 @@ export const WEEKS = [
 // 과정 목록. 주차 번호(gid)는 과정마다 다르게 준다: 여행 1~15, HSK 101~115, 사회자 201~215.
 // 기존 진도와 저장 기록은 여행 과정(1~15) 번호를 그대로 쓴다.
 export const COURSES = {
-  travel: { key: 'travel', name: '여행 중국어', level: '초급', offset: 0, ready: true, weeks: WEEKS },
+  travel: { key: 'travel', name: '여행 중국어', level: '초급', offset: 0, ready: true, weeks: TRAVEL_DRAFT_WEEKS },
   hsk: { key: 'hsk', name: 'HSK 중국어', level: '중급', offset: 100, ready: false, weeks: [] },
   emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: false, weeks: [] },
 };
@@ -268,11 +269,13 @@ export function weekData(gid) {
   if (!course) return null;
   const local = n - course.offset;
   const w = course.weeks.find((x) => x.week === local);
-  // 주차당 예문 15문장: 기본 예문 + 추가 예문(examples15.js)
-  const examples = [...w.examples, ...(EXTRA_EXAMPLES[w.week] || [])].slice(0, 15);
-  // 주차당 단어 15개: 기본 10개 + 추가 5개(vocab15.js). 핵심 문형 15개(vocab15.js).
-  const allWords = [...w.words, ...(EXTRA_WORDS[w.week] || [])];
-  const patterns = (PATTERNS[w.week] || [[w.pattern.form, w.pattern.explain, '', '']]).map(([form, explain, zh, ko]) => ({ form, explain, zh, ko }));
+  // 여행 과정(travel.js)은 주차마다 단어·문형·예문 15개를 직접 갖는다.
+  // 그 밖의 과정은 기존 방식(기본 + 추가 목록)으로 합친다.
+  const draft = Array.isArray(w.patterns);
+  const examples = draft ? w.examples : [...w.examples, ...(EXTRA_EXAMPLES[w.week] || [])].slice(0, 15);
+  const allWords = draft ? w.words : [...w.words, ...(EXTRA_WORDS[w.week] || [])];
+  const rawPatterns = draft ? w.patterns : (PATTERNS[w.week] || [[w.pattern.form, w.pattern.explain, '', '']]);
+  const patterns = rawPatterns.map(([form, explain, zh, ko]) => ({ form, explain, zh, ko }));
   return {
     ...w,
     gid: n,

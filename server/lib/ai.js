@@ -76,7 +76,7 @@ export function parseJsonLoose(text) {
 }
 
 export async function correctWriting(week, text) {
-  const system = `너는 한국인 초급 중국어 학습자(HSK ${week.hsk}급 수준)를 가르치는 친절한 중국어 선생님이다.
+  const system = `너는 한국인 초급 중국어 학습자(여행 중국어 초급 수준)를 가르치는 친절한 중국어 선생님이다.
 학습자가 쓴 중국어 작문을 첨삭한다.
 - 설명은 모두 한국어로, 초급 학습자가 이해할 수 있게 쉽게 쓴다.
 - 틀린 곳만 고치고, 맞게 쓴 표현은 바꾸지 않는다. 더 자연스러운 표현은 suggestions에 따로 제안한다.
@@ -85,7 +85,7 @@ export async function correctWriting(week, text) {
 - 학습자가 중국어가 아닌 글(한국어 등)을 썼으면 corrected에 그 뜻을 중국어로 옮긴 문장을 쓰고 overall에서 중국어로 써 보라고 권한다.`;
   const user = `[이번 주 학습 내용]
 ${week.week}주차: ${week.title} (${week.titleZh})
-핵심 문형: ${week.pattern.form}
+핵심 문형: ${week.patterns.map((p) => p.form).join(' / ')}
 이번 주 단어: ${week.words.map((w) => `${w.hanzi}(${w.pinyin})`).join(', ')}
 미션: ${week.mission}
 

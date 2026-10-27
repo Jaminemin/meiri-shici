@@ -116,8 +116,8 @@ function bubble(side, zh) {
   </g>`;
 }
 
-export function sceneSvg(week) {
-  const sc = SCENES[week];
+export function sceneSvg(week, scene) {
+  const sc = scene || SCENES[week];
   if (!sc) return '';
   const back = BACKDROP[sc.place]();
   const looks = [
@@ -136,11 +136,11 @@ export function sceneSvg(week) {
 }
 
 // 주차 화면 맨 위에 넣는 상황 카드
-export function sceneCard(week) {
-  const sc = SCENES[week];
+export function sceneCard(week, scene) {
+  const sc = scene || SCENES[week];
   if (!sc) return '';
   return `<div class="card scene-card">
-    <div class="scene-art">${sceneSvg(week)}</div>
+    <div class="scene-art">${sceneSvg(week, sc)}</div>
     <div class="scene-text">
       <div class="ai-label">${week}주차 상황</div>
       <h3 style="margin:4px 0 6px">${esc(sc.title)}</h3>
