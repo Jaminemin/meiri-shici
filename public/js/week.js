@@ -114,7 +114,7 @@ export async function renderWeek(app, ctx) {
   function patternTab() {
     return `${W.course === 'travel' ? sceneCard(W.week, W.scene) : ''}<div class="card"><h3>핵심 문형 ${W.patterns.length}개</h3>${W.patterns
         .map(
-          (p, i) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="muted" style="font-size:12px">${i + 1}</div><div class="zh" style="font-weight:600">${esc(p.form)}</div><div style="margin-top:2px">${esc(p.explain)}</div>${p.zh ? `<div class="zh" style="margin-top:6px">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div>` : ''}</div>${p.zh ? `<button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button>` : ''}</div></div>`,
+          (p, i) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="muted" style="font-size:12px">${i + 1}</div><div class="zh" style="font-weight:600">${esc(p.form)}</div><div style="margin-top:2px">${esc(p.explain)}</div>${p.zh ? `<div class="zh" style="margin-top:6px">${esc(p.zh)}</div>${p.py ? `<div class="py">${esc(p.py)}</div>` : ''}<div class="muted">${esc(p.ko)}</div>` : ''}</div>${p.zh ? `<button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button>` : ''}</div></div>`,
         )
         .join('')}</div>
       <div class="card"><h3>예문</h3>${W.examples

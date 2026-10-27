@@ -277,7 +277,10 @@ export function weekData(gid) {
   const examples = draft ? w.examples : [...w.examples, ...(EXTRA_EXAMPLES[w.week] || [])].slice(0, 15);
   const allWords = draft ? w.words : [...w.words, ...(EXTRA_WORDS[w.week] || [])];
   const rawPatterns = draft ? w.patterns : (PATTERNS[w.week] || [[w.pattern.form, w.pattern.explain, '', '']]);
-  const patterns = rawPatterns.map(([form, explain, zh, ko]) => ({ form, explain, zh, ko }));
+  // 문형 예문 병음: 직접 적은 값이 없으면 같은 코스 예문 목록에서 같은 문장의 병음을 찾아 채운다
+  const coursePy = new Map();
+  if (draft) course.weeks.forEach((x) => x.examples.forEach(([zh, py]) => coursePy.set(zh, py)));
+  const patterns = rawPatterns.map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || coursePy.get(zh) || '' }));
   return {
     ...w,
     gid: n,
