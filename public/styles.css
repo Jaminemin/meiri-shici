@@ -512,5 +512,10 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .course-card .course-icon { position: absolute; top: 14px; right: 16px; font-size: 30px; line-height: 1; }
 .course-card .course-level { font-size: 12px; font-weight: 700; color: var(--burgundy); }
 @media (max-width: 520px) { .level-pick { gap: 8px; } .level-card b { font-size: 13px; } }
-.panda-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; min-height: 150px; }
-.panda-cell svg { width: 96px; height: auto; }
+.panda-cell { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 150px; }
+.panda-figure { position: relative; z-index: 1; }
+.panda-cell .panda-figure svg { width: 96px; height: auto; }
+.panda-cell .fall { position: absolute; top: -24px; width: 22px; height: 22px; z-index: 0; pointer-events: none; animation-name: petal-fall; animation-iteration-count: infinite; animation-timing-function: linear; opacity: 0.9; }
+.panda-cell .fall svg { width: 100%; height: 100%; display: block; }
+@keyframes petal-fall { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(190px) rotate(300deg); } }
+@media (prefers-reduced-motion: reduce) { .panda-cell .fall { animation: none; display: none; } }

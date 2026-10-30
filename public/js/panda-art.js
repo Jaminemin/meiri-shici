@@ -45,7 +45,24 @@ export function pandaSvg(pose) {
   </svg>`;
 }
 
-// 격자 마지막 칸에 넣는 판다 카드
+// 떨어지는 장식: 하트·꽃·네잎클로버 (SVG). 판다마다 하나의 종류가 쏟아지듯 내려온다.
+const FALL_SHAPE = {
+  heart: `<svg viewBox="0 0 24 24"><path d="M12 21 C4 15 2 11 2 8 A5 5 0 0 1 12 6 A5 5 0 0 1 22 8 C22 11 20 15 12 21 Z" fill="#f28ba8"/></svg>`,
+  flower: `<svg viewBox="0 0 24 24"><g fill="#ffb7c9"><circle cx="12" cy="6" r="4.5"/><circle cx="18" cy="10.5" r="4.5"/><circle cx="15.5" cy="17" r="4.5"/><circle cx="8.5" cy="17" r="4.5"/><circle cx="6" cy="10.5" r="4.5"/></g><circle cx="12" cy="12" r="2.8" fill="#f5c542"/></svg>`,
+  clover: `<svg viewBox="0 0 24 24"><g fill="#4caf6a"><circle cx="8" cy="8" r="5"/><circle cx="16" cy="8" r="5"/><circle cx="8" cy="16" r="5"/><circle cx="16" cy="16" r="5"/></g><path d="M12 16 L12 23" stroke="#3a8f52" stroke-width="2" stroke-linecap="round"/></svg>`,
+};
+const FALL_FOR = { hello: 'heart', cheer: 'flower', smile: 'clover' };
+
+function fallingItems(pose) {
+  const kind = FALL_SHAPE[FALL_FOR[pose]] ? FALL_FOR[pose] : 'heart';
+  // 좌우 위치와 시작 시간을 조금씩 달리해 여러 개가 이어서 내려오게 한다
+  const spots = [6, 22, 40, 58, 76, 92];
+  return spots
+    .map((x, i) => `<span class="fall" style="left:${x}%;animation-delay:${(i * 0.7).toFixed(1)}s;animation-duration:${(3.6 + (i % 3) * 0.5).toFixed(1)}s">${FALL_SHAPE[kind]}</span>`)
+    .join('');
+}
+
+// 격자 마지막 칸에 넣는 판다 카드 (떨어지는 장식 포함)
 export function pandaCell(pose) {
-  return `<div class="card panda-cell" role="img" aria-label="${CAPTION[pose] || ''}">${pandaSvg(pose)}</div>`;
+  return `<div class="card panda-cell" role="img" aria-label="${CAPTION[pose] || ''}">${fallingItems(pose)}<div class="panda-figure">${pandaSvg(pose)}</div></div>`;
 }
