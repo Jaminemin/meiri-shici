@@ -36,6 +36,12 @@ export function heatmap(days) {
   return `<div class="heat">${cells.join('')}</div><div class="row between muted" style="font-size:11px;margin-top:4px"><span>4주 전</span><span>오늘</span></div>`;
 }
 
+// 출석 완료 도장: 판다 이모지 + 已打卡 + 날짜 (사선으로 찍힘)
+function attendStamp() {
+  const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/-/g, '.');
+  return `<div class="attend-stamp" aria-label="출석 완료 도장"><span class="emo" aria-hidden="true">🐼</span><div><div class="w zh">已打卡</div><div class="d">출석 완료 · ${today}</div></div></div>`;
+}
+
 export function calendar(days) {
   const set = new Set(days || []);
   const kst = new Date(Date.now() + 9 * 3600 * 1000);
@@ -49,7 +55,7 @@ export function calendar(days) {
   for (let day = 1; day <= count; day++) {
     const k = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const cls = [set.has(k) ? 'on' : '', k === today ? 'today' : ''].join(' ');
-    cells.push(`<span class="${cls}" title="${k}${set.has(k) ? ' · 출석' : ''}">${day}${set.has(k) ? '<i>✓</i>' : ''}</span>`);
+    cells.push(`<span class="${cls}" title="${k}${set.has(k) ? ' · 출석' : ''}">${day}${set.has(k) ? '<i>👏</i>' : ''}</span>`);
   }
   const week = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="dow">${w}</span>`).join('');
   const done = [...set].filter((k) => k.startsWith(`${y}-${String(m + 1).padStart(2, '0')}`)).length;
@@ -96,6 +102,7 @@ export async function renderHome(app, ctx = {}) {
     <div class="grid2 attend-row">
       <div class="card attend-card attend-side">
         <div><div class="ai-label">오늘의 출석</div><b style="font-size:18px">${s.attendedToday ? '✓ 출석 완료' : '아직 출석체크 전'}</b><div class="muted" style="font-size:13px;margin-top:4px">출석은 달력에 표시되고 연속 학습일에 더해집니다.</div></div>
+        ${s.attendedToday ? attendStamp() : ''}
         <button class="btn ${s.attendedToday ? '' : 'primary'}" id="attend-btn" ${s.attendedToday ? 'disabled' : ''}>${s.attendedToday ? '출석 완료' : '출석체크 하기'}</button>
       </div>
       <div class="card"><h3>출석 달력</h3>${calendar(s.days)}</div>
