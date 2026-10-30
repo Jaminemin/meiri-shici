@@ -319,7 +319,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-txt { min-width: 0; }
 .wl-txt { display: block; min-width: 0; }
 .wl-txt b { display: block; font-size: 15px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
-.wl-txt small { display: block; font-size: 18px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
+.wl-txt small { display: block; font-size: 10.8px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
 .wl-detail { border: 1px solid var(--line); border-radius: 12px; padding: 24px; background: var(--surface); min-width: 0; }
 .wl-ai { font-size: 18px; font-weight: 800; color: var(--accent); }
 .wl-title { margin: 8px 0 4px; font-size: 33px; font-weight: 900; }
