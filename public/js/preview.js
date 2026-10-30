@@ -42,7 +42,7 @@ export async function renderPreview(app, course = 'travel') {
           (w, i) => `<div class="word" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
             <div class="num">${i + 1}</div>
             <div class="body">
-              <div class="top"><div class="hz zh">${esc(w.hanzi)}</div>
+              <div class="top"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}">${esc(w.hanzi)}</div>
                 <div class="tools"><button class="speak" data-say="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button></div></div>
               <div class="py">${esc(w.pinyin)}</div>
               <div class="mn">${esc(w.meaning)}</div>
