@@ -348,6 +348,10 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-sub:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .wl-subs { transition: none; } }
 .wl-item[hidden] { display: none; }
+/* 홈 이어 하기 버튼: 연한 그레이 */
+.continue-btn { background: var(--surface-2); color: var(--ink); border-color: var(--line); }
+.continue-btn:hover { background: var(--line); }
+
 /* 주차 번호 파스텔 색 (빨강·주황·노랑·초록·하늘·보라 순환) */
 .wl-group:nth-child(6n+1) .wl-num { background: #ffd1d1; color: #1b2440; }
 .wl-group:nth-child(6n+2) .wl-num { background: #ffdcb0; color: #1b2440; }
