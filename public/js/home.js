@@ -115,7 +115,8 @@ export function calendar(days, attended = false) {
   }
   const week = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="dow">${w}</span>`).join('');
   const done = [...set].filter((k) => k.startsWith(`${y}-${String(m + 1).padStart(2, '0')}`)).length;
-  return `<div class="row between" style="margin-bottom:8px"><b>${y}년 ${m + 1}월</b><span class="muted" style="font-size:13px">이번 달 출석 ${done}일</span></div>
+  const hint = attended ? '' : '<p class="muted cal-hint" style="font-size:13px;margin:0 0 10px">🐼 접속 당일 날짜를 클릭하시면 출석체크가 완료됩니다.</p>';
+  return `${hint}<div class="row between" style="margin-bottom:8px"><b>${y}년 ${m + 1}월</b><span class="muted" style="font-size:13px">이번 달 출석 ${done}일</span></div>
     <div class="cal">${week}${cells.join('')}</div>`;
 }
 
