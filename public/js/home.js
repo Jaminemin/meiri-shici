@@ -155,11 +155,7 @@ export async function renderHome(app, ctx = {}) {
   <div class="page">
     <div class="page-head"><div><h1>${esc(d.user.name)}님, 加油！</h1><p>${s.attendedToday ? '오늘 출석했어요. 잘하고 있어요!' : '오늘 아직 출석 전이에요. 출석체크를 하고 시작해 볼까요?'}</p></div>
       <a class="btn big continue-btn" href="#/week/${d.current.gid}">${d.current.week}주차 🐼 ${esc(d.current.title)} 이어 하기 →</a></div>
-    <div class="grid2 attend-row">
-      <div class="card attend-card attend-side">
-        <div><div class="ai-label">오늘의 출석</div><b style="font-size:18px">${s.attendedToday ? '✓ 출석 완료' : '아직 출석체크 전'}</b><div class="muted" style="font-size:13px;margin-top:4px">출석은 달력에 표시되고 연속 학습일에 더해집니다.</div></div>
-        ${s.attendedToday ? '' : '<button class="btn primary" id="attend-btn">출석체크 하기</button>'}
-      </div>
+    <div class="attend-row">
       <div class="card"><h3>출석 달력</h3>${calendar(s.days, s.attendedToday)}</div>
     </div>
     <div class="home-weeks">${weekList(d.weeks, d.current.gid)}</div>
