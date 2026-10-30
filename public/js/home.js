@@ -23,16 +23,7 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
     .join('')}</div>`;
 }
 
-// 15주 진도: 왼쪽 세로 목차 + 오른쪽 선택한 주차 상세 (위아래로 찾지 않고 한눈에 비교)
-function weekDetailHtml(w, currentGid) {
-  const state = w.done ? ' · 완료' : w.gid === currentGid ? ' · 진행 중' : '';
-  return `<div class="wl-ai">${w.week}주차${state}</div>
-    <h3 class="wl-title">${esc(w.title)} <span class="zh wl-zh">${esc(w.titleZh)}</span></h3>
-    <a class="btn primary" href="#/week/${w.gid}">${w.done ? '복습하기' : '이어 하기'} →</a>`;
-}
-
 export function weekList(weeks, currentGid) {
-  const cur = weeks.find((w) => w.gid === currentGid) || weeks[0];
   const group = (w) => {
     const open = w.gid === currentGid;
     const subs = [
@@ -57,24 +48,19 @@ export function weekList(weeks, currentGid) {
       <nav class="wl-list" aria-label="주차 목차">${weeks.map(group).join('')}</nav>
       <div class="wl-foot"><span>완료 ${weeks.filter((w) => w.done).length} / ${weeks.length}주</span><div class="progress"><div style="width:${(weeks.filter((w) => w.done).length / weeks.length) * 100}%"></div></div></div>
     </aside>
-    <section class="wl-detail" aria-live="polite">${weekDetailHtml(cur, currentGid)}</section>
   </div>`;
 }
 
 // 목차 항목을 누르면 그 주차 아래에 단어·퀴즈·작문이 펼쳐지고 오른쪽 상세가 바뀐다.
 export function bindWeekList(root, weeks, currentGid) {
-  const detail = root.querySelector('.wl-detail');
   root.querySelectorAll('.wl-item').forEach((btn) =>
     btn.addEventListener('click', () => {
-      const w = weeks.find((x) => x.gid === Number(btn.dataset.gid));
-      if (!w) return;
       root.querySelectorAll('.wl-group').forEach((g) => {
         const on = g === btn.closest('.wl-group') && !g.classList.contains('open');
         g.classList.toggle('open', on);
         g.querySelector('.wl-item').setAttribute('aria-expanded', String(on));
       });
       root.querySelectorAll('.wl-item').forEach((b) => b.classList.toggle('current', b === btn));
-      detail.innerHTML = weekDetailHtml(w, currentGid);
     }),
   );
   const q = root.querySelector('.wl-q');
@@ -182,7 +168,7 @@ export async function renderHome(app, ctx = {}) {
         .map(([k, t]) => `<a class="card track-card" href="#/track/${k}"><div class="track-icon">${t.icon}</div><h3>${t.name}</h3><p class="muted" style="font-size:14px">${t.desc}</p><span class="track-go">15주 보기 →</span></a>`)
         .join('')}
     </div>
-    <div class="card"><div class="card-head"><h2>15주 진도</h2></div>${weekList(d.weeks, d.current.gid)}</div>
+    ${weekList(d.weeks, d.current.gid)}
     <div class="card"><div class="card-head"><h3>최근 작문</h3><a href="#/writings">전체 보기 →</a></div>
       ${d.recentWritings.map((w) => `<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span><span class="badge">${w.week}주차</span> <span class="zh">${esc(w.preview)}</span></span><span><b>${w.score ?? '–'}</b>점 <small class="muted">${ago(w.created_at)}</small></span></div>`).join('') || '<div class="empty" style="padding:16px">아직 작문이 없어요. 주차마다 작문 미션이 있어요.</div>'}
     </div>
