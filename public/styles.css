@@ -340,7 +340,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-subs { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.25s ease, opacity 0.2s ease; opacity: 0; }
 .wl-group.open .wl-subs { grid-template-rows: 1fr; opacity: 1; }
 .wl-subs-in { min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding-left: 66px; }
-.wl-sub { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: 18px; font-weight: 600; }
+.wl-sub { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: 12.6px; font-weight: 600; }
 .wl-sub small { color: var(--muted); font-size: 16px; font-weight: 500; }
 .wl-sub-name { display: flex; align-items: center; gap: 10px; }
 .wl-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex: none; }
@@ -373,7 +373,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   .wl-txt b { font-size: 15px; }
   .wl-txt small { display: none; }
   .wl-subs-in { padding-left: 38px; }
-  .wl-sub { font-size: 14px; }
+  .wl-sub { font-size: 9.8px; }
   .wl-detail { padding: 14px; }
   .wl-title { font-size: 26px; }
   .wl-steps { grid-template-columns: 1fr; }
