@@ -505,5 +505,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .course-card { display: flex; flex-direction: column; gap: 4px; text-decoration: none; color: var(--ink); }
 .course-card.on { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft, rgba(79, 70, 229, 0.15)) inset; }
 .course-card.soon { opacity: 0.6; }
+.course-card { position: relative; }
+.course-card .course-icon { position: absolute; top: 14px; right: 16px; font-size: 30px; line-height: 1; }
 .course-card .course-level { font-size: 12px; font-weight: 700; color: var(--burgundy); }
 @media (max-width: 520px) { .level-pick { gap: 8px; } .level-card b { font-size: 13px; } }
