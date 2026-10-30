@@ -330,10 +330,10 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-steps b { display: block; font-size: 19px; }
 .wl-steps small { color: var(--muted); font-size: 18px; }
 .wl-side { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 8px; max-height: calc(100vh - 120px); min-width: 0; }
-.wl-search { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; min-height: 60px; font-size: 27px; background: var(--surface); color: var(--muted); }
-.wl-search input { all: unset; flex: 1; min-width: 0; font: inherit; font-size: 27px; color: var(--ink); }
-.wl-label { font-size: 27px; color: var(--muted); padding: 4px 6px 0; font-weight: 700; }
-.wl-foot { display: flex; flex-direction: column; gap: 6px; font-size: 27px; color: var(--muted); padding: 8px 6px 0; border-top: 1px solid var(--line); }
+.wl-search { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; min-height: 60px; font-size: 13.5px; background: var(--surface); color: var(--muted); }
+.wl-search input { all: unset; flex: 1; min-width: 0; font: inherit; font-size: 13.5px; color: var(--ink); }
+.wl-label { font-size: 13.5px; color: var(--muted); padding: 4px 6px 0; font-weight: 700; }
+.wl-foot { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; color: var(--muted); padding: 8px 6px 0; border-top: 1px solid var(--line); }
 .wl-side .wl-list { flex: 1; min-height: 0; overflow-y: auto; border: 0; background: none; padding: 0; max-height: none; }
 .wl-group[hidden] { display: none; }
 .wl-group { display: flex; flex-direction: column; }
