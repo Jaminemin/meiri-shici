@@ -457,8 +457,19 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) { --burgundy: #e08a97; }
 }
-.gate-hero { text-align: center; padding: 36px 0 28px; }
-.gate-title { font-size: clamp(31px, 6.3vw, 50px); font-weight: 800; color: var(--burgundy); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
+.gate-hero { text-align: center; padding: 36px 0 28px; position: relative; overflow: hidden; }
+.gate-hero > *:not(.drift-layer) { position: relative; z-index: 1; }
+.drift-layer { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.drift-item { position: absolute; top: -40px; display: flex; align-items: center; gap: 4px; color: #d4d7de; font-size: 15px; white-space: nowrap; animation-name: drift-fall; animation-iteration-count: infinite; animation-timing-function: linear; }
+.drift-item .drift-panda svg { width: 28px; height: auto; opacity: 0.28; display: block; }
+@keyframes drift-fall {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  50% { transform: translate(22px, 60vh) rotate(120deg); }
+  90% { opacity: 1; }
+  100% { transform: translate(-14px, 130vh) rotate(260deg); opacity: 0; }
+}
+.gate-title { font-size: clamp(31px, 6.3vw, 50px); font-weight: 800; color: #d4d7de; line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
 .gate-sub { margin: 10px 0 18px; color: var(--muted); font-size: 16px; }
 .gate-scene { max-width: 640px; margin: 0 auto; position: relative; }
 .gate-scene .gate-title { position: absolute; top: 5%; left: 0; right: 0; text-align: center; margin: 0; pointer-events: none; }
