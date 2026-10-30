@@ -362,7 +362,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   .wl-side { position: fixed; left: 0; top: 62px; bottom: 0; width: 330px; max-height: none; z-index: 5; padding: 14px 12px; background: var(--surface); border-right: 1px solid var(--line); }
 }
 @media (max-width: 680px) {
-  .wl { grid-template-columns: 150px minmax(0, 1fr); gap: 10px; }
+  .wl { grid-template-columns: minmax(0, 1fr); }
   .wl-list { max-height: none; padding: 4px; }
   .wl-item { grid-template-columns: 28px minmax(0, 1fr); gap: 6px; padding: 6px 4px; }
   .wl-num { width: 28px; height: 28px; font-size: 11px; }
