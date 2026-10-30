@@ -38,46 +38,56 @@ function weekDetailHtml(w, currentGid) {
 
 export function weekList(weeks, currentGid) {
   const cur = weeks.find((w) => w.gid === currentGid) || weeks[0];
-  const item = (w) => {
-    const n = [w.words >= 15, w.quiz !== null && w.quiz >= 8, !!w.writing].filter(Boolean).length;
-    return `<button type="button" class="wl-item ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}" data-gid="${w.gid}" aria-pressed="${w.gid === currentGid}">
-      <span class="wl-num">${w.week}</span>
-      <span class="wl-txt"><b>${esc(w.title)}</b> <small class="zh">${esc(w.titleZh)}</small></span>
-      <span class="wl-bars" aria-label="${n}/3 완료">${[0, 1, 2].map((i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>
-    </button>`;
+  const group = (w) => {
+    const open = w.gid === currentGid;
+    const subs = [
+      ['words', '단어', `${w.words}/15`],
+      ['quiz', '퀴즈', `${w.quiz ?? '–'}/10`],
+      ['writing', '작문', w.writing ? '완료' : '–'],
+    ];
+    return `<div class="wl-group ${open ? 'open' : ''}" data-gid="${w.gid}">
+      <button type="button" class="wl-item ${w.done ? 'done' : ''} ${open ? 'current' : ''}" data-gid="${w.gid}" aria-expanded="${open}">
+        <span class="wl-num">${w.week}</span>
+        <span class="wl-txt"><b>${esc(w.title)}</b> <small class="zh">${esc(w.titleZh)}</small></span>
+      </button>
+      <div class="wl-subs"><div class="wl-subs-in">
+        ${subs.map(([t, label, val]) => `<a class="wl-sub" href="#/week/${w.gid}/${t}"><span>- ${label}</span><small>${val}</small></a>`).join('')}
+      </div></div>
+    </div>`;
   };
-  const doneCount = weeks.filter((w) => w.done).length;
   return `<div class="wl">
     <aside class="wl-side">
       <label class="wl-search"><span aria-hidden="true">⌕</span><input type="search" class="wl-q" placeholder="주차 검색" aria-label="주차 검색"></label>
       <div class="wl-label">주차 목록</div>
-      <nav class="wl-list" aria-label="주차 목차">${weeks.map(item).join('')}</nav>
-      <div class="wl-foot"><span>완료 ${doneCount} / ${weeks.length}주</span><div class="progress"><div style="width:${(doneCount / weeks.length) * 100}%"></div></div></div>
+      <nav class="wl-list" aria-label="주차 목차">${weeks.map(group).join('')}</nav>
+      <div class="wl-foot"><span>완료 ${weeks.filter((w) => w.done).length} / ${weeks.length}주</span><div class="progress"><div style="width:${(weeks.filter((w) => w.done).length / weeks.length) * 100}%"></div></div></div>
     </aside>
     <section class="wl-detail" aria-live="polite">${weekDetailHtml(cur, currentGid)}</section>
   </div>`;
 }
 
-// 목차를 누르면 오른쪽 상세 화면이 그 주차로 바뀐다. 검색창으로는 주차를 거른다.
+// 목차 항목을 누르면 그 주차 아래에 단어·퀴즈·작문이 펼쳐지고 오른쪽 상세가 바뀐다.
 export function bindWeekList(root, weeks, currentGid) {
   const detail = root.querySelector('.wl-detail');
   root.querySelectorAll('.wl-item').forEach((btn) =>
     btn.addEventListener('click', () => {
       const w = weeks.find((x) => x.gid === Number(btn.dataset.gid));
       if (!w) return;
-      root.querySelectorAll('.wl-item').forEach((b) => {
-        b.classList.toggle('current', b === btn);
-        b.setAttribute('aria-pressed', String(b === btn));
+      root.querySelectorAll('.wl-group').forEach((g) => {
+        const on = g === btn.closest('.wl-group') && !g.classList.contains('open');
+        g.classList.toggle('open', on);
+        g.querySelector('.wl-item').setAttribute('aria-expanded', String(on));
       });
+      root.querySelectorAll('.wl-item').forEach((b) => b.classList.toggle('current', b === btn));
       detail.innerHTML = weekDetailHtml(w, currentGid);
     }),
   );
   const q = root.querySelector('.wl-q');
   q?.addEventListener('input', () => {
     const k = q.value.trim();
-    root.querySelectorAll('.wl-item').forEach((b) => {
-      const w = weeks.find((x) => x.gid === Number(b.dataset.gid));
-      b.hidden = !!k && !(String(w.week).includes(k) || w.title.includes(k) || w.titleZh.includes(k));
+    root.querySelectorAll('.wl-group').forEach((g) => {
+      const w = weeks.find((x) => x.gid === Number(g.dataset.gid));
+      g.hidden = !!k && !(String(w.week).includes(k) || w.title.includes(k) || w.titleZh.includes(k));
     });
   });
 }
