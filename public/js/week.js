@@ -50,7 +50,7 @@ export async function renderWeek(app, ctx) {
 
   function head() {
     const st = d.state;
-    return `<div class="page-head">
+    return `<div class="page-head week-head">
       <div><a href="#/course" class="muted" style="text-decoration:none">← 15주 과정</a>
         <h1 style="margin-top:6px">${W.week}주차 · ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
         <p>🎯 ${esc(W.goal)}</p></div>
