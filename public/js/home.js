@@ -28,11 +28,6 @@ function weekDetailHtml(w, currentGid) {
   const state = w.done ? ' · 완료' : w.gid === currentGid ? ' · 진행 중' : '';
   return `<div class="wl-ai">${w.week}주차${state}</div>
     <h3 class="wl-title">${esc(w.title)} <span class="zh wl-zh">${esc(w.titleZh)}</span></h3>
-    <div class="wl-steps">
-      <div class="${w.words >= 15 ? 'on' : ''}"><b>단어</b><small>${w.words}/15</small></div>
-      <div class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"><b>퀴즈</b><small>${w.quiz ?? '–'}/10</small></div>
-      <div class="${w.writing ? 'on' : ''}"><b>작문</b><small>${w.writing ? '완료' : '–'}</small></div>
-    </div>
     <a class="btn primary" href="#/week/${w.gid}">${w.done ? '복습하기' : '이어 하기'} →</a>`;
 }
 
@@ -187,7 +182,7 @@ export async function renderHome(app, ctx = {}) {
         .map(([k, t]) => `<a class="card track-card" href="#/track/${k}"><div class="track-icon">${t.icon}</div><h3>${t.name}</h3><p class="muted" style="font-size:14px">${t.desc}</p><span class="track-go">15주 보기 →</span></a>`)
         .join('')}
     </div>
-    <div class="card"><div class="card-head"><h2>15주 진도</h2><span class="muted" style="font-size:13px">막대 3칸 = 단어 · 퀴즈 · 작문</span></div>${weekList(d.weeks, d.current.gid)}</div>
+    <div class="card"><div class="card-head"><h2>15주 진도</h2></div>${weekList(d.weeks, d.current.gid)}</div>
     <div class="card"><div class="card-head"><h3>최근 작문</h3><a href="#/writings">전체 보기 →</a></div>
       ${d.recentWritings.map((w) => `<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span><span class="badge">${w.week}주차</span> <span class="zh">${esc(w.preview)}</span></span><span><b>${w.score ?? '–'}</b>점 <small class="muted">${ago(w.created_at)}</small></span></div>`).join('') || '<div class="empty" style="padding:16px">아직 작문이 없어요. 주차마다 작문 미션이 있어요.</div>'}
     </div>
