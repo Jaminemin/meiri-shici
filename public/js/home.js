@@ -166,13 +166,17 @@ export async function renderHome(app, ctx = {}) {
       <div class="stat"><div class="label">연속 학습일</div><div class="value">${s.streak}<small class="muted" style="font-size:16px">일</small></div><div class="sub">지금까지 ${s.totalDays}일 공부</div></div>
       <div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>
     </div>
-    <div class="section-title">듣기/쓰기/말하기 수업 복습하기</div>
-    <div class="grid3">
-      ${Object.entries(TRACKS)
-        .map(([k, t]) => `<a class="card track-card" href="#/track/${k}"><div class="track-icon">${t.icon}</div><h3>${t.name}</h3><p class="muted" style="font-size:14px">${t.desc}</p><span class="track-go">15주 보기 →</span></a>`)
-        .join('')}
+    <div class="home-lower">
+      <div class="home-weeks">${weekList(d.weeks, d.current.gid)}</div>
+      <div class="home-track">
+        <div class="section-title">듣기/쓰기/말하기 수업 복습하기</div>
+        <div class="grid3">
+          ${Object.entries(TRACKS)
+            .map(([k, t]) => `<a class="card track-card" href="#/track/${k}"><div class="track-icon">${t.icon}</div><h3>${t.name}</h3><p class="muted" style="font-size:14px">${t.desc}</p><span class="track-go">15주 보기 →</span></a>`)
+            .join('')}
+        </div>
+      </div>
     </div>
-    ${weekList(d.weeks, d.current.gid)}
     <div class="card"><div class="card-head"><h3>최근 작문</h3><a href="#/writings">전체 보기 →</a></div>
       ${d.recentWritings.map((w) => `<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span><span class="badge">${w.week}주차</span> <span class="zh">${esc(w.preview)}</span></span><span><b>${w.score ?? '–'}</b>점 <small class="muted">${ago(w.created_at)}</small></span></div>`).join('') || '<div class="empty" style="padding:16px">아직 작문이 없어요. 주차마다 작문 미션이 있어요.</div>'}
     </div>
