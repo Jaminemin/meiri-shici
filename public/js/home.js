@@ -28,9 +28,13 @@ export function weekList(weeks, currentGid) {
     const open = w.gid === currentGid;
     const subs = [
       ['words', '단어', `${w.words}/15`],
+      ['pattern', '문형·예문', ''],
+      ['listen', '듣기', ''],
+      ['speak', '말하기', ''],
       ['quiz', '퀴즈', `${w.quiz ?? '–'}/10`],
       ['writing', '작문', w.writing ? '완료' : '–'],
     ];
+    if (w.mockName) subs.push(['mock', w.mockName, '']);
     return `<div class="wl-group ${open ? 'open' : ''}" data-gid="${w.gid}">
       <button type="button" class="wl-item ${w.done ? 'done' : ''} ${open ? 'current' : ''}" data-gid="${w.gid}" aria-expanded="${open}">
         <span class="wl-num">${w.week}</span>
