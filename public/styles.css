@@ -291,6 +291,8 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .topnav { display: flex; gap: 4px; margin-left: 12px; }
 .topnav a { padding: 6px 12px; border-radius: 8px; color: var(--ink-2); text-decoration: none; font-weight: 700; font-size: 14px; white-space: nowrap; }
 .topnav a.on, .topnav a:hover { background: var(--accent-soft); color: var(--accent); }
+.topnav a:has(.nav-sub) { line-height: 1.25; text-align: center; }
+.topnav .nav-sub { display: block; font-size: 11px; font-weight: 500; color: var(--muted); }
 .topnav .count { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 0 6px; font-size: 11px; margin-left: 4px; }
 .page { max-width: 1080px; margin: 0 auto; padding: 24px 20px 60px; }
 .zh { font-family: var(--zh); }

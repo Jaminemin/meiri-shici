@@ -19,7 +19,7 @@ function navLinks(active) {
   const links = [
     ['home', '내 학습'],
     ['course', '15주 과정'],
-    ['writings', '내 작문'],
+    ['writings', '내 작문<small class="nav-sub">AI 첨삭 작문 연습</small>'],
   ];
   if (u.role === 'admin') links.push(['admin', '관리자']);
   return links.map(([k, l]) => `<a href="#/${k}" class="${active === k ? 'on' : ''}">${l}${k === 'admin' && state.pendingCount ? `<span class="count">${state.pendingCount}</span>` : ''}</a>`).join('');
