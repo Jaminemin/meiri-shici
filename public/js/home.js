@@ -96,7 +96,7 @@ function attendStamp() {
   return `<div class="attend-stamp" aria-label="출석 완료 도장"><span class="emo" aria-hidden="true">🐼</span><div><div class="w zh">已打卡</div><div class="d">출석 완료 · ${today}</div></div></div>`;
 }
 
-export function calendar(days) {
+export function calendar(days, attended = false) {
   const set = new Set(days || []);
   const kst = new Date(Date.now() + 9 * 3600 * 1000);
   const y = kst.getUTCFullYear();
@@ -108,8 +108,10 @@ export function calendar(days) {
   for (let i = 0; i < first.getUTCDay(); i++) cells.push('<span></span>');
   for (let day = 1; day <= count; day++) {
     const k = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const cls = [set.has(k) ? 'on' : '', k === today ? 'today' : ''].join(' ');
-    cells.push(`<span class="${cls}" title="${k}${set.has(k) ? ' · 출석' : ''}">${day}${set.has(k) ? '<i>🐼</i>' : ''}</span>`);
+    const canAttend = !attended && k === today;
+    const cls = [set.has(k) ? 'on' : '', k === today ? 'today' : '', canAttend ? 'can' : ''].join(' ');
+    const hint = canAttend ? ' role="button" tabindex="0" aria-label="오늘 출석체크"' : '';
+    cells.push(`<span class="${cls}"${hint} title="${k}${set.has(k) ? ' · 출석' : canAttend ? ' · 눌러서 출석체크' : ''}">${day}${set.has(k) ? '<i>🐼</i>' : ''}</span>`);
   }
   const week = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="dow">${w}</span>`).join('');
   const done = [...set].filter((k) => k.startsWith(`${y}-${String(m + 1).padStart(2, '0')}`)).length;
@@ -155,10 +157,9 @@ export async function renderHome(app, ctx = {}) {
     <div class="grid2 attend-row">
       <div class="card attend-card attend-side">
         <div><div class="ai-label">오늘의 출석</div><b style="font-size:18px">${s.attendedToday ? '✓ 출석 완료' : '아직 출석체크 전'}</b><div class="muted" style="font-size:13px;margin-top:4px">출석은 달력에 표시되고 연속 학습일에 더해집니다.</div></div>
-        ${s.attendedToday ? attendStamp() : ''}
-        <button class="btn ${s.attendedToday ? '' : 'primary'}" id="attend-btn" ${s.attendedToday ? 'disabled' : ''}>${s.attendedToday ? '출석 완료' : '출석체크 하기'}</button>
+        ${s.attendedToday ? attendStamp() : '<button class="btn primary" id="attend-btn">출석체크 하기</button>'}
       </div>
-      <div class="card"><h3>출석 달력</h3>${calendar(s.days)}</div>
+      <div class="card"><h3>출석 달력</h3>${calendar(s.days, s.attendedToday)}</div>
     </div>
     <div class="stats">
       <div class="stat"><div class="label">완료한 주차</div><div class="value">${s.doneWeeks}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.doneWeeks / s.totalWeeks) * 100}%"></div></div></div>
@@ -183,19 +184,30 @@ export async function renderHome(app, ctx = {}) {
   </div>`;
   const wl = app.querySelector('.wl');
   if (wl) bindWeekList(wl, d.weeks, d.current.gid);
-  const attend = app.querySelector('#attend-btn');
-  if (attend)
-    attend.onclick = async () => {
-      attend.disabled = true;
-      try {
-        await post('/api/attendance', {});
-        toast('출석체크 완료! 오늘도 화이팅 🎉');
-        renderHome(app);
-      } catch (e) {
-        attend.disabled = false;
-        toast(e.message, 'bad');
+  // 출석체크: 출석 버튼 또는 달력의 오늘 날짜를 누르면 한 번만 기록한다
+  let attending = false;
+  const doAttend = async () => {
+    if (attending) return;
+    attending = true;
+    try {
+      await post('/api/attendance', {});
+      toast('출석체크 완료! 오늘도 화이팅 🎉');
+      renderHome(app);
+    } catch (e) {
+      attending = false;
+      toast(e.message, 'bad');
+    }
+  };
+  app.querySelector('#attend-btn')?.addEventListener('click', doAttend);
+  app.querySelectorAll('.cal .can').forEach((el) => {
+    el.addEventListener('click', doAttend);
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        doAttend();
       }
-    };
+    });
+  });
 }
 
 export async function renderCourse(app) {
