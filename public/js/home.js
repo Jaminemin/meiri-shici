@@ -46,7 +46,7 @@ export function weekList(weeks, currentGid) {
         <span class="wl-txt"><b>${esc(w.title)}</b> <small class="zh">${esc(w.titleZh)}</small></span>
       </button>
       <div class="wl-subs"><div class="wl-subs-in">
-        ${subs.map(([t, label, val]) => `<a class="wl-sub" href="#/week/${w.gid}/${t}"><span>- ${label}</span><small>${val}</small></a>`).join('')}
+        ${subs.map(([t, label, val]) => `<a class="wl-sub" href="#/week/${w.gid}/${t}"><span class="wl-sub-name"><i class="wl-dot" aria-hidden="true"></i>${label}</span><small>${val}</small></a>`).join('')}
       </div></div>
     </div>`;
   };
