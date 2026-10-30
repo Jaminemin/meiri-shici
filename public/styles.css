@@ -317,8 +317,9 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-item.done .wl-num { background: var(--accent); color: #fff; }
 .wl-item.current { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--accent); }
 .wl-txt { min-width: 0; }
-.wl-txt b { font-size: 28px; font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
-.wl-txt small { font-size: 24px; color: var(--muted); line-height: 1.35; overflow-wrap: anywhere; }
+.wl-txt { display: block; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wl-txt b { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.wl-txt small { font-size: 20px; color: var(--muted); line-height: 1.35; }
 .wl-bars { display: flex; gap: 3px; }
 .wl-bars i { width: 8px; height: 26px; border-radius: 2px; background: var(--surface-2); }
 .wl-bars i.on { background: var(--accent); }
