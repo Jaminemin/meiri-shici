@@ -1,6 +1,5 @@
 // 대문 페이지(처음 화면). 로그인한 사용자는 바로 대시보드로 보낸다.
 import { state, esc, get } from './core.js';
-import { pandaSvg } from './panda-art.js';
 
 // 옷 종류별 색: 한푸(도포)는 청록, 치파오는 붉은색. 띠와 단추는 금색.
 const OUTFIT = {
@@ -180,20 +179,6 @@ function palaceSvg(animate) {
 }
 
 // browse: 로그인한 사용자가 집 아이콘으로 대문을 다시 볼 때 (대시보드로 튕기지 않는다)
-// 첫 화면 배경: 옅은 중국어 낱말과 작은 판다가 꽃잎처럼 흩날린다 (움직임 줄이기 설정이면 생략)
-const DRIFT_WORDS = ['每日十五词', '大家好', '欢迎欢迎', '谢谢'];
-function driftLayer() {
-  const items = [];
-  for (let i = 0; i < 12; i++) {
-    const left = (i * 37 + 5) % 94;
-    const delay = ((i * 1.1) % 7).toFixed(2);
-    const dur = (9 + (i % 4) * 2).toFixed(1);
-    const panda = i % 2 === 0 ? `<span class="drift-panda">${pandaSvg(['hello', 'cheer', 'smile'][i % 3])}</span>` : '';
-    items.push(`<span class="drift-item" style="left:${left}%;animation-delay:${delay}s;animation-duration:${dur}s">${panda}<span class="zh">${DRIFT_WORDS[i % DRIFT_WORDS.length]}</span></span>`);
-  }
-  return `<div class="drift-layer" aria-hidden="true">${items.join('')}</div>`;
-}
-
 export async function renderLanding(app, { browse = false } = {}) {
   const me = state.me;
   const u = me.user;
@@ -215,7 +200,6 @@ export async function renderLanding(app, { browse = false } = {}) {
   app.innerHTML = `
   <div class="page">
     <section class="gate-hero${reduced ? ' reduced' : ''}">
-      ${reduced ? '' : driftLayer()}
       <p class="gate-sub hook">초급부터 고급까지! 15주 동안 매주 15개 단어와 표현을 다양한 시나리오로 함께 배워봐요!</p>
       <div class="gate-scene">${palaceSvg(!reduced)}<h1 class="gate-title zh">每日十五词</h1></div>
       <div class="level-pick">
