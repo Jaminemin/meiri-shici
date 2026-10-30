@@ -514,4 +514,3 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 @media (max-width: 520px) { .level-pick { gap: 8px; } .level-card b { font-size: 13px; } }
 .panda-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; min-height: 150px; }
 .panda-cell svg { width: 96px; height: auto; }
-.panda-cell .panda-cap { font-size: 14px; font-weight: 700; color: var(--ink-2); }

@@ -47,8 +47,5 @@ export function pandaSvg(pose) {
 
 // 격자 마지막 칸에 넣는 판다 카드
 export function pandaCell(pose) {
-  return `<div class="card panda-cell" role="img" aria-label="${CAPTION[pose] || ''}">
-    ${pandaSvg(pose)}
-    <div class="panda-cap">${CAPTION[pose] || ''}</div>
-  </div>`;
+  return `<div class="card panda-cell" role="img" aria-label="${CAPTION[pose] || ''}">${pandaSvg(pose)}</div>`;
 }
