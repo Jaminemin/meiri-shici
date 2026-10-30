@@ -23,6 +23,52 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
     .join('')}</div>`;
 }
 
+// 15주 진도: 왼쪽 세로 목차 + 오른쪽 선택한 주차 상세 (위아래로 찾지 않고 한눈에 비교)
+function weekDetailHtml(w, currentGid) {
+  const state = w.done ? ' · 완료' : w.gid === currentGid ? ' · 진행 중' : '';
+  return `<div class="wl-ai">${w.week}주차${state}</div>
+    <h3 class="wl-title">${esc(w.title)}</h3>
+    <div class="zh wl-zh">${esc(w.titleZh)}</div>
+    <div class="wl-steps">
+      <div class="${w.words >= 15 ? 'on' : ''}"><b>단어</b><small>${w.words}/15</small></div>
+      <div class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"><b>퀴즈</b><small>${w.quiz ?? '–'}/10</small></div>
+      <div class="${w.writing ? 'on' : ''}"><b>작문</b><small>${w.writing ? '완료' : '–'}</small></div>
+    </div>
+    <a class="btn primary" href="#/week/${w.gid}">${w.done ? '복습하기' : '이어 하기'} →</a>`;
+}
+
+export function weekList(weeks, currentGid) {
+  const cur = weeks.find((w) => w.gid === currentGid) || weeks[0];
+  const item = (w) => {
+    const n = [w.words >= 15, w.quiz !== null && w.quiz >= 8, !!w.writing].filter(Boolean).length;
+    return `<button type="button" class="wl-item ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}" data-gid="${w.gid}" aria-pressed="${w.gid === currentGid}">
+      <span class="wl-num">${w.week}</span>
+      <span class="wl-txt"><b>${esc(w.title)}</b><small class="zh">${esc(w.titleZh)}</small></span>
+      <span class="wl-bars" aria-label="${n}/3 완료">${[0, 1, 2].map((i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>
+    </button>`;
+  };
+  return `<div class="wl">
+    <nav class="wl-list" aria-label="주차 목차">${weeks.map(item).join('')}</nav>
+    <section class="wl-detail" aria-live="polite">${weekDetailHtml(cur, currentGid)}</section>
+  </div>`;
+}
+
+// 목차 버튼을 누르면 오른쪽 상세만 바뀐다 (페이지 이동 없음)
+export function bindWeekList(root, weeks, currentGid) {
+  const detail = root.querySelector('.wl-detail');
+  root.querySelectorAll('.wl-item').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const w = weeks.find((x) => x.gid === Number(btn.dataset.gid));
+      if (!w) return;
+      root.querySelectorAll('.wl-item').forEach((b) => {
+        b.classList.toggle('current', b === btn);
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+      detail.innerHTML = weekDetailHtml(w, currentGid);
+    }),
+  );
+}
+
 export function heatmap(days) {
   const set = new Set(days || []);
   const cells = [];
@@ -119,11 +165,13 @@ export async function renderHome(app, ctx = {}) {
         .map(([k, t]) => `<a class="card track-card" href="#/track/${k}"><div class="track-icon">${t.icon}</div><h3>${t.name}</h3><p class="muted" style="font-size:14px">${t.desc}</p><span class="track-go">15주 보기 →</span></a>`)
         .join('')}
     </div>
-    <div class="card"><div class="card-head"><h2>15주 진도</h2><span class="muted" style="font-size:13px">막대 3칸 = 단어 · 퀴즈 · 작문</span></div>${weekCards(d.weeks, d.current.gid)}</div>
+    <div class="card"><div class="card-head"><h2>15주 진도</h2><span class="muted" style="font-size:13px">막대 3칸 = 단어 · 퀴즈 · 작문</span></div>${weekList(d.weeks, d.current.gid)}</div>
     <div class="card"><div class="card-head"><h3>최근 작문</h3><a href="#/writings">전체 보기 →</a></div>
       ${d.recentWritings.map((w) => `<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span><span class="badge">${w.week}주차</span> <span class="zh">${esc(w.preview)}</span></span><span><b>${w.score ?? '–'}</b>점 <small class="muted">${ago(w.created_at)}</small></span></div>`).join('') || '<div class="empty" style="padding:16px">아직 작문이 없어요. 주차마다 작문 미션이 있어요.</div>'}
     </div>
   </div>`;
+  const wl = app.querySelector('.wl');
+  if (wl) bindWeekList(wl, d.weeks, d.current.gid);
   const attend = app.querySelector('#attend-btn');
   if (attend)
     attend.onclick = async () => {
