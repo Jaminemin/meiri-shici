@@ -331,12 +331,18 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-steps > div.on { border-color: var(--accent); background: var(--accent-soft); }
 .wl-steps b { display: block; font-size: 13px; }
 .wl-steps small { color: var(--muted); font-size: 12px; }
-.wl-list { position: sticky; top: 12px; max-height: calc(100vh - 120px); }
+.wl-side { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 8px; max-height: calc(100vh - 120px); min-width: 0; }
+.wl-search { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; min-height: 38px; background: var(--surface); color: var(--muted); }
+.wl-search input { all: unset; flex: 1; min-width: 0; font: inherit; color: var(--ink); }
+.wl-label { font-size: 12px; color: var(--muted); padding: 4px 6px 0; font-weight: 700; }
+.wl-foot { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); padding: 8px 6px 0; border-top: 1px solid var(--line); }
+.wl-side .wl-list { flex: 1; min-height: 0; overflow-y: auto; border: 0; background: none; padding: 0; max-height: none; }
+.wl-item[hidden] { display: none; }
 /* 넓은 화면: 목차를 화면 맨 왼쪽에 세로로 고정 */
 @media (min-width: 1100px) {
-  .page:has(.wl) { padding-left: 270px; }
+  .page:has(.wl) { padding-left: 280px; }
   .wl { grid-template-columns: minmax(0, 1fr); }
-  .wl-list { position: fixed; left: 16px; top: 76px; bottom: 16px; width: 236px; max-height: none; z-index: 5; }
+  .wl-side { position: fixed; left: 0; top: 62px; bottom: 0; width: 260px; max-height: none; z-index: 5; padding: 14px 12px; background: var(--surface); border-right: 1px solid var(--line); }
 }
 @media (max-width: 680px) {
   .wl { grid-template-columns: 128px minmax(0, 1fr); gap: 10px; }
