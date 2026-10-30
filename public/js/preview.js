@@ -74,7 +74,7 @@ export async function renderPreview(app, course = 'travel') {
           (x) => `<div class="card">
             <div class="row" style="flex-wrap:nowrap;align-items:flex-start">
               <div style="flex:1">
-                <div class="zh" style="font-size:20px;font-weight:600">${esc(x.zh)}</div>
+                <div class="zh" style="font-size:20px;font-weight:600"><span aria-hidden="true">🐼</span> ${esc(x.zh)}</div>
                 <div class="py" style="color:var(--muted,#777)">${esc(x.py)}</div>
                 <div style="margin-top:4px">${esc(x.ko)}</div>
               </div>

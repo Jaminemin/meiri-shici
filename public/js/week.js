@@ -131,7 +131,7 @@ export async function renderWeek(app, ctx) {
         )
         .join('')}</div>
       <div class="card"><h3>예문</h3>${W.examples
-        .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
+        .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh"><span aria-hidden="true">🐼</span> ${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
         .join('')}</div>
       <div class="row end"><button class="btn primary" data-go="listen">다음: 듣기 연습 →</button></div>`;
   }
