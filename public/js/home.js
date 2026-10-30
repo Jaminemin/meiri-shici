@@ -59,17 +59,9 @@ export function weekList(weeks, currentGid) {
   </div>`;
 }
 
-// 목차 버튼을 누르면 오른쪽 상세만 바뀐다 (페이지 이동 없음)
+// 목차를 누르면 오른쪽 상세 화면이 그 주차로 바뀐다. 검색창으로는 주차를 거른다.
 export function bindWeekList(root, weeks, currentGid) {
   const detail = root.querySelector('.wl-detail');
-  const q = root.querySelector('.wl-q');
-  q?.addEventListener('input', () => {
-    const k = q.value.trim();
-    root.querySelectorAll('.wl-item').forEach((b) => {
-      const w = weeks.find((x) => x.gid === Number(b.dataset.gid));
-      b.hidden = !!k && !(String(w.week).includes(k) || w.title.includes(k) || w.titleZh.includes(k));
-    });
-  });
   root.querySelectorAll('.wl-item').forEach((btn) =>
     btn.addEventListener('click', () => {
       const w = weeks.find((x) => x.gid === Number(btn.dataset.gid));
@@ -81,6 +73,14 @@ export function bindWeekList(root, weeks, currentGid) {
       detail.innerHTML = weekDetailHtml(w, currentGid);
     }),
   );
+  const q = root.querySelector('.wl-q');
+  q?.addEventListener('input', () => {
+    const k = q.value.trim();
+    root.querySelectorAll('.wl-item').forEach((b) => {
+      const w = weeks.find((x) => x.gid === Number(b.dataset.gid));
+      b.hidden = !!k && !(String(w.week).includes(k) || w.title.includes(k) || w.titleZh.includes(k));
+    });
+  });
 }
 
 export function heatmap(days) {
