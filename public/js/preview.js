@@ -2,6 +2,8 @@
 import { state, esc, get, speak } from './core.js';
 import { pandaCell } from './panda-art.js';
 
+const NUM_COLORS = ['#2d5bd1', '#1c9a8f', '#7a4fd0', '#e0821a', '#3c9a4e', '#d4456f'];
+
 export async function renderPreview(app, course = 'travel') {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   let d;
@@ -34,16 +36,17 @@ export async function renderPreview(app, course = 'travel') {
     <div class="notice info">로그인 없이 1주차 내용을 둘러보는 중입니다. 퀴즈, 작문 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
 
     <div class="section-title">① 단어 ${W.words.length}개</div>
-    <div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+    <div class="word-list">
       ${W.words
         .map(
-          (w) => `<div class="card" style="padding:14px">
-            <div class="row between" style="align-items:flex-start">
-              <div><div class="zh" style="font-size:28px;font-weight:700">${esc(w.hanzi)}</div>
-              <div class="py" style="color:var(--muted,#777)">${esc(w.pinyin)}</div></div>
-              <button class="btn" data-say="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button>
+          (w, i) => `<div class="word" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
+            <div class="num">${i + 1}</div>
+            <div class="body">
+              <div class="top"><div class="hz zh">${esc(w.hanzi)}</div>
+                <div class="tools"><button class="speak" data-say="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button></div></div>
+              <div class="py">${esc(w.pinyin)}</div>
+              <div class="mn">${esc(w.meaning)}</div>
             </div>
-            <div style="margin-top:6px">${esc(w.meaning)}</div>
           </div>`,
         )
         .join('')}
@@ -51,13 +54,13 @@ export async function renderPreview(app, course = 'travel') {
     </div>
 
     <div class="section-title">② 핵심 문형 ${W.patterns.length}개</div>
-    <div class="grid2">
+    <div class="pattern-grid">
       ${W.patterns
         .map(
-          (p) => `<div class="card">
-            <div class="zh" style="font-weight:600">${esc(p.form)}</div>
-            <div style="margin-top:4px">${esc(p.explain)}</div>
-            ${p.zh ? `<div class="row" style="flex-wrap:nowrap;align-items:flex-start;margin-top:8px"><div style="flex:1"><div class="zh">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div></div><button class="btn" data-say="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div>` : ''}
+          (p, i) => `<div class="pattern" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
+            <div class="phead"><span class="pnum">${i + 1}</span>
+              <div><div class="zh ptitle">${esc(p.form)}</div><div class="explain">${esc(p.explain)}</div></div></div>
+            ${p.zh ? `<div class="ex"><span class="tab">예시 문장</span><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div></div><button class="speak" data-say="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div></div>` : ''}
           </div>`,
         )
         .join('')}
