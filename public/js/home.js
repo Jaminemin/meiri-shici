@@ -155,7 +155,6 @@ export async function renderHome(app, ctx = {}) {
   const s = d.summary;
   app.innerHTML = `
   <div class="page">
-    ${coursePicker(d.courses, d.course.key)}
     <div class="page-head"><div><h1>${esc(d.user.name)}님, 加油！</h1><p>${s.attendedToday ? '오늘 출석했어요. 잘하고 있어요!' : '오늘 아직 출석 전이에요. 출석체크를 하고 시작해 볼까요?'}</p></div>
       <a class="btn primary big" href="#/week/${d.current.gid}">${d.current.week}주차 ${esc(d.current.title)} 이어 하기 →</a></div>
     <div class="grid2 attend-row">
