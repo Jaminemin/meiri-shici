@@ -109,7 +109,7 @@ export function calendar(days) {
   for (let day = 1; day <= count; day++) {
     const k = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const cls = [set.has(k) ? 'on' : '', k === today ? 'today' : ''].join(' ');
-    cells.push(`<span class="${cls}" title="${k}${set.has(k) ? ' · 출석' : ''}">${day}${set.has(k) ? '<i>👏</i>' : ''}</span>`);
+    cells.push(`<span class="${cls}" title="${k}${set.has(k) ? ' · 출석' : ''}">${day}${set.has(k) ? '<i>🐼</i>' : ''}</span>`);
   }
   const week = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="dow">${w}</span>`).join('');
   const done = [...set].filter((k) => k.startsWith(`${y}-${String(m + 1).padStart(2, '0')}`)).length;
