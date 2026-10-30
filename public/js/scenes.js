@@ -20,120 +20,126 @@ export const SCENES = {
   15: { place: 'cafe', title: '고마움 전하기', desc: '어려울 때 도와준 친구에게 카페에서 고마움을 전합니다. 도움에 감사하고 앞으로도 친하게 지내자고 말합니다.', bubbles: [['谢谢你的帮助！', '도와줘서 고마워!'], ['不客气，因为我们是朋友。', '천만에, 우리는 친구니까.']] },
 };
 
-const WALL = (c) => `<rect x="0" y="0" width="400" height="170" fill="${c}"/>`;
-const FLOOR = (c) => `<rect x="0" y="170" width="400" height="70" fill="${c}"/>`;
+// 장면 그림: 부드러운 그라데이션 배경 + 둥근 판다 두 마리 + 말풍선. 장소별 소품으로 상황을 보여 준다.
+const ACCENT = ['#3b6fd8', '#e0823d'];
+
+function defs(id, a, b) {
+  return `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.18"/></filter></defs>`;
+}
+const GROUND = (c1, c2) => `<rect x="0" y="176" width="400" height="64" fill="${c1}"/><rect x="0" y="176" width="400" height="6" fill="${c2}" opacity=".6"/>`;
 
 const BACKDROP = {
-  classroom: () => `${WALL('#f3ead8')}${FLOOR('#d9c8a8')}
-    <rect x="80" y="28" width="240" height="96" rx="6" fill="#2f4a3a"/>
-    <rect x="100" y="52" width="120" height="6" rx="3" fill="#e8f0e6" opacity=".8"/>
-    <rect x="100" y="70" width="180" height="6" rx="3" fill="#e8f0e6" opacity=".6"/>
-    <rect x="100" y="88" width="90" height="6" rx="3" fill="#e8f0e6" opacity=".6"/>
-    <rect x="40" y="172" width="150" height="12" rx="3" fill="#8b6b4a"/>`,
-  home: () => `${WALL('#f6e6d0')}${FLOOR('#c9a77c')}
-    <rect x="262" y="34" width="96" height="72" rx="4" fill="#bfe3f5" stroke="#8b6b4a" stroke-width="6"/>
-    <rect x="30" y="140" width="160" height="50" rx="14" fill="#6f86ad"/>
-    <rect x="22" y="128" width="26" height="62" rx="10" fill="#5b7299"/>
-    <rect x="200" y="112" width="12" height="60" fill="#8b6b4a"/>
-    <circle cx="206" cy="104" r="16" fill="#f4c96b"/>`,
-  cafe: () => `${WALL('#efe3d2')}${FLOOR('#c8a986')}
-    <rect x="30" y="150" width="340" height="22" rx="4" fill="#7a5a3c"/>
-    <rect x="60" y="100" width="90" height="10" rx="3" fill="#8b6b4a"/>
-    <rect x="190" y="112" width="26" height="36" rx="4" fill="#fff"/>
-    <rect x="260" y="112" width="26" height="36" rx="4" fill="#fff"/>
-    <rect x="150" y="40" width="110" height="30" rx="6" fill="#6b4a2f"/>
-    <text x="205" y="61" font-size="16" fill="#f3e2c7" text-anchor="middle" font-family="sans-serif">COFFEE</text>`,
-  restaurant: () => `${WALL('#f4d9c4')}${FLOOR('#b98a6a')}
-    <rect x="50" y="162" width="300" height="14" rx="4" fill="#9c4a3c"/>
-    <circle cx="90" cy="46" r="20" fill="#e0412e"/><circle cx="310" cy="46" r="20" fill="#e0412e"/>
-    <line x1="90" y1="20" x2="90" y2="6" stroke="#6f1826" stroke-width="2"/>
-    <line x1="310" y1="20" x2="310" y2="6" stroke="#6f1826" stroke-width="2"/>
-    <rect x="170" y="30" width="60" height="26" rx="4" fill="#f5c542"/>`,
-  shop: () => `${WALL('#e9f1e4')}${FLOOR('#c4b59a')}
-    <rect x="40" y="46" width="320" height="8" fill="#9c8358"/>
-    <rect x="40" y="96" width="320" height="8" fill="#9c8358"/>
-    <circle cx="80" cy="34" r="12" fill="#e0412e"/><circle cx="130" cy="34" r="12" fill="#3f8fd2"/><circle cx="180" cy="34" r="12" fill="#f5c542"/>
-    <rect x="60" y="62" width="34" height="34" rx="4" fill="#d9a5a5"/><rect x="110" y="62" width="34" height="34" rx="4" fill="#9fc9e8"/><rect x="160" y="62" width="34" height="34" rx="4" fill="#b8dba0"/>
-    <rect x="130" y="172" width="150" height="12" rx="3" fill="#8b6b4a"/>`,
-  street: () => `<rect x="0" y="0" width="400" height="150" fill="#cfe8f7"/>
-    <rect x="20" y="60" width="70" height="90" fill="#9aa5b3"/><rect x="110" y="40" width="80" height="110" fill="#b3bdc9"/>
-    <rect x="210" y="70" width="60" height="80" fill="#9aa5b3"/><rect x="290" y="46" width="90" height="104" fill="#b3bdc9"/>
-    <rect x="0" y="150" width="400" height="90" fill="#8a929c"/><rect x="0" y="196" width="400" height="4" fill="#f2f2f2" opacity=".7"/>
-    <circle cx="52" cy="128" r="18" fill="#7fbf7a"/>`,
-  subway: () => `${WALL('#dfe6ee')}<rect x="0" y="170" width="400" height="70" fill="#b7c2cf"/>
-    <rect x="20" y="64" width="360" height="104" rx="10" fill="#3a7bd5"/>
-    <rect x="40" y="82" width="70" height="44" rx="6" fill="#dff1ff"/><rect x="130" y="82" width="70" height="44" rx="6" fill="#dff1ff"/><rect x="220" y="82" width="70" height="44" rx="6" fill="#dff1ff"/><rect x="310" y="82" width="50" height="44" rx="6" fill="#dff1ff"/>
-    <rect x="0" y="36" width="400" height="16" fill="#f5c542"/>`,
-  park: () => `<rect x="0" y="0" width="400" height="170" fill="#d8f0ff"/><circle cx="330" cy="52" r="22" fill="#ffd36b"/>
-    <circle cx="70" cy="90" r="34" fill="#7fbf7a"/><circle cx="110" cy="80" r="28" fill="#6aae68"/><rect x="66" y="110" width="8" height="60" fill="#7a5a3c"/>
-    <circle cx="330" cy="100" r="30" fill="#7fbf7a"/><rect x="326" y="120" width="8" height="50" fill="#7a5a3c"/>
-    <rect x="0" y="170" width="400" height="70" fill="#a8d88a"/>
-    <rect x="200" y="176" width="90" height="10" rx="3" fill="#9c7a52"/>`,
-  office: () => `${WALL('#e8ecf3')}${FLOOR('#c9ccd3')}
-    <rect x="260" y="30" width="110" height="80" rx="4" fill="#c7e4f7"/>
-    <rect x="40" y="136" width="200" height="12" rx="3" fill="#8b6b4a"/>
-    <rect x="80" y="96" width="110" height="40" rx="4" fill="#2f3b4c"/>
-    <rect x="132" y="148" width="10" height="26" fill="#5b6470"/>`,
-  hospital: () => `${WALL('#eaf6f4')}${FLOOR('#d6e8e4')}
-    <rect x="30" y="26" width="46" height="46" rx="6" fill="#2fa58a"/>
-    <rect x="44" y="32" width="18" height="34" fill="#fff"/><rect x="36" y="40" width="34" height="18" fill="#fff"/>
-    <rect x="200" y="132" width="170" height="16" rx="6" fill="#dfe6ee"/><rect x="200" y="112" width="50" height="22" rx="6" fill="#fff"/>
-    <rect x="240" y="60" width="120" height="40" rx="6" fill="#bfe3dc"/>`,
-  airport: () => `${WALL('#e6eef6')}${FLOOR('#cdd6e0')}
-    <rect x="30" y="30" width="340" height="110" rx="6" fill="#bfe0f5"/>
-    <line x1="30" y1="85" x2="370" y2="85" stroke="#9fc0d8" stroke-width="3"/>
-    <path d="M140 60 L240 52 L250 60 L150 74 Z" fill="#ffffff"/>
-    <rect x="60" y="162" width="46" height="34" rx="6" fill="#3a6fb0"/><rect x="290" y="162" width="46" height="34" rx="6" fill="#c0392b"/>`,
+  airport: (id) => `${defs(id, '#dbeafe', '#f5f9ff')}<rect width="400" height="240" fill="url(#${id})"/>
+    <rect x="34" y="34" width="150" height="104" rx="14" fill="#bfdcf7" opacity=".9"/>
+    <rect x="216" y="34" width="150" height="104" rx="14" fill="#bfdcf7" opacity=".9"/>
+    <path d="M48 110 L130 60 L170 60 L110 110 Z" fill="#fff" opacity=".35"/>
+    <g transform="translate(322 74) rotate(-12)" fill="#fff" opacity=".95"><ellipse rx="26" ry="6"/><path d="M-4 -2 L-16 -22 L-10 -22 L8 -2 Z"/><path d="M-4 2 L-16 22 L-10 22 L8 2 Z"/></g>
+    ${GROUND('#cdd9e8', '#9fb2cc')}`,
+  cafe: (id) => `${defs(id, '#fbe9d6', '#f7d7b7')}<rect width="400" height="240" fill="url(#${id})"/>
+    <circle cx="90" cy="42" r="12" fill="#fcd27a" filter="url(#sh)"/><line x1="90" y1="0" x2="90" y2="30" stroke="#b08a5a" stroke-width="2"/>
+    <circle cx="310" cy="42" r="12" fill="#fcd27a" filter="url(#sh)"/><line x1="310" y1="0" x2="310" y2="30" stroke="#b08a5a" stroke-width="2"/>
+    <rect x="28" y="92" width="86" height="8" rx="4" fill="#a5714a"/>
+    <rect x="286" y="92" width="86" height="8" rx="4" fill="#a5714a"/>
+    <rect x="34" y="150" width="332" height="26" rx="10" fill="#9a6a45" filter="url(#sh)"/>
+    <rect x="170" y="118" width="60" height="32" rx="10" fill="#fff" filter="url(#sh)"/><rect x="176" y="112" width="48" height="8" rx="4" fill="#8b5e3c" opacity=".6"/>
+    ${GROUND('#c99d78', '#a77b5a')}`,
+  home: (id) => `${defs(id, '#fff0dc', '#fde3c2')}<rect width="400" height="240" fill="url(#${id})"/>
+    <rect x="262" y="34" width="104" height="84" rx="14" fill="#bfe6fb" stroke="#fff" stroke-width="6"/>
+    <line x1="314" y1="34" x2="314" y2="118" stroke="#fff" stroke-width="4"/>
+    <rect x="34" y="132" width="170" height="44" rx="20" fill="#6f9e98" filter="url(#sh)"/>
+    <rect x="34" y="112" width="40" height="64" rx="16" fill="#5d8a85" filter="url(#sh)"/>
+    <rect x="232" y="144" width="60" height="10" rx="5" fill="#b07a4d"/><rect x="240" y="154" width="6" height="26" fill="#b07a4d"/><rect x="278" y="154" width="6" height="26" fill="#b07a4d"/>
+    <circle cx="262" cy="128" r="10" fill="#fcd27a"/>
+    ${GROUND('#e6c49a', '#c99d6e')}`,
+  hospital: (id) => `${defs(id, '#eefaf7', '#dff3ee')}<rect width="400" height="240" fill="url(#${id})"/>
+    <rect x="46" y="38" width="64" height="64" rx="16" fill="#2fb7a4" filter="url(#sh)"/>
+    <path d="M78 52 V88 M60 70 H96" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    <rect x="270" y="50" width="96" height="60" rx="12" fill="#fff" filter="url(#sh)"/>
+    <rect x="282" y="62" width="40" height="8" rx="4" fill="#bfe9e0"/><rect x="282" y="78" width="72" height="8" rx="4" fill="#bfe9e0"/>
+    ${GROUND('#cfe9e3', '#a9d8ce')}`,
+  park: (id) => `${defs(id, '#d5f0fd', '#f4fbff')}<rect width="400" height="240" fill="url(#${id})"/>
+    <circle cx="332" cy="48" r="20" fill="#ffe08a"/>
+    <path d="M0 160 Q90 118 180 158 T400 150 V240 H0 Z" fill="#a8dba0"/>
+    <circle cx="70" cy="98" r="26" fill="#7cc587"/><circle cx="96" cy="88" r="22" fill="#8fd39a"/><rect x="66" y="112" width="8" height="48" rx="3" fill="#8b6b4a"/>
+    <circle cx="330" cy="104" r="22" fill="#7cc587"/><rect x="326" y="122" width="8" height="48" rx="3" fill="#8b6b4a"/>
+    <rect x="150" y="150" width="78" height="12" rx="6" fill="#c08d5e"/><rect x="156" y="162" width="6" height="18" fill="#8b6b4a"/><rect x="216" y="162" width="6" height="18" fill="#8b6b4a"/>
+    ${GROUND('#8fcf88', '#6fb86a')}`,
+  restaurant: (id) => `${defs(id, '#fde6d5', '#fbd7bf')}<rect width="400" height="240" fill="url(#${id})"/>
+    <line x1="92" y1="0" x2="92" y2="26" stroke="#7a2e2e" stroke-width="2"/><circle cx="92" cy="40" r="18" fill="#e5483a" filter="url(#sh)"/>
+    <line x1="308" y1="0" x2="308" y2="26" stroke="#7a2e2e" stroke-width="2"/><circle cx="308" cy="40" r="18" fill="#e5483a" filter="url(#sh)"/>
+    <rect x="30" y="134" width="340" height="12" rx="6" fill="#b5523e"/>
+    <ellipse cx="200" cy="150" rx="60" ry="10" fill="#fff" opacity=".7"/>
+    <rect x="186" y="110" width="28" height="30" rx="6" fill="#fff" filter="url(#sh)"/>
+    ${GROUND('#c77e5c', '#a8604a')}`,
+  shop: (id) => `${defs(id, '#ecf7ee', '#dff0e3')}<rect width="400" height="240" fill="url(#${id})"/>
+    <path d="M30 30 H370 V58 Q356 74 342 58 Q328 74 314 58 Q300 74 286 58 Q272 74 258 58 Q244 74 230 58 Q216 74 202 58 Q188 74 174 58 Q160 74 146 58 Q132 74 118 58 Q104 74 90 58 Q76 74 62 58 Q48 74 30 58 Z" fill="#f08f7a" filter="url(#sh)"/>
+    <rect x="46" y="96" width="72" height="56" rx="12" fill="#f5d0c4"/><rect x="134" y="96" width="72" height="56" rx="12" fill="#c7e4f7"/><rect x="222" y="96" width="72" height="56" rx="12" fill="#d5ecc4"/><rect x="310" y="96" width="50" height="56" rx="12" fill="#f8e7a2"/>
+    ${GROUND('#c9bda3', '#aa9d7f')}`,
+  street: (id) => `${defs(id, '#d9efff', '#f2f9ff')}<rect width="400" height="240" fill="url(#${id})"/>
+    <rect x="18" y="62" width="78" height="120" rx="10" fill="#9fb3c9"/><rect x="108" y="40" width="92" height="142" rx="10" fill="#b7c7d8"/>
+    <rect x="214" y="78" width="70" height="104" rx="10" fill="#9fb3c9"/><rect x="296" y="50" width="86" height="132" rx="10" fill="#b7c7d8"/>
+    <g fill="#fff" opacity=".85"><rect x="32" y="82" width="12" height="12" rx="3"/><rect x="54" y="82" width="12" height="12" rx="3"/><rect x="124" y="60" width="12" height="12" rx="3"/><rect x="146" y="60" width="12" height="12" rx="3"/><rect x="228" y="98" width="12" height="12" rx="3"/><rect x="310" y="72" width="12" height="12" rx="3"/><rect x="332" y="72" width="12" height="12" rx="3"/></g>
+    ${GROUND('#c3cbd5', '#9ea9b6')}`,
+  subway: (id) => `${defs(id, '#1e293b', '#334155')}<rect width="400" height="240" fill="url(#${id})"/>
+    <g fill="#fde68a" opacity=".8"><circle cx="60" cy="40" r="4"/><circle cx="160" cy="40" r="4"/><circle cx="260" cy="40" r="4"/><circle cx="350" cy="40" r="4"/></g>
+    <rect x="0" y="62" width="400" height="10" fill="#475569"/>
+    <rect x="40" y="96" width="320" height="82" rx="20" fill="#3b82f6" filter="url(#sh)"/>
+    <rect x="62" y="110" width="66" height="34" rx="8" fill="#dbeafe"/><rect x="167" y="110" width="66" height="34" rx="8" fill="#dbeafe"/><rect x="272" y="110" width="66" height="34" rx="8" fill="#dbeafe"/>
+    <rect x="0" y="176" width="400" height="64" fill="#475569"/><rect x="0" y="176" width="400" height="6" fill="#64748b"/>`,
 };
+const BASE = { airport: 'airport', cafe: 'cafe', home: 'home', hospital: 'hospital', park: 'park', restaurant: 'restaurant', shop: 'shop', street: 'street', subway: 'subway' };
 
-// 판다 한 마리 (가운데 x 기준, 머리 중심 y=100). 조끼 색으로 두 판다를 구분한다.
-function pandaFigure(cx, vest, flip) {
+// 판다 한 마리 (cx: 가운데, F: 발바닥 y). flip이면 좌우 반전. 목에 두른 스카프 색으로 두 판다를 구분한다.
+function pandaFig(cx, F, scarf, flip, wave) {
   const s = flip ? -1 : 1;
-  return `<g transform="translate(${cx} 0) scale(${s} 1) translate(${-cx} 0)">
-    <rect x="${cx - 30}" y="132" width="12" height="46" rx="6" fill="#1d1d1d"/>
-    <rect x="${cx + 18}" y="132" width="12" height="46" rx="6" fill="#1d1d1d"/>
-    <rect x="${cx - 24}" y="128" width="48" height="66" rx="18" fill="#fff" stroke="#2b2b2b" stroke-width="2"/>
-    <rect x="${cx - 14}" y="138" width="28" height="30" rx="8" fill="${vest}"/>
-    <rect x="${cx - 10}" y="190" width="9" height="20" rx="4" fill="#1d1d1d"/><rect x="${cx + 1}" y="190" width="9" height="20" rx="4" fill="#1d1d1d"/>
-    <circle cx="${cx - 17}" cy="80" r="8" fill="#1d1d1d"/><circle cx="${cx + 17}" cy="80" r="8" fill="#1d1d1d"/>
-    <circle cx="${cx}" cy="100" r="24" fill="#fff" stroke="#2b2b2b" stroke-width="2"/>
-    <ellipse cx="${cx - 9}" cy="100" rx="6.5" ry="7.5" fill="#1d1d1d" transform="rotate(-15 ${cx - 9} 100)"/>
-    <ellipse cx="${cx + 9}" cy="100" rx="6.5" ry="7.5" fill="#1d1d1d" transform="rotate(15 ${cx + 9} 100)"/>
-    <circle cx="${cx - 8}" cy="100" r="2" fill="#fff"/><circle cx="${cx + 10}" cy="100" r="2" fill="#fff"/>
-    <ellipse cx="${cx}" cy="112" rx="3.2" ry="2.4" fill="#1d1d1d"/>
-    <path d="M${cx - 4} 118 Q${cx} 121 ${cx + 4} 118" fill="none" stroke="#2b2b2b" stroke-width="1.8" stroke-linecap="round"/>
+  const waveArm = wave
+    ? `<ellipse cx="${cx + 44}" cy="${F - 74}" rx="11" ry="24" fill="#1f2937" transform="rotate(-38 ${cx + 44} ${F - 74})"/>`
+    : `<ellipse cx="${cx + 40}" cy="${F - 46}" rx="11" ry="23" fill="#1f2937" transform="rotate(-12 ${cx + 40} ${F - 46})"/>`;
+  return `<g transform="translate(${cx} 0) scale(${s} 1) translate(${-cx} 0)" filter="url(#sh)">
+    <ellipse cx="${cx - 15}" cy="${F - 6}" rx="12" ry="9" fill="#1f2937"/><ellipse cx="${cx + 15}" cy="${F - 6}" rx="12" ry="9" fill="#1f2937"/>
+    <rect x="${cx - 32}" y="${F - 80}" width="64" height="74" rx="30" fill="#fff"/>
+    <ellipse cx="${cx - 38}" cy="${F - 46}" rx="11" ry="23" fill="#1f2937" transform="rotate(12 ${cx - 38} ${F - 46})"/>
+    ${waveArm}
+    <rect x="${cx - 22}" y="${F - 66}" width="44" height="9" rx="4.5" fill="${scarf}"/>
+    <circle cx="${cx}" cy="${F - 100}" r="38" fill="#fff"/>
+    <circle cx="${cx - 27}" cy="${F - 128}" r="12" fill="#1f2937"/><circle cx="${cx + 27}" cy="${F - 128}" r="12" fill="#1f2937"/>
+    <ellipse cx="${cx - 14}" cy="${F - 102}" rx="10" ry="12" fill="#1f2937" transform="rotate(-18 ${cx - 14} ${F - 102})"/>
+    <ellipse cx="${cx + 14}" cy="${F - 102}" rx="10" ry="12" fill="#1f2937" transform="rotate(18 ${cx + 14} ${F - 102})"/>
+    <circle cx="${cx - 11}" cy="${F - 106}" r="3" fill="#fff"/><circle cx="${cx + 17}" cy="${F - 106}" r="3" fill="#fff"/>
+    <circle cx="${cx - 24}" cy="${F - 88}" r="4.5" fill="#f9a8b8" opacity=".6"/><circle cx="${cx + 24}" cy="${F - 88}" r="4.5" fill="#f9a8b8" opacity=".6"/>
+    <ellipse cx="${cx}" cy="${F - 88}" rx="4.5" ry="3.2" fill="#1f2937"/>
+    <path d="M${cx - 5} ${F - 81} Q${cx} ${F - 77} ${cx + 5} ${F - 81}" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
   </g>`;
 }
 
-// 말풍선: 왼쪽(l) 또는 오른쪽(r) 위에 놓는다. 한 줄은 9자까지, 넘으면 다음 줄로 나눈다.
-function bubble(side, zh) {
+// 말풍선: side l/r, 둥근 모서리와 옅은 그림자, 한 줄 9자
+function bubble(side, zh, y) {
   const rows = [];
   for (let i = 0; i < zh.length; i += 9) rows.push(zh.slice(i, i + 9));
-  const w = 150;
-  const h = 16 + rows.length * 22;
-  const x = side === 'l' ? 8 : 242;
-  const y = 8;
-  const tx = side === 'l' ? x + 46 : x + 104;
-  return `<g>
-    <rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="#fff" stroke="#7b1c2a" stroke-width="2"/>
-    <path d="M${tx - 8} ${y + h - 1} L${tx} ${y + h + 12} L${tx + 8} ${y + h - 1} Z" fill="#fff" stroke="#7b1c2a" stroke-width="2" stroke-linejoin="round"/>
-    <rect x="${tx - 9}" y="${y + h - 3}" width="18" height="4" fill="#fff"/>
-    ${rows.map((r, k) => `<text x="${x + w / 2}" y="${y + 24 + k * 22}" font-size="16" text-anchor="middle" fill="#1d1d1d" font-family="SimSun, 'Noto Serif SC', serif">${esc(r)}</text>`).join('')}
+  const w = 168, h = 22 + rows.length * 24;
+  const x = side === 'l' ? 14 : 218;
+  const tx = side === 'l' ? x + 52 : x + w - 52;
+  const top = y;
+  return `<g filter="url(#sh)">
+    <rect x="${x}" y="${top}" width="${w}" height="${h}" rx="16" fill="#fff"/>
+    <path d="M${tx - 9} ${top + h - 1} L${tx} ${top + h + 13} L${tx + 9} ${top + h - 1} Z" fill="#fff"/>
+    ${rows.map((r, k) => `<text x="${x + w / 2}" y="${top + 26 + k * 24}" font-size="16" text-anchor="middle" fill="#1f2937" font-family="SimSun, 'Noto Serif SC', serif">${esc(r)}</text>`).join('')}
   </g>`;
 }
 
 export function sceneSvg(week, scene) {
   const sc = scene || SCENES[week];
   if (!sc) return '';
-  const back = BACKDROP[sc.place]();
-  const [a, b] = [['#4f7cd6'], ['#e08a5b']];
-  const bubbles = sc.bubbles[0] ? bubble('l', sc.bubbles[0][0]) : '';
-  const bubbles2 = sc.bubbles[1] ? bubble('r', sc.bubbles[1][0]) : '';
+  const id = `sg${week}${sc.place}`.replace(/[^a-zA-Z0-9]/g, '');
+  const back = BACKDROP[BASE[sc.place] || 'home'](id);
+  const b1 = sc.bubbles[0] ? bubble('l', sc.bubbles[0][0], 14) : '';
+  const b2 = sc.bubbles[1] ? bubble('r', sc.bubbles[1][0], 14) : '';
   return `<svg viewBox="0 0 400 240" role="img" aria-label="${esc(sc.title)}: ${esc(sc.desc)}">
     ${back}
-    ${pandaFigure(120, a[0], false)}
-    ${pandaFigure(280, b[0], true)}
-    ${bubbles}${bubbles2}
+    <g transform="translate(23.6 42) scale(0.8)">${pandaFig(118, 210, ACCENT[0], false, true)}</g>
+    <g transform="translate(56.4 42) scale(0.8)">${pandaFig(282, 210, ACCENT[1], true, false)}</g>
+    ${b1}${b2}
   </svg>`;
 }
 
