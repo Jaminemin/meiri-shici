@@ -157,7 +157,7 @@ export async function renderHome(app, ctx = {}) {
     <div class="grid2 attend-row">
       <div class="card attend-card attend-side">
         <div><div class="ai-label">오늘의 출석</div><b style="font-size:18px">${s.attendedToday ? '✓ 출석 완료' : '아직 출석체크 전'}</b><div class="muted" style="font-size:13px;margin-top:4px">출석은 달력에 표시되고 연속 학습일에 더해집니다.</div></div>
-        ${s.attendedToday ? attendStamp() : '<button class="btn primary" id="attend-btn">출석체크 하기</button>'}
+        ${s.attendedToday ? '' : '<button class="btn primary" id="attend-btn">출석체크 하기</button>'}
       </div>
       <div class="card"><h3>출석 달력</h3>${calendar(s.days, s.attendedToday)}</div>
     </div>
