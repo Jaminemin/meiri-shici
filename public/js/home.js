@@ -161,6 +161,7 @@ export async function renderHome(app, ctx = {}) {
       </div>
       <div class="card"><h3>출석 달력</h3>${calendar(s.days, s.attendedToday)}</div>
     </div>
+    <div class="home-weeks">${weekList(d.weeks, d.current.gid)}</div>
     <div class="stats">
       <div class="stat"><div class="label">완료한 주차</div><div class="value">${s.doneWeeks}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.doneWeeks / s.totalWeeks) * 100}%"></div></div></div>
       <div class="stat"><div class="label">외운 단어</div><div class="value">${s.wordsLearned}<small class="muted" style="font-size:16px"> / ${s.totalWords}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.wordsLearned / s.totalWords) * 100}%"></div></div></div>
@@ -168,7 +169,6 @@ export async function renderHome(app, ctx = {}) {
       <div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>
     </div>
     <div class="home-lower">
-      <div class="home-weeks">${weekList(d.weeks, d.current.gid)}</div>
       <div class="home-track">
         <div class="section-title">듣기/쓰기/말하기 수업 복습하기</div>
         <div class="grid3">
