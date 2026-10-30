@@ -296,7 +296,7 @@ export function weekData(gid) {
 // 과정의 주차 목록 (gid 포함)
 export function curriculumSummary(courseKey = 'travel') {
   const c = COURSES[courseKey] || COURSES.travel;
-  return c.weeks.map((w) => ({ gid: c.offset + w.week, week: w.week, hsk: w.hsk, title: w.title, titleZh: w.titleZh, goal: w.goal, sample: w.words.slice(0, 3).map((x) => x[0]) }));
+  return c.weeks.map((w) => ({ gid: c.offset + w.week, week: w.week, hsk: w.hsk, title: w.title, titleZh: w.titleZh, goal: w.goal, sample: w.words.slice(0, 3).map((x) => x[0]), mockName: w.mock ? (c.key === 'emcee' ? '멘트 퀴즈' : '모의고사') : null }));
 }
 
 // 주차 번호(gid)를 과정 안의 주차 번호로
