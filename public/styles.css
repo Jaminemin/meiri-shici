@@ -537,10 +537,10 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .attend-row { gap: 16px; margin-bottom: 16px; align-items: stretch; }
 .attend-side { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 16px; margin-bottom: 0; }
 .attend-side .btn { width: 100%; }
-.attend-stamp { align-self: center; display: flex; align-items: center; gap: 8px; color: #d63a3a; border: 4px solid currentColor; border-radius: 13px; padding: 8px 12px; transform: rotate(-14deg); box-shadow: inset 0 0 0 2.5px var(--surface), inset 0 0 0 4.5px currentColor; animation: stamp-press 0.55s cubic-bezier(.2,.8,.2,1) both; }
-.attend-stamp .emo { font-size: 36px; line-height: 1; }
-.attend-stamp .w.zh { font-family: SimSun, 'Noto Serif SC', serif; font-size: 20px; font-weight: 700; line-height: 1.1; }
-.attend-stamp .d { font-size: 10.5px; font-weight: 700; letter-spacing: .04em; }
+.attend-stamp { align-self: center; display: flex; align-items: center; gap: 10px; color: #d63a3a; border: 5px solid currentColor; border-radius: 16px; padding: 10px 14px; transform: rotate(-14deg); box-shadow: inset 0 0 0 2.5px var(--surface), inset 0 0 0 4.5px currentColor; animation: stamp-press 0.55s cubic-bezier(.2,.8,.2,1) both; }
+.attend-stamp .emo { font-size: 43px; line-height: 1; }
+.attend-stamp .w.zh { font-family: SimSun, 'Noto Serif SC', serif; font-size: 24px; font-weight: 700; line-height: 1.1; }
+.attend-stamp .d { font-size: 12.6px; font-weight: 700; letter-spacing: .04em; }
 @keyframes stamp-press { 0% { transform: rotate(-14deg) scale(1.7); opacity: 0; } 60% { transform: rotate(-14deg) scale(.94); opacity: 1; } 100% { transform: rotate(-14deg) scale(1); opacity: 1; } }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .attend-stamp { color: #ff7a7a; } }
 :root[data-theme="dark"] .attend-stamp { color: #ff7a7a; }
