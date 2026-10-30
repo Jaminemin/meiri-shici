@@ -1,5 +1,6 @@
 // 로그인 없이 보는 1주차 맛보기 (단어·문형·예문만, 저장·퀴즈·작문 없음)
 import { state, esc, get, speak } from './core.js';
+import { pandaCell } from './panda-art.js';
 
 export async function renderPreview(app, course = 'travel') {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
@@ -46,6 +47,7 @@ export async function renderPreview(app, course = 'travel') {
           </div>`,
         )
         .join('')}
+      ${pandaCell('hello')}
     </div>
 
     <div class="section-title">② 핵심 문형 ${W.patterns.length}개</div>
@@ -59,6 +61,7 @@ export async function renderPreview(app, course = 'travel') {
           </div>`,
         )
         .join('')}
+      ${pandaCell('cheer')}
     </div>
 
     <div class="section-title">예문</div>
@@ -77,6 +80,7 @@ export async function renderPreview(app, course = 'travel') {
           </div>`,
         )
         .join('')}
+      ${pandaCell('smile')}
     </div>
 
     <div class="section-title">④ 작문 미션 (로그인 후)</div>
