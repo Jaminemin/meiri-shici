@@ -47,8 +47,14 @@ export function weekList(weeks, currentGid) {
       <span class="wl-bars" aria-label="${n}/3 완료">${[0, 1, 2].map((i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>
     </button>`;
   };
+  const doneCount = weeks.filter((w) => w.done).length;
   return `<div class="wl">
-    <nav class="wl-list" aria-label="주차 목차">${weeks.map(item).join('')}</nav>
+    <aside class="wl-side">
+      <label class="wl-search"><span aria-hidden="true">⌕</span><input type="search" class="wl-q" placeholder="주차 검색" aria-label="주차 검색"></label>
+      <div class="wl-label">주차 목록</div>
+      <nav class="wl-list" aria-label="주차 목차">${weeks.map(item).join('')}</nav>
+      <div class="wl-foot"><span>완료 ${doneCount} / ${weeks.length}주</span><div class="progress"><div style="width:${(doneCount / weeks.length) * 100}%"></div></div></div>
+    </aside>
     <section class="wl-detail" aria-live="polite">${weekDetailHtml(cur, currentGid)}</section>
   </div>`;
 }
@@ -56,6 +62,14 @@ export function weekList(weeks, currentGid) {
 // 목차 버튼을 누르면 오른쪽 상세만 바뀐다 (페이지 이동 없음)
 export function bindWeekList(root, weeks, currentGid) {
   const detail = root.querySelector('.wl-detail');
+  const q = root.querySelector('.wl-q');
+  q?.addEventListener('input', () => {
+    const k = q.value.trim();
+    root.querySelectorAll('.wl-item').forEach((b) => {
+      const w = weeks.find((x) => x.gid === Number(b.dataset.gid));
+      b.hidden = !!k && !(String(w.week).includes(k) || w.title.includes(k) || w.titleZh.includes(k));
+    });
+  });
   root.querySelectorAll('.wl-item').forEach((btn) =>
     btn.addEventListener('click', () => {
       const w = weeks.find((x) => x.gid === Number(btn.dataset.gid));
