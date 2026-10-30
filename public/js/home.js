@@ -41,11 +41,11 @@ export function weekList(weeks, currentGid) {
   const cur = weeks.find((w) => w.gid === currentGid) || weeks[0];
   const item = (w) => {
     const n = [w.words >= 15, w.quiz !== null && w.quiz >= 8, !!w.writing].filter(Boolean).length;
-    return `<a class="wl-item ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}" data-gid="${w.gid}" href="#/week/${w.gid}" ${w.gid === currentGid ? 'aria-current="true"' : ''}>
+    return `<button type="button" class="wl-item ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}" data-gid="${w.gid}" aria-pressed="${w.gid === currentGid}">
       <span class="wl-num">${w.week}</span>
       <span class="wl-txt"><b>${esc(w.title)}</b><small class="zh">${esc(w.titleZh)}</small></span>
       <span class="wl-bars" aria-label="${n}/3 완료">${[0, 1, 2].map((i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>
-    </a>`;
+    </button>`;
   };
   const doneCount = weeks.filter((w) => w.done).length;
   return `<div class="wl">
@@ -59,8 +59,20 @@ export function weekList(weeks, currentGid) {
   </div>`;
 }
 
-// 검색창으로 주차를 거른다. 주차 이동은 목차 항목(링크)이 맡는다.
-export function bindWeekList(root, weeks) {
+// 목차를 누르면 오른쪽 상세 화면이 그 주차로 바뀐다. 검색창으로는 주차를 거른다.
+export function bindWeekList(root, weeks, currentGid) {
+  const detail = root.querySelector('.wl-detail');
+  root.querySelectorAll('.wl-item').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const w = weeks.find((x) => x.gid === Number(btn.dataset.gid));
+      if (!w) return;
+      root.querySelectorAll('.wl-item').forEach((b) => {
+        b.classList.toggle('current', b === btn);
+        b.setAttribute('aria-pressed', String(b === btn));
+      });
+      detail.innerHTML = weekDetailHtml(w, currentGid);
+    }),
+  );
   const q = root.querySelector('.wl-q');
   q?.addEventListener('input', () => {
     const k = q.value.trim();
@@ -173,7 +185,7 @@ export async function renderHome(app, ctx = {}) {
     </div>
   </div>`;
   const wl = app.querySelector('.wl');
-  if (wl) bindWeekList(wl, d.weeks);
+  if (wl) bindWeekList(wl, d.weeks, d.current.gid);
   const attend = app.querySelector('#attend-btn');
   if (attend)
     attend.onclick = async () => {
