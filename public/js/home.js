@@ -2,9 +2,12 @@
 import { esc, get, post, fmtDate, ago, toast } from './core.js';
 import { feedbackHtml } from './fb.js';
 
+// 과목 카드 그림: 첫 대문(판다 화면)과 같은 이모지
+const COURSE_ICON = { travel: '✈️', hsk: '📘', emcee: '🎤' };
+
 export const TRACKS = {
-  listen: { name: '듣기 수업', tab: 'listen', icon: '🎧', desc: '문장을 듣고 단어 카드를 올바른 순서로 배열합니다. 글자 없이 귀로 익힙니다.' },
-  writing: { name: '쓰기 수업', tab: 'writing', icon: '✍️', desc: '문장의 빈칸을 순서대로 채우고, 직접 쓴 문장을 AI 선생님께 첨삭받습니다.' },
+  listen: { name: '듣기 수업', tab: 'listen', icon: '🎧', desc: '음성을 듣고 같은 주차 예문 4개 중 맞는 중국어 문장을 고릅니다. 귀로 익힙니다.' },
+  writing: { name: '쓰기 수업', tab: 'writing', icon: '✍️', desc: '뜻을 보고 맞는 중국어 문장을 고르고, 직접 쓴 문장을 AI 선생님께 첨삭받습니다.' },
   speak: { name: '말하기 수업', tab: 'speak', icon: '🗣️', desc: '뜻을 보고 문장을 떠올려, 섞인 단어 카드를 순서대로 맞힙니다.' },
 };
 
@@ -71,7 +74,7 @@ export async function renderTrack(app, key) {
 export function coursePicker(courses, current) {
   return `<div class="section-title">과목 고르기</div>
     <div class="grid3 course-pick">${courses
-      .map((c) => `<a class="card course-card ${c.key === current ? 'on' : ''} ${c.ready ? '' : 'soon'}" href="#/home/${c.key}"><span class="course-level">${esc(c.level)}</span><h3>${esc(c.name)}</h3><span class="muted" style="font-size:13px">${c.ready ? `${c.weeks}주 과정` : '준비 중'}</span></a>`)
+      .map((c) => `<a class="card course-card ${c.key === current ? 'on' : ''} ${c.ready ? '' : 'soon'}" href="#/home/${c.key}"><span class="course-icon" aria-hidden="true">${COURSE_ICON[c.key] || ''}</span><span class="course-level">${esc(c.level)}</span><h3>${esc(c.name)}</h3><span class="muted" style="font-size:13px">${c.ready ? `${c.weeks}주 과정` : '준비 중'}</span></a>`)
       .join('')}</div>`;
 }
 
