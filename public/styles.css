@@ -485,6 +485,9 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .intro .skill-pick { margin-top: 16px; }
 
 .attend-card { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.attend-row { gap: 16px; margin-bottom: 16px; align-items: stretch; }
+.attend-side { display: flex; flex-direction: column; justify-content: space-between; align-items: stretch; gap: 16px; margin-bottom: 0; }
+.attend-side .btn { width: 100%; }
 
 /* ---------- 주차 상황 그림 ---------- */
 .scene-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 18px; align-items: center; margin-bottom: 16px; }
