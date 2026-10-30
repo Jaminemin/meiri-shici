@@ -27,8 +27,7 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
 function weekDetailHtml(w, currentGid) {
   const state = w.done ? ' · 완료' : w.gid === currentGid ? ' · 진행 중' : '';
   return `<div class="wl-ai">${w.week}주차${state}</div>
-    <h3 class="wl-title">${esc(w.title)}</h3>
-    <div class="zh wl-zh">${esc(w.titleZh)}</div>
+    <h3 class="wl-title">${esc(w.title)} <span class="zh wl-zh">${esc(w.titleZh)}</span></h3>
     <div class="wl-steps">
       <div class="${w.words >= 15 ? 'on' : ''}"><b>단어</b><small>${w.words}/15</small></div>
       <div class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"><b>퀴즈</b><small>${w.quiz ?? '–'}/10</small></div>
@@ -43,7 +42,7 @@ export function weekList(weeks, currentGid) {
     const n = [w.words >= 15, w.quiz !== null && w.quiz >= 8, !!w.writing].filter(Boolean).length;
     return `<button type="button" class="wl-item ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}" data-gid="${w.gid}" aria-pressed="${w.gid === currentGid}">
       <span class="wl-num">${w.week}</span>
-      <span class="wl-txt"><b>${esc(w.title)}</b><small class="zh">${esc(w.titleZh)}</small></span>
+      <span class="wl-txt"><b>${esc(w.title)}</b> <small class="zh">${esc(w.titleZh)}</small></span>
       <span class="wl-bars" aria-label="${n}/3 완료">${[0, 1, 2].map((i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span>
     </button>`;
   };
