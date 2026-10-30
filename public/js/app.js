@@ -51,7 +51,7 @@ function renderChrome(active) {
     box.innerHTML = '';
     return;
   }
-  box.innerHTML = `<a class="home-btn" href="#/" title="초급~고급 과목 선택 메인으로" aria-label="메인페이지로 돌아가기">${HOME_ICON}</a><span class="avatar">${u.picture ? `<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">` : esc((u.name || '?').slice(0, 1))}</span><span class="nm">${esc(u.name)}</span>${u.role === 'admin' ? '<span class="badge accent">관리자</span>' : ''}<button class="btn small" id="logout">로그아웃</button>`;
+  box.innerHTML = `<a class="home-btn" href="#/welcome" title="초급~고급 과목 선택 메인으로" aria-label="메인페이지로 돌아가기">${HOME_ICON}</a><span class="avatar">${u.picture ? `<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">` : esc((u.name || '?').slice(0, 1))}</span><span class="nm">${esc(u.name)}</span>${u.role === 'admin' ? '<span class="badge accent">관리자</span>' : ''}<button class="btn small" id="logout">로그아웃</button>`;
   box.querySelector('#logout').onclick = async () => {
     await post('/auth/logout').catch(() => {});
     state.me.user = null;
@@ -81,6 +81,7 @@ async function route() {
     }
     renderChrome(parts[0] || '');
     if (!parts.length) return renderLanding(app);
+    if (parts[0] === 'welcome') return renderLanding(app, { browse: true });
     if (parts[0] === 'preview') return renderPreview(app, parts[1] || 'travel');
     if (!u) {
       location.hash = '#/';
