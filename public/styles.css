@@ -332,6 +332,12 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-steps b { display: block; font-size: 13px; }
 .wl-steps small { color: var(--muted); font-size: 12px; }
 .wl-list { position: sticky; top: 12px; max-height: calc(100vh - 120px); }
+/* 넓은 화면: 목차를 화면 맨 왼쪽에 세로로 고정 */
+@media (min-width: 1100px) {
+  .page:has(.wl) { padding-left: 270px; }
+  .wl { grid-template-columns: minmax(0, 1fr); }
+  .wl-list { position: fixed; left: 16px; top: 76px; bottom: 16px; width: 236px; max-height: none; z-index: 5; }
+}
 @media (max-width: 680px) {
   .wl { grid-template-columns: 128px minmax(0, 1fr); gap: 10px; }
   .wl-list { max-height: none; padding: 4px; }
