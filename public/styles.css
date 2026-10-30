@@ -577,7 +577,14 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 /* ---------- 과목 고르기 (대문 · 홈) ---------- */
 .level-pick { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; max-width: 640px; margin: 18px auto 0; }
 .level-card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 10px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none; box-shadow: 0 6px 18px rgba(20, 20, 60, 0.06); transition: transform 0.15s ease; }
-.level-card:hover { transform: translateY(-2px); }
+.level-card { transition: transform 0.15s ease, background-color 0.2s ease, border-color 0.2s ease; }
+.level-card:hover { transform: translateY(-2px); color: #1b2440; }
+.level-card:hover .muted { color: #1b2440; }
+/* 과목별 hover 색: 초급 주황, 중급 하늘색, 고급 연보라 */
+.level-pick .level-card:nth-child(1):hover { background: #ffb35c; border-color: #ffb35c; }
+.level-pick .level-card:nth-child(2):hover { background: #8fd8ff; border-color: #8fd8ff; }
+.level-pick .level-card:nth-child(3):hover { background: #d5c2ff; border-color: #d5c2ff; }
+.level-pick .level-card:hover .level-tag { color: #1b2440; }
 .level-card b { font-size: 15px; }
 .level-card .level-icon { font-size: 26px; }
 .level-card .level-tag { position: absolute; top: 8px; left: 10px; font-size: 11px; font-weight: 700; color: var(--burgundy); }
