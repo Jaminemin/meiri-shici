@@ -313,7 +313,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-item { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 12px; border-radius: 10px; cursor: pointer; text-decoration: none; color: inherit; }
 .wl-item:hover { background: var(--accent-soft); }
 .wl-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.wl-num { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: 26px; font-weight: 800; background: var(--surface-2); color: var(--muted); }
+.wl-num { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-size: 21px; font-weight: 800; background: var(--surface-2); color: var(--muted); }
 .wl-item.done .wl-num { background: var(--accent); color: #fff; }
 .wl-item.current { background: var(--accent-soft); box-shadow: inset 4px 0 0 var(--accent); }
 .wl-txt { min-width: 0; }
@@ -349,7 +349,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   .wl { grid-template-columns: 150px minmax(0, 1fr); gap: 10px; }
   .wl-list { max-height: none; padding: 4px; }
   .wl-item { grid-template-columns: 28px minmax(0, 1fr); gap: 6px; padding: 6px 4px; }
-  .wl-num { width: 28px; height: 28px; font-size: 14px; }
+  .wl-num { width: 28px; height: 28px; font-size: 11px; }
   .wl-txt b { font-size: 15px; }
   .wl-txt small, .wl-bars { display: none; }
   .wl-detail { padding: 14px; }
