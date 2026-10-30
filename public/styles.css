@@ -304,12 +304,29 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .steps3 { display: flex; gap: 4px; margin-top: 8px; }
 .steps3 span { flex: 1; height: 5px; border-radius: 3px; background: var(--surface-2); }
 .steps3 span.on { background: var(--accent); }
-.word-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-.word { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: start; }
-.word .hz { font-size: 34px; line-height: 1.2; font-weight: 700; }
-.word .mn { grid-column: 1 / -1; color: var(--ink-2); font-size: 14px; }
-.word.known { border-color: var(--accent); background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface)); }
-.word .tools { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+.word-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.word { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; display: flex; overflow: hidden; min-width: 0; transition: border-color 0.15s, box-shadow 0.15s; }
+.word .num { width: 40px; flex: none; background: var(--c, var(--accent)); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 15px; font-variant-numeric: tabular-nums; }
+.word .body { flex: 1; min-width: 0; padding: 12px 12px 14px; }
+.word .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.word .hz { font-size: 30px; line-height: 1.2; font-weight: 900; }
+.word .py { color: var(--muted); font-size: 13px; margin-top: 2px; }
+.word .mn { margin-top: 6px; font-weight: 600; color: var(--ink); }
+.word.known { border-color: var(--accent); background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface)); }
+.word .tools { display: flex; gap: 6px; align-items: center; flex: none; }
+.word .tools .btn { min-height: 30px; padding: 4px 9px; font-size: 12px; }
+.section-label { display: flex; align-items: baseline; gap: 10px; font-weight: 800; font-size: 17px; margin: 18px 0 12px; }
+.section-label small { color: var(--muted); font-weight: 600; font-size: 13px; }
+.pattern-grid { display: grid; gap: 14px; margin-bottom: 16px; }
+@media (min-width: 760px) { .pattern-grid { grid-template-columns: 1fr 1fr; } }
+.pattern { background: var(--surface); border: 1px solid var(--line); border-left: 6px solid var(--c, var(--accent)); border-radius: 14px; padding: 16px; min-width: 0; }
+.pattern .phead { display: flex; gap: 12px; align-items: flex-start; }
+.pattern .pnum { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--c, var(--accent)); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+.pattern .ptitle { font-size: 19px; font-weight: 900; }
+.pattern .explain { color: var(--ink-2); margin-top: 4px; }
+.pattern .ex { position: relative; margin-top: 14px; background: var(--surface-2); border-radius: 12px; padding: 22px 14px 14px; }
+.pattern .ex .tab { position: absolute; top: -10px; left: 12px; background: var(--c, var(--accent)); color: #fff; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 8px; }
+.pattern .ex .zh { font-size: 18px; font-weight: 700; }
 .speak { border: 1px solid var(--line); background: var(--surface); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 15px; }
 .speak:hover { border-color: var(--accent); }
 .hide-mean .word .mn, .hide-mean .word .py { filter: blur(6px); cursor: pointer; }

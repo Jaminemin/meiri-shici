@@ -5,6 +5,9 @@ import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.j
 import { feedbackHtml } from './fb.js';
 import { arrangeItems, sentenceChoiceItems } from './practice.js';
 import { sceneCard } from './scenes.js';
+
+// 번호 띠 색 (단어·문형 카드)
+const NUM_COLORS = ['#2d5bd1', '#1c9a8f', '#7a4fd0', '#e0821a', '#3c9a4e', '#d4456f'];
 import { mockItems, scoreMock, MOCK_SECTIONS } from './mock.js';
 
 const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map((x) => x[1]);
@@ -87,10 +90,14 @@ export async function renderWeek(app, ctx) {
         <button class="btn small" id="all-known">모두 외웠어요</button></div></div>
       <div class="word-list ${hideMean ? 'hide-mean' : ''}" id="wl">${W.words
         .map(
-          (w) => `<div class="word ${known.has(w.id) ? 'known' : ''}" data-w="${w.id}">
-          <div><div class="hz zh">${esc(w.hanzi)}</div><div class="py">${esc(w.pinyin)}</div></div>
-          <div class="tools"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button><button class="btn small ${known.has(w.id) ? 'primary' : ''}" data-know="${w.id}">${known.has(w.id) ? '✓ 외움' : '외웠어요'}</button></div>
-          <div class="mn">${esc(w.meaning)}</div></div>`,
+          (w, i) => `<div class="word ${known.has(w.id) ? 'known' : ''}" data-w="${w.id}" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
+          <div class="num">${i + 1}</div>
+          <div class="body">
+            <div class="top"><div class="hz zh">${esc(w.hanzi)}</div>
+              <div class="tools"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button><button class="btn small ${known.has(w.id) ? 'primary' : ''}" data-know="${w.id}">${known.has(w.id) ? '✓ 외움' : '외웠어요'}</button></div></div>
+            <div class="py">${esc(w.pinyin)}</div>
+            <div class="mn">${esc(w.meaning)}</div>
+          </div></div>`,
         )
         .join('')}</div>
       <div class="row end" style="margin-top:14px"><button class="btn primary" data-go="pattern">다음: 문형·예문 →</button></div>`;
@@ -112,9 +119,15 @@ export async function renderWeek(app, ctx) {
 
   // ---------- 문형 ----------
   function patternTab() {
-    return `${W.course === 'travel' ? sceneCard(W.week, W.scene) : ''}<div class="card"><h3>핵심 문형 ${W.patterns.length}개</h3>${W.patterns
+    return `${W.course === 'travel' ? sceneCard(W.week, W.scene) : ''}<div class="section-label">핵심 문형 <small>${W.patterns.length}개 · 설명과 예시를 함께 봅니다</small></div>
+      <div class="pattern-grid">${W.patterns
         .map(
-          (p, i) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="muted" style="font-size:12px">${i + 1}</div><div class="zh" style="font-weight:600">${esc(p.form)}</div>${p.formPy ? `<div class="py" style="font-size:13px;margin-top:2px">${esc(p.formPy)}</div>` : ''}<div style="margin-top:2px">${esc(p.explain)}</div>${p.zh ? `<div class="zh" style="margin-top:6px">${esc(p.zh)}</div>${p.py ? `<div class="py">${esc(p.py)}</div>` : ''}<div class="muted">${esc(p.ko)}</div>` : ''}</div>${p.zh ? `<button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button>` : ''}</div></div>`,
+          (p, i) => `<div class="pattern" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
+          <div class="phead"><span class="pnum">${i + 1}</span>
+            <div><div class="zh ptitle">${esc(p.form)}</div>${p.formPy ? `<div class="py">${esc(p.formPy)}</div>` : ''}<div class="explain">${esc(p.explain)}</div></div></div>
+          ${p.zh ? `<div class="ex"><span class="tab">예시 문장</span>
+            <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(p.zh)}</div>${p.py ? `<div class="py">${esc(p.py)}</div>` : ''}<div class="muted">${esc(p.ko)}</div></div><button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div></div>` : ''}
+        </div>`,
         )
         .join('')}</div>
       <div class="card"><h3>예문</h3>${W.examples
