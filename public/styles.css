@@ -512,3 +512,5 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .course-card .course-icon { position: absolute; top: 14px; right: 16px; font-size: 30px; line-height: 1; }
 .course-card .course-level { font-size: 12px; font-weight: 700; color: var(--burgundy); }
 @media (max-width: 520px) { .level-pick { gap: 8px; } .level-card b { font-size: 13px; } }
+.panda-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px; min-height: 150px; }
+.panda-cell svg { width: 96px; height: auto; }
