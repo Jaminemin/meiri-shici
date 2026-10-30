@@ -337,6 +337,12 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .wl-label { font-size: 13.5px; color: var(--muted); padding: 4px 6px 0; font-weight: 700; }
 .wl-foot { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; color: var(--muted); padding: 8px 6px 0; border-top: 1px solid var(--line); }
 .wl-side .wl-list { flex: 1; min-height: 0; overflow-y: auto; border: 0; background: none; padding: 0; max-height: none; }
+.home-lower { display: block; }
+/* 모바일: 15주 진도 목차를 수업 복습 카드보다 위에 */
+@media (max-width: 680px) {
+  .home-lower { display: flex; flex-direction: column; gap: 16px; }
+  .home-weeks { order: -1; }
+}
 .wl-group[hidden] { display: none; }
 .wl-group { display: flex; flex-direction: column; }
 .wl-subs { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.25s ease, opacity 0.2s ease; opacity: 0; }
