@@ -559,6 +559,8 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .gate-scene { max-width: 640px; margin: 0 auto; position: relative; }
 .gate-scene .gate-title { position: absolute; top: 5%; left: 0; right: 0; text-align: center; margin: 0; pointer-events: none; }
 .gate-scene svg { width: 100%; height: auto; display: block; border-radius: 18px; }
+.gate-univ { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); width: 24%; line-height: 0; }
+.gate-univ img { width: 100%; height: auto; display: block; }
 .gate-panel { margin-top: 22px; animation: gate-rise 0.8s 1.7s both; }
 .gate-panel .cta { justify-content: center; }
 .door-l { animation: door-open-l 1.4s 0.5s cubic-bezier(0.6, 0, 0.3, 1) both; }
