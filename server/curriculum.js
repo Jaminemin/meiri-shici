@@ -6,7 +6,7 @@ import { EXTRA_WORDS, PATTERNS } from './vocab15.js';
 import { TRAVEL_DRAFT_WEEKS } from './travel.js';
 import { HSK_DRAFT_WEEKS } from './hsk.js';
 import { EMCEE_DRAFT_WEEKS } from './emcee.js';
-import { FORM_PY, FORM_KR } from './formpy.js';
+import { FORM_PY, FORM_KR, WORD_KR } from './formpy.js';
 
 export const WORDS_PER_WEEK = 15;
 
@@ -287,7 +287,7 @@ export function weekData(gid) {
     gid: n,
     week: local,
     course: course.key,
-    words: allWords.map(([hanzi, pinyin, meaning], i) => ({ id: `${n}-${i + 1}`, hanzi, pinyin, meaning })),
+    words: allWords.map(([hanzi, pinyin, meaning], i) => ({ id: `${n}-${i + 1}`, hanzi, pinyin, meaning, hanKr: WORD_KR[hanzi] || '' })),
     patterns,
     examples: examples.map(([zh, py, ko]) => ({ zh, py, ko })),
   };

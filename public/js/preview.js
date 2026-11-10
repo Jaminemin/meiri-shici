@@ -44,7 +44,7 @@ export async function renderPreview(app, course = 'travel') {
             <div class="body">
               <div class="top"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}">${esc(w.hanzi)}</div>
                 <div class="tools"><button class="speak" data-say="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button></div></div>
-              <div class="py">${esc(w.pinyin)}</div>
+              <div class="py">${esc(w.pinyin)}${w.hanKr ? ` <span class="kr-read">(한국어 발음: ${esc(w.hanKr)})</span>` : ''}</div>
               <div class="mn">${esc(w.meaning)}</div>
             </div>
           </div>`,
