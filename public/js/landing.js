@@ -17,73 +17,83 @@ const LEVELS = [
   { key: 'emcee', name: '사회자 중국어', level: '고급', icon: '🎤', ready: true },
 ];
 
-// 귀여운 판다 한 마리 (로컬 좌표 100x130, 발은 y=130에 닿음)
+// 귀여운 판다 한 마리 (로컬 좌표 100x130, 발은 y=130에 닿음). 큰 머리·둥근 몸의 아기 판다 비율.
 function panda(x, y, s, flip, animate, outfit) {
   const o = OUTFIT[outfit];
   const tx = flip ? x + 100 * s : x;
   const sx = flip ? -s : s;
   const hanfu = outfit === 'hanfu';
-  const armFill = hanfu ? o.main : '#1d1d1d';
-  const wave = animate
-    ? '<animateTransform attributeName="transform" type="rotate" values="0 76 74;-62 76 74;0 76 74" dur="1.8s" repeatCount="indefinite"/>'
-    : '';
-  const robe = hanfu
-    ? `<path d="M36 70 Q50 64 64 70 L78 124 Q50 129 22 124 Z" fill="${o.main}"/>
-       <path d="M42 70 L50 88 L58 70 Z" fill="#fff"/>
-       <rect x="30" y="97" width="40" height="6" rx="3" fill="${o.trim}"/>`
-    : `<path d="M37 68 Q50 63 63 68 L67 124 Q50 129 33 124 Z" fill="${o.main}"/>
-       <rect x="41" y="60" width="18" height="9" rx="4" fill="${o.trim}"/>
-       <circle cx="50" cy="80" r="2.4" fill="${o.trim}"/><circle cx="50" cy="91" r="2.4" fill="${o.trim}"/><circle cx="50" cy="102" r="2.4" fill="${o.trim}"/>`;
   const suit = outfit === 'suit';
-  const backpack = outfit === 'travel'
-    ? '<rect x="20" y="64" width="60" height="58" rx="12" fill="#e07b39" stroke="#1d1d1d" stroke-width="2"/><path d="M34 70 V110 M66 70 V110" stroke="#b85a24" stroke-width="3"/>'
+  const student = outfit === 'student';
+  const armFill = '#1d1d1d';
+  const wave = animate
+    ? '<animateTransform attributeName="transform" type="rotate" values="0 80 84;-50 80 84;0 80 84" dur="1.8s" repeatCount="indefinite"/>'
+    : '';
+  // 몸통 위에 입히는 옷
+  const robe = hanfu
+    ? `<path d="M30 80 Q50 72 70 80 L76 124 Q50 128 24 124 Z" fill="${o.main}"/>
+       <path d="M42 76 L50 96 L58 76 Z" fill="#fff"/>
+       <rect x="26" y="104" width="48" height="6" rx="3" fill="${o.trim}"/>`
+    : '';
+  const plainRobe = !hanfu && !suit
+    ? `<path d="M32 78 Q50 72 68 78 L70 122 Q50 127 30 122 Z" fill="${o.main}"/>
+       <rect x="40" y="72" width="20" height="8" rx="4" fill="${o.trim}"/>
+       <circle cx="50" cy="88" r="2.2" fill="${o.trim}"/><circle cx="50" cy="99" r="2.2" fill="${o.trim}"/><circle cx="50" cy="110" r="2.2" fill="${o.trim}"/>`
     : '';
   const suitRobe = suit
-    ? `<path d="M37 68 Q50 63 63 68 L67 124 Q50 129 33 124 Z" fill="#fff" stroke="#1d1d1d" stroke-width="1.5"/>
-       <path d="M44 68 L50 90 L56 68 Z" fill="#e6e6e6" stroke="#1d1d1d" stroke-width="1"/>
-       <rect x="47" y="88" width="6" height="22" rx="2" fill="${o.trim}"/>`
+    ? `<path d="M32 78 Q50 72 68 78 L70 122 Q50 127 30 122 Z" fill="#fff" stroke="#1d1d1d" stroke-width="1.5"/>
+       <path d="M42 78 L50 98 L58 78 Z" fill="#e6e6e6" stroke="#1d1d1d" stroke-width="1"/>
+       <rect x="47" y="96" width="6" height="22" rx="2" fill="${o.trim}"/>`
+    : '';
+  const backpack = outfit === 'travel'
+    ? '<rect x="2" y="72" width="44" height="52" rx="12" fill="#e07b39" stroke="#1d1d1d" stroke-width="2"/><path d="M14 78 V118 M34 78 V118" stroke="#b85a24" stroke-width="3"/>'
     : '';
   const mic = suit
-    ? '<rect x="76" y="88" width="10" height="14" rx="5" fill="#555" stroke="#1d1d1d" stroke-width="1"/><line x1="81" y1="102" x2="81" y2="116" stroke="#1d1d1d" stroke-width="2"/>'
+    ? '<rect x="76" y="100" width="9" height="13" rx="4.5" fill="#555" stroke="#1d1d1d" stroke-width="1"/><line x1="80.5" y1="113" x2="80.5" y2="122" stroke="#1d1d1d" stroke-width="2"/>'
     : '';
-  const book = outfit === 'student'
-    ? '<rect x="68" y="92" width="26" height="18" rx="2" fill="#e8553b" stroke="#1d1d1d" stroke-width="1.5"/><line x1="81" y1="92" x2="81" y2="110" stroke="#fff" stroke-width="2"/>'
+  const book = student
+    ? '<rect x="66" y="96" width="24" height="17" rx="2" fill="#e8553b" stroke="#1d1d1d" stroke-width="1.5"/><line x1="78" y1="96" x2="78" y2="113" stroke="#fff" stroke-width="2"/>'
     : '';
-  const glasses = outfit === 'student'
-    ? '<circle cx="38" cy="41" r="8" fill="none" stroke="#1d1d1d" stroke-width="1.6"/><circle cx="62" cy="41" r="8" fill="none" stroke="#1d1d1d" stroke-width="1.6"/><line x1="46" y1="41" x2="54" y2="41" stroke="#1d1d1d" stroke-width="1.6"/>'
+  const glasses = student
+    ? '<circle cx="38" cy="42" r="8" fill="none" stroke="#1d1d1d" stroke-width="1.6"/><circle cx="62" cy="42" r="8" fill="none" stroke="#1d1d1d" stroke-width="1.6"/><line x1="46" y1="42" x2="54" y2="42" stroke="#1d1d1d" stroke-width="1.6"/>'
     : '';
   const bow = suit
-    ? '<path d="M70 9 L62 4 V14 Z M70 9 L78 4 V14 Z" fill="#f7a8a8" stroke="#1d1d1d" stroke-width="1"/><circle cx="70" cy="9" r="2" fill="#c8312b"/>'
+    ? '<path d="M72 14 L63 9 V19 Z M72 14 L81 9 V19 Z" fill="#f7a8a8" stroke="#1d1d1d" stroke-width="1"/><circle cx="72" cy="14" r="2.2" fill="#c8312b"/>'
     : '';
+  const hand = (cx, cy) => (book || mic || hanfu ? '' : `<circle cx="${cx}" cy="${cy}" r="5.5" fill="#fff" stroke="#1d1d1d" stroke-width="1.2"/>`);
   return `<g transform="translate(${tx} ${y}) scale(${sx} ${s})">
     ${backpack}
-    <ellipse cx="41" cy="126" rx="9" ry="6" fill="#1d1d1d"/>
-    <ellipse cx="59" cy="126" rx="9" ry="6" fill="#1d1d1d"/>
-    <ellipse cx="50" cy="92" rx="28" ry="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
-    ${robe}${suitRobe}
-    <ellipse cx="20" cy="92" rx="${hanfu ? 10 : 7}" ry="${hanfu ? 17 : 12}" fill="${armFill}"/>
+    <ellipse cx="38" cy="125" rx="11" ry="6.5" fill="#1d1d1d"/>
+    <ellipse cx="62" cy="125" rx="11" ry="6.5" fill="#1d1d1d"/>
+    <ellipse cx="38" cy="122" rx="4" ry="2.4" fill="#f7a8a8" opacity=".55"/>
+    <ellipse cx="62" cy="122" rx="4" ry="2.4" fill="#f7a8a8" opacity=".55"/>
+    <ellipse cx="50" cy="96" rx="31" ry="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
+    ${robe}${plainRobe}${suitRobe}
+    <ellipse cx="20" cy="94" rx="${hanfu ? 10 : 8}" ry="${hanfu ? 16 : 13}" fill="${hanfu ? o.main : armFill}" transform="rotate(14 20 94)"/>
     <g>${wave}
-      <ellipse cx="80" cy="92" rx="${hanfu ? 10 : 7}" ry="${hanfu ? 17 : 12}" fill="${armFill}"/>
-      ${hanfu || suit || book ? '' : '<circle cx="80" cy="102" r="5" fill="#fff"/>'}
+      <ellipse cx="80" cy="84" rx="${hanfu ? 10 : 8}" ry="${hanfu ? 16 : 13}" fill="${hanfu ? o.main : armFill}" transform="rotate(-24 80 84)"/>
+      ${hand(84, 66)}
       ${book}${mic}
     </g>
     ${bow}
-    <circle cx="25" cy="14" r="11" fill="#1d1d1d"/>
-    <circle cx="75" cy="14" r="11" fill="#1d1d1d"/>
-    <circle cx="50" cy="40" r="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
-    <ellipse cx="37" cy="42" rx="9" ry="11" fill="#1d1d1d" transform="rotate(-20 37 42)"/>
-    <ellipse cx="63" cy="42" rx="9" ry="11" fill="#1d1d1d" transform="rotate(20 63 42)"/>
-    <circle cx="38" cy="40" r="4.5" fill="#fff"/>
-    <circle cx="62" cy="40" r="4.5" fill="#fff"/>
-    <circle cx="39" cy="41" r="2.4" fill="#1d1d1d"/>
-    <circle cx="63" cy="41" r="2.4" fill="#1d1d1d"/>
-    <circle cx="40" cy="39" r="1" fill="#fff"/>
-    <circle cx="64" cy="39" r="1" fill="#fff"/>
-    <ellipse cx="50" cy="50" rx="3.6" ry="2.6" fill="#1d1d1d"/>
-    <path d="M45 55 Q47.5 58 50 55 Q52.5 58 55 55" fill="none" stroke="#1d1d1d" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="23" cy="18" r="12" fill="#1d1d1d"/>
+    <circle cx="77" cy="18" r="12" fill="#1d1d1d"/>
+    <ellipse cx="23" cy="18" rx="5" ry="4" fill="#4a4a4a" opacity=".5"/>
+    <ellipse cx="77" cy="18" rx="5" ry="4" fill="#4a4a4a" opacity=".5"/>
+    <ellipse cx="50" cy="42" rx="34" ry="30" fill="#fff" stroke="#1d1d1d" stroke-width="2.5"/>
+    <ellipse cx="36" cy="40" rx="10" ry="12" fill="#1d1d1d" transform="rotate(-22 36 40)"/>
+    <ellipse cx="64" cy="40" rx="10" ry="12" fill="#1d1d1d" transform="rotate(22 64 40)"/>
+    <circle cx="38" cy="38" r="4.6" fill="#fff"/>
+    <circle cx="62" cy="38" r="4.6" fill="#fff"/>
+    <circle cx="39" cy="39" r="2.5" fill="#1d1d1d"/>
+    <circle cx="63" cy="39" r="2.5" fill="#1d1d1d"/>
+    <circle cx="40" cy="37" r="1" fill="#fff"/>
+    <circle cx="64" cy="37" r="1" fill="#fff"/>
+    <ellipse cx="50" cy="52" rx="4" ry="2.8" fill="#1d1d1d"/>
+    <path d="M45 57 Q47.5 60.5 50 57 Q52.5 60.5 55 57" fill="none" stroke="#1d1d1d" stroke-width="1.7" stroke-linecap="round"/>
     ${glasses}
-    <circle cx="29" cy="51" r="4" fill="#f7a8a8" opacity=".8"/>
-    <circle cx="71" cy="51" r="4" fill="#f7a8a8" opacity=".8"/>
+    <ellipse cx="27" cy="53" rx="5" ry="3.4" fill="#f7a8a8" opacity=".8"/>
+    <ellipse cx="73" cy="53" rx="5" ry="3.4" fill="#f7a8a8" opacity=".8"/>
   </g>`;
 }
 
