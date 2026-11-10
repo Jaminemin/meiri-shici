@@ -562,7 +562,9 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .gate-univ { position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); width: 33.6%; line-height: 0; }
 .gate-univ img { width: 100%; height: auto; display: block; }
 .gate-panel { margin-top: 22px; animation: gate-rise 0.8s 1.7s both; }
-.gate-panel .cta { justify-content: center; }
+.gate-panel .cta { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.gate-panel .cta .btn.big { width: 200px; min-height: 34px; padding: 7px 10px; font-size: 11.2px; border-radius: 8px; }
+.gate-panel .cta .btn svg { width: 13px; height: 13px; }
 .door-l { animation: door-open-l 1.4s 0.5s cubic-bezier(0.6, 0, 0.3, 1) both; }
 .door-r { animation: door-open-r 1.4s 0.5s cubic-bezier(0.6, 0, 0.3, 1) both; }
 .gate-glow { animation: gate-glow 1.2s 0.9s both; }
