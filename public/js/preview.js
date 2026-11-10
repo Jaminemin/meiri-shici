@@ -60,7 +60,7 @@ export async function renderPreview(app, course = 'travel') {
           (p, i) => `<div class="pattern" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
             <div class="phead"><span class="pnum">${i + 1}</span>
               <div><div class="zh ptitle">${esc(p.form)}</div>${p.formKr ? `<div class="kr-read">${esc(p.formKr)}</div>` : ''}<div class="explain">${esc(p.explain)}</div></div></div>
-            ${p.zh ? `<div class="ex"><span class="tab">예시 문장</span><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div></div><button class="speak" data-say="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div></div>` : ''}
+            ${p.zh ? `<div class="ex"><span class="tab">예시 문장</span><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(p.zh)}</div>${p.py ? `<div class="py">${esc(p.py)}</div>` : ''}<div class="muted">${esc(p.ko)}</div></div><button class="speak" data-say="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div></div>` : ''}
           </div>`,
         )
         .join('')}
