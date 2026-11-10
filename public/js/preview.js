@@ -44,7 +44,7 @@ export async function renderPreview(app, course = 'travel') {
             <div class="body">
               <div class="top"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}">${esc(w.hanzi)}</div>
                 <div class="tools"><button class="speak" data-say="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button></div></div>
-              <div class="py">${esc(w.pinyin)}</div>
+              <div class="py">${esc(w.pinyin)}${w.hanKr ? ` <span class="kr-read">(한국어 발음: ${esc(w.hanKr)})</span>` : ''}</div>
               <div class="mn">${esc(w.meaning)}</div>
             </div>
           </div>`,
@@ -59,7 +59,7 @@ export async function renderPreview(app, course = 'travel') {
         .map(
           (p, i) => `<div class="pattern" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
             <div class="phead"><span class="pnum">${i + 1}</span>
-              <div><div class="zh ptitle">${esc(p.form)}</div><div class="explain">${esc(p.explain)}</div></div></div>
+              <div><div class="zh ptitle">${esc(p.form)}</div>${p.formKr ? `<div class="kr-read">${esc(p.formKr)}</div>` : ''}<div class="explain">${esc(p.explain)}</div></div></div>
             ${p.zh ? `<div class="ex"><span class="tab">예시 문장</span><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(p.zh)}</div><div class="muted">${esc(p.ko)}</div></div><button class="speak" data-say="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div></div>` : ''}
           </div>`,
         )
