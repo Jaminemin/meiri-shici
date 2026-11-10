@@ -556,10 +556,10 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .page:has(.gate-hero) { padding-top: 5px; }
 .gate-title { font-size: clamp(31px, 6.3vw, 50px); font-weight: 800; color: var(--burgundy); line-height: 1.1; margin: 0; letter-spacing: -0.02em; }
 .gate-sub { margin: 6px 0 18px; color: var(--muted); font-size: 16px; }
-.gate-scene { max-width: 640px; margin: 0 auto; position: relative; }
+.gate-scene { max-width: 640px; margin: 0 auto; position: relative; background: #e6d5b5; border-radius: 18px; padding-bottom: 14px; }
 .gate-scene .gate-title { position: absolute; top: 5%; left: 0; right: 0; text-align: center; margin: 0; pointer-events: none; }
-.gate-scene svg { width: 100%; height: auto; display: block; border-radius: 18px; }
-.gate-univ { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: 33.6%; line-height: 0; }
+.gate-scene svg { width: 100%; height: auto; display: block; border-radius: 18px 18px 0 0; }
+.gate-univ { position: absolute; left: 50%; bottom: 3px; transform: translateX(-50%); width: 33.6%; line-height: 0; }
 .gate-univ img { width: 100%; height: auto; display: block; }
 .gate-panel { margin-top: 22px; animation: gate-rise 0.8s 1.7s both; }
 .gate-panel .cta { justify-content: center; }
