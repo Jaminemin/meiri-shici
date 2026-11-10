@@ -75,7 +75,7 @@ export async function renderPreview(app, course = 'travel') {
             <div class="row" style="flex-wrap:nowrap;align-items:flex-start">
               <div style="flex:1">
                 <div class="zh" style="font-size:20px;font-weight:600"><span aria-hidden="true">🐼</span> ${esc(x.zh)}</div>
-                <div class="py" style="color:var(--muted,#777)">${esc(x.py)}</div>
+                <div class="py" style="color:var(--muted,#777)">${esc(x.py)}${x.krRead ? `<div class="kr-read">(한국어 발음: ${esc(x.krRead)})</div>` : ''}</div>
                 <div style="margin-top:4px">${esc(x.ko)}</div>
               </div>
               <button class="btn" data-say="${esc(x.zh)}" aria-label="예문 듣기">🔊</button>
