@@ -6,26 +6,26 @@ const GROUPS = [
     title: '💳 결제 (필수)',
     desc: '중국에서는 현금보다 모바일 결제가 일반적입니다. 두 앱 중 하나는 꼭 준비하세요.',
     apps: [
-      { name: '위챗페이', zh: '微信支付', use: '식당·마트·편의점 결제, 친구와 송금. 위챗 앱 안에서 결제 QR을 띄워 씁니다.' },
-      { name: '알리페이', zh: '支付宝', use: '위챗페이와 같은 용도의 결제 앱. 두 개를 함께 등록해 두면 편합니다.' },
+      { name: '위챗페이', py: 'Wēixìn Zhīfù', ios: '414478124', android: 'com.tencent.mm', zh: '微信支付', use: '식당·마트·편의점 결제, 친구와 송금. 위챗 앱 안에서 결제 QR을 띄워 씁니다.' },
+      { name: '알리페이', py: 'Zhīfùbǎo', ios: '333206289', android: 'com.eg.android.AlipayGphone', zh: '支付宝', use: '위챗페이와 같은 용도의 결제 앱. 두 개를 함께 등록해 두면 편합니다.' },
     ],
   },
   {
     title: '🚕 교통',
     desc: '길찾기와 택시 호출은 중국 앱으로 해결하는 것이 가장 편합니다.',
     apps: [
-      { name: '디디추싱', zh: '滴滴出行', use: '택시 호출. 목적지를 입력하면 요금을 미리 볼 수 있고, 결제는 앱 안에서 됩니다.' },
-      { name: '가오더지도', zh: '高德地图', use: '지도·길찾기·대중교통 안내. 지하철 노선과 환승 정보가 정확합니다.' },
-      { name: '12306', zh: '铁路12306', use: '중국 고속철도(기차) 승차권 예매 공식 앱.' },
+      { name: '디디추싱', py: 'Dīdī Chūxíng', ios: '554499054', android: null, zh: '滴滴出行', use: '택시 호출. 목적지를 입력하면 요금을 미리 볼 수 있고, 결제는 앱 안에서 됩니다.' },
+      { name: '가오더지도', py: 'Gāodé Dìtú', ios: '461703208', android: null, zh: '高德地图', use: '지도·길찾기·대중교통 안내. 지하철 노선과 환승 정보가 정확합니다.' },
+      { name: '12306', py: 'Tiělù 12306', ios: '564818797', android: 'com.MobileTicket', zh: '铁路12306', use: '중국 고속철도(기차) 승차권 예매 공식 앱.' },
     ],
   },
   {
     title: '🍜 식당',
     desc: '식당 찾기, 리뷰 확인, 배달까지 한 번에 해결됩니다.',
     apps: [
-      { name: '대중점평', zh: '大众点评', use: '맛집 검색과 리뷰 확인, 예약과 할인 쿠폰. 중국인이 가장 많이 쓰는 식당 리뷰 앱입니다.' },
-      { name: '메이퇀', zh: '美团', use: '음식 배달·예약·할인. 식당 쿠폰도 자주 나옵니다.' },
-      { name: '어러머', zh: '饿了么', use: '음식 배달 앱. 메이퇀과 함께 설치하면 배달 메뉴를 비교할 수 있습니다.' },
+      { name: '대중점평', py: 'Dàzhòng Diǎnpíng', ios: '351091731', android: null, zh: '大众点评', use: '맛집 검색과 리뷰 확인, 예약과 할인 쿠폰. 중국인이 가장 많이 쓰는 식당 리뷰 앱입니다.' },
+      { name: '메이퇀', py: 'Měituán', ios: '423084029', android: null, zh: '美团', use: '음식 배달·예약·할인. 식당 쿠폰도 자주 나옵니다.' },
+      { name: '어러머', py: 'È le me', ios: '507161324', android: null, zh: '饿了么', use: '음식 배달 앱. 메이퇀과 함께 설치하면 배달 메뉴를 비교할 수 있습니다.' },
     ],
   },
 ];
@@ -41,7 +41,7 @@ export function renderCommonApps(app) {
   <div class="page">
     <div class="page-head">
       <div>
-        <h1>중국 여행 필수 앱</h1>
+        <h1>중국 방문 필수 앱</h1>
         <p class="muted">결제 · 교통 · 식당, 여행 전에 꼭 설치해 두면 좋은 앱입니다.</p>
       </div>
     </div>
@@ -53,7 +53,12 @@ export function renderCommonApps(app) {
           ${g.apps.map((a) => `
             <li>
               <b>${esc(a.name)}</b> <span class="zh">${esc(a.zh)}</span>
+              <div class="py">${esc(a.py)}</div>
               <div class="muted common-use">${esc(a.use)}</div>
+              <div class="store-links">
+                <a class="btn small" href="https://apps.apple.com/app/id${a.ios}" target="_blank" rel="noopener noreferrer">🍎 iPhone</a>
+                <a class="btn small" href="${a.android ? `https://play.google.com/store/apps/details?id=${a.android}` : `https://play.google.com/store/search?q=${encodeURIComponent(a.name)}&c=apps`}" target="_blank" rel="noopener noreferrer">🤖 Android</a>
+              </div>
             </li>`).join('')}
         </ul>
       </section>`).join('')}
