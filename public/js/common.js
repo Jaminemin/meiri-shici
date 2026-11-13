@@ -30,6 +30,14 @@ const GROUPS = [
   },
 ];
 
+const EMERGENCY = [
+  { name: '경찰', zh: '报警', num: '110', use: '도난, 사고, 분쟁 등' },
+  { name: '구급차', zh: '急救', num: '120', use: '응급 의료' },
+  { name: '소방', zh: '火警', num: '119', use: '화재' },
+  { name: '교통사고', zh: '交通事故', num: '122', use: '차량 사고' },
+  { name: '국제 응급구조센터 (보험 가입자)', zh: '', num: '800-810-9995', use: '중국 내 무료 전화. 010-88393900도 가능' },
+];
+
 const TIPS = [
   '위챗페이와 알리페이는 출국 전에 가입과 해외 카드 등록을 미리 해 두세요. 현지에서 인증이 막히는 경우가 많습니다.',
   '구글 지도, 구글 번역 등 구글 계열 앱은 중국에서 접속이 제한되는 경우가 많습니다. 위 앱으로 대체하세요.',
@@ -62,6 +70,19 @@ export function renderCommonApps(app) {
             </li>`).join('')}
         </ul>
       </section>`).join('')}
+    <section class="card">
+      <h2>🆘 긴급 전화 (중국 현지)</h2>
+      <p class="muted common-desc">중국 안에서는 +86 없이 그대로 누르세요.</p>
+      <ul class="common-list">
+        ${EMERGENCY.map((e) => `
+          <li>
+            <b>${esc(e.name)}</b> <span class="zh">${esc(e.zh)}</span>
+            <div class="emg-num">${esc(e.num)}</div>
+            <div class="muted common-use">${esc(e.use)}</div>
+          </li>`).join('')}
+      </ul>
+      <p class="muted common-use" style="margin-top:12px">한국에서 중국의 식당·호텔·회사 등 일반 번호에 전화할 때는 <b>+86</b>을 붙이고, 지역번호 맨 앞 0은 뺍니다. (예: 베이징 010-1234-5678 → +86 10-1234-5678)</p>
+    </section>
     <section class="card">
       <h2>📌 여행 전 체크</h2>
       <ul class="common-list">
