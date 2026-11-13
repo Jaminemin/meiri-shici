@@ -56,7 +56,7 @@ const TIPS = [
 export function renderCommonApps(app) {
   app.innerHTML = `
   <div class="page">
-    <div class="page-head">
+    <div class="page-head common-head">
       <button class="back-btn" type="button" aria-label="뒤로가기">←</button>
       <div>
         <h1>중국 방문 필수 앱</h1>
