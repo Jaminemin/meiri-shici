@@ -15,6 +15,7 @@ const LEVELS = [
   { key: 'travel', name: '여행 중국어', level: '초급', icon: '✈️', ready: true },
   { key: 'hsk', name: 'HSK 중국어', level: '중급', icon: '📘', ready: true },
   { key: 'emcee', name: '사회자 중국어', level: '고급', icon: '🎤', ready: true },
+  { key: 'common', name: '공통', level: '공통', icon: '📱', ready: true },
 ];
 
 // 귀여운 판다 한 마리 (로컬 좌표 100x130, 발은 y=130에 닿음). 큰 머리·둥근 몸의 아기 판다 비율.
@@ -202,7 +203,7 @@ export async function renderLanding(app, { browse = false } = {}) {
     ? `<a class="btn primary big" href="/auth/google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#fff" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></svg> 구글 계정으로 로그인하기</a>`
     : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
   const signedIn = Boolean(u);
-  const levelHref = (c) => (signedIn ? `#/home/${c.key}` : `#/preview/${c.key}`);
+  const levelHref = (c) => (c.key === 'common' ? '#/common' : signedIn ? `#/home/${c.key}` : `#/preview/${c.key}`);
   const panel = signedIn
     ? `<a class="btn primary big" href="#/home">내 학습으로 돌아가기</a>`
     : `${loginBtn}<a class="btn big" href="#/preview">로그인 없이 1주차 둘러보기</a>`;
@@ -213,7 +214,7 @@ export async function renderLanding(app, { browse = false } = {}) {
       <p class="gate-sub hook">초급부터 고급까지! 15주 동안 매주 15개 단어와 표현을 다양한 시나리오로 함께 배워봐요!</p>
       <div class="gate-scene">${palaceSvg(!reduced)}<h1 class="gate-title zh">每日十五词</h1><a class="gate-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a></div>
       <div class="level-pick">
-        ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="${levelHref(c)}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.ready ? (signedIn ? '학습하기 →' : '1주차 맛보기 →') : '준비 중'}</span></a>`).join('')}
+        ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="${levelHref(c)}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.key === 'common' ? '필수 앱 보기 →' : c.ready ? (signedIn ? '학습하기 →' : '1주차 맛보기 →') : '준비 중'}</span></a>`).join('')}
       </div>
       <div class="gate-panel">
         <div class="cta">${panel}</div>
