@@ -81,6 +81,22 @@ export function renderCommonApps(app) {
         </ul>
       </section>`).join('')}
     <section class="card">
+      <h2>🛂 중국 입국 전 준비 (전자 입국카드)</h2>
+      <p class="muted common-desc">중국 입국 시 QR 코드로 입국 신청을 합니다. 도착 72시간 이내에 작성해야 합니다.</p>
+      <ul class="common-list">
+        <li class="common-use"><b>신청 방법</b><br>국가이민관리국(NIA) 공식 사이트, NIA 12367 앱(iOS·Android), 위챗·알리페이 미니프로그램 ‘국가이민관리국’ 검색. 한국어로 작성할 수 있습니다.</li>
+        <li class="common-use"><b>준비물</b><br>여권 사진 페이지(기계판독영역까지 선명하게), 항공편명, 입국 공항·항구, 중국 첫날 숙소 주소(필수), 국제번호 포함 전화번호, 이메일.</li>
+        <li class="common-use"><b>인원</b><br>아이를 포함해 1인당 1장씩 작성합니다.</li>
+        <li class="common-use"><b>QR 코드</b><br>제출하면 QR 코드가 생성됩니다. 캡처해 저장하고 이메일로도 보내 두세요. 입국심사대에서 보여주면 되고, 인터넷이 없어도 화면만 보이면 됩니다.</li>
+        <li class="common-use"><b>수정</b><br>제출 후에는 수정할 수 없습니다. 바뀌면 새로 작성하거나 공항 기기에서 작성합니다.</li>
+        <li class="common-use"><b>주의</b><br>비자 대신이 아닙니다. 무비자 입국자도 작성 대상입니다. 서비스는 무료이며, 돈을 요구하는 대행 사이트는 피하세요. 여권 번호의 O·0, I·1, B·8 같은 글자 오인식 때문에 수동 심사로 넘어갈 수 있으니 입력 값을 꼭 확인하세요.</li>
+      </ul>
+      <div class="store-links">
+        <a class="btn small" href="https://s.nia.gov.cn/ArrivalCardFillingPC/" target="_blank" rel="noopener noreferrer">🌐 NIA 공식 사이트</a>
+      </div>
+      <p class="muted common-use" style="margin-top:10px">※ 출처: Wego 안내글(2026). 출발 전 국가이민관리국 공식 안내에서 최신 내용을 한 번 더 확인하세요.</p>
+    </section>
+    <section class="card">
       <h2>🆘 긴급 전화 (중국 현지)</h2>
       <p class="muted common-desc">중국 안에서는 +86 없이 그대로 누르세요.</p>
       <ul class="common-list">
