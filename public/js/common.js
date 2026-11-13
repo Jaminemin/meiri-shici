@@ -48,6 +48,7 @@ export function renderCommonApps(app) {
   app.innerHTML = `
   <div class="page">
     <div class="page-head">
+      <button class="back-btn" type="button" aria-label="뒤로가기">←</button>
       <div>
         <h1>중국 방문 필수 앱</h1>
         <p class="muted">결제 · 교통 · 식당, 여행 전에 꼭 설치해 두면 좋은 앱입니다.</p>
@@ -91,4 +92,8 @@ export function renderCommonApps(app) {
     </section>
     <a class="btn" href="#/">← 과목 고르기로 돌아가기</a>
   </div>`;
+  app.querySelector('.back-btn').onclick = () => {
+    if (history.length > 1) history.back();
+    else location.hash = '#/';
+  };
 }
