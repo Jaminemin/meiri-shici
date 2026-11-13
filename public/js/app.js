@@ -2,6 +2,7 @@
 import { state, esc, get, post, fail, toast, speak } from './core.js';
 import { renderLanding, renderPending } from './landing.js';
 import { renderPreview } from './preview.js';
+import { renderCommonApps } from './common.js';
 import { renderHome, renderCourse, renderMyWritings, renderTrack } from './home.js';
 import { renderWeek } from './week.js';
 import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings } from './admin.js';
@@ -83,6 +84,7 @@ async function route() {
     if (!parts.length) return renderLanding(app);
     if (parts[0] === 'welcome') return renderLanding(app, { browse: true });
     if (parts[0] === 'preview') return renderPreview(app, parts[1] || 'travel');
+    if (parts[0] === 'common') return renderCommonApps(app);
     if (!u) {
       location.hash = '#/';
       return;
