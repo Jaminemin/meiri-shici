@@ -34,7 +34,7 @@ const GROUPS = [
     apps: [
       { name: '더우바오', py: 'Dòubāo', zh: '豆包', ios: '6459478672', android: null, use: '바이트댄스의 AI 도우미. 음성으로 중국어 대화와 번역·통역을 요청할 수 있습니다.' },
       { name: '바이두 번역', py: 'Bǎidù Fānyì', zh: '百度翻译', ios: '605670941', android: null, use: '글자·음성·사진 번역. 메뉴판이나 표지판을 찍어서 번역할 때 편합니다.' },
-      { name: '여우다오 출국 번역관', py: 'Yǒudào Chūguó Fānyìguān', zh: '有道出国翻译官', ios: '1487446835', android: null, use: '여행용 실시간 음성 통역, 사진 메뉴 번역, 오프라인 번역을 지원합니다.' },
+      { name: '유다오 출국 번역관', py: 'Yǒudào Chūguó Fānyìguān', zh: '有道出国翻译官', ios: '1487446835', android: null, use: '여행용 실시간 음성 통역, 사진 메뉴 번역, 오프라인 번역을 지원합니다.' },
     ],
   },
 ];
