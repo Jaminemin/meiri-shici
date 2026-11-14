@@ -60,12 +60,28 @@ function renderChrome(active) {
   };
 }
 
+// 왼쪽 하단 고정 둥근 뒤로가기 버튼 (메인 화면에서는 숨김)
+let navCount = 0;
+const backFab = document.createElement('button');
+backFab.id = 'back-fab';
+backFab.type = 'button';
+backFab.title = '뒤로가기';
+backFab.setAttribute('aria-label', '뒤로가기');
+backFab.hidden = true;
+backFab.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 L8 12 L15 19" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+backFab.onclick = () => {
+  if (navCount > 0) history.back();
+  else location.hash = '#/';
+};
+document.body.appendChild(backFab);
+
 async function route() {
   const hash = location.hash.replace(/^#/, '') || '/';
   const [pathPart, query] = hash.split('?');
   const parts = pathPart.split('/').filter(Boolean);
   const params = new URLSearchParams(query || '');
   window.scrollTo(0, 0);
+  backFab.hidden = !parts.length || parts[0] === 'welcome';
   try {
     await loadMe();
     const u = state.me.user;
@@ -130,5 +146,8 @@ document.addEventListener('click', (e) => {
   }
 });
 
-window.addEventListener('hashchange', route);
+window.addEventListener('hashchange', () => {
+  navCount += 1;
+  route();
+});
 route();
