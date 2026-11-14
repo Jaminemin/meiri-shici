@@ -58,8 +58,7 @@ export function renderCommonApps(app) {
   <div class="page">
     <div class="page-head common-head">
       <div>
-        <a href="#/" class="muted" style="text-decoration:none">← 처음으로</a>
-        <h1 style="margin-top:6px">중국 방문 필수 앱</h1>
+        <h1>중국 방문 필수 앱</h1>
         <p class="muted">결제 · 교통 · 식당, 여행 전에 꼭 설치해 두면 좋은 앱입니다.</p>
       </div>
     </div>
@@ -115,6 +114,5 @@ export function renderCommonApps(app) {
         ${TIPS.map((t) => `<li class="common-use">${esc(t)}</li>`).join('')}
       </ul>
     </section>
-    <a class="btn" href="#/">← 과목 고르기로 돌아가기</a>
   </div>`;
 }
