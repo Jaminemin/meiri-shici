@@ -33,6 +33,10 @@
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google Cloud OAuth 클라이언트 |
 | `ANTHROPIC_API_KEY` | Claude API 키 (작문 첨삭) |
 | `AI_DAILY_LIMIT` | (선택) 1인 하루 첨삭 횟수, 기본 30 |
+| `SIGNUP_NOTIFY_TO` | (선택) 가입 신청 알림을 받을 이메일(여러 개는 쉼표) |
+| `SMTP_HOST`, `SMTP_PORT` | (선택) 알림 메일 서버. 네이버는 `smtp.naver.com`, `465` |
+| `SMTP_USER`, `SMTP_PASS` | (선택) 보내는 메일 계정 전체 주소와 비밀번호(2단계 인증이면 애플리케이션 비밀번호) |
+| `SMTP_FROM` | (선택) 보내는 주소. 비우면 `SMTP_USER` |
 
 4. **Settings → Networking → Generate Domain**
 5. Google Cloud OAuth 클라이언트에 추가
@@ -40,6 +44,7 @@
    - 승인된 리디렉션 URI: `https://내주소/auth/google/callback`
 
 > 비밀 값은 코드나 GitHub에 넣지 않고 Railway Variables에만 둡니다.
+> 가입 신청 알림: 네이버 메일 → 환경설정 → POP3/IMAP 설정에서 IMAP/SMTP 사용을 켜야 보낼 수 있습니다. 네 값(`SMTP_HOST`·`SMTP_USER`·`SMTP_PASS`·`SIGNUP_NOTIFY_TO`)이 모두 있어야 켜지며, 메일이 실패해도 가입은 그대로 진행됩니다.
 > Google OAuth 동의 화면이 '테스트' 상태면 테스트 사용자로 등록한 사람만 가입할 수 있습니다. 누구나 가입하게 하려면 동의 화면을 '프로덕션'으로 게시하세요(이 앱은 이름·이메일만 받아 구글 심사가 필요 없는 범위입니다).
 
 ## 내 PC에서 시험
