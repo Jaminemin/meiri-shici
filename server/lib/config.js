@@ -26,6 +26,9 @@ export const config = {
     baseUrl: (env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com').replace(/\/$/, ''),
   },
   aiDailyLimit: Number(env.AI_DAILY_LIMIT || 30),
+  // 가입 신청 알림 메일 (예: 네이버 smtp.naver.com / 465)
+  smtp: { host: env.SMTP_HOST || '', port: Number(env.SMTP_PORT || 465), user: env.SMTP_USER || '', pass: env.SMTP_PASS || '', from: env.SMTP_FROM || '' },
+  notifyTo: String(env.SIGNUP_NOTIFY_TO || '').split(/[,\s]+/).filter(Boolean),
 };
 config.google.redirectUri = env.GOOGLE_REDIRECT_URI || `${config.baseUrl}/auth/google/callback`;
 config.googleReady = Boolean(config.google.clientId && config.google.clientSecret);

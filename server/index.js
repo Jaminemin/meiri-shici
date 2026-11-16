@@ -5,6 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { config } from './lib/config.js';
+import { notifySignup, mailReady } from './lib/mail.js';
 import { HttpError, sendJson, redirect, readJsonBody, nowIso, clampStr } from './lib/util.js';
 import { readSession, sessionCookie, clearCookie, tempCookie, parseCookies } from './lib/session.js';
 import { authUrl, exchangeCode, fetchUserInfo } from './lib/google.js';
@@ -143,6 +144,7 @@ route('GET', '/auth/google/callback', async (req, res, { url }) => {
       VALUES (${g.sub}, ${email}, ${g.name || email}, ${g.picture || ''}, ${isAdmin ? 'admin' : 'student'}, ${status}, ${status === 'approved' ? new Date() : null}, now())
       RETURNING *`;
     await log(u.id, '회원 가입', `${u.name} (${email}) — ${status === 'approved' ? '자동 승인' : '승인 대기'}`);
+    if (status === 'pending') notifySignup(u).catch((e) => console.error('[가입 알림 메일 실패]', e.message));
   } else {
     [u] = await db()`UPDATE users SET google_sub = ${g.sub}, name = ${g.name || u.name}, picture = ${g.picture || u.picture}, last_login_at = now(),
       role = ${isAdmin ? 'admin' : u.role}, status = ${isAdmin ? 'approved' : u.status}, approved_at = COALESCE(approved_at, ${isAdmin ? new Date() : null})
@@ -165,6 +167,7 @@ if (process.env.DEV_LOGIN === '1') {
       const status = isAdmin || mode === 'auto' ? 'approved' : 'pending';
       [u] = await db()`INSERT INTO users (google_sub, email, name, role, status, approved_at) VALUES (${'dev_' + email}, ${email}, ${url.searchParams.get('name') || email.split('@')[0]}, ${isAdmin ? 'admin' : 'student'}, ${status}, ${status === 'approved' ? new Date() : null}) RETURNING *`;
       await log(u.id, '회원 가입', `${u.name} (${email}) — ${status === 'approved' ? '자동 승인' : '승인 대기'}`);
+    if (status === 'pending') notifySignup(u).catch((e) => console.error('[가입 알림 메일 실패]', e.message));
     }
     redirect(res, u.role === 'admin' ? '/#/admin' : '/#/home', { 'Set-Cookie': sessionCookie({ uid: u.id }) });
   });
@@ -464,6 +467,7 @@ initDb()
   .finally(() => {
     server.listen(config.port, () => {
       console.log(`每日十五词 서버 시작: ${config.baseUrl} (포트 ${config.port})`);
+      console.log(`  가입 알림 메일: ${mailReady() ? `켜짐 → ${config.notifyTo.join(', ')}` : '꺼짐 (SMTP_HOST·SMTP_USER·SMTP_PASS·SIGNUP_NOTIFY_TO 설정 필요)'}`);
       console.log(`  구글 로그인: ${config.googleReady ? '설정됨' : '미설정'} · DB: ${dbReady() ? '연결됨' : '미연결'} · AI: ${config.aiReady ? '설정됨' : '미설정'} · 관리자: ${config.adminEmails.join(', ') || '(없음)'}`);
     });
   });
