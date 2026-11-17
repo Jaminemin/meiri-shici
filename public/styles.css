@@ -841,7 +841,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .gate-full { position: relative; min-height: calc(100svh - 53px); overflow: hidden; background: #1d1612; color: #fff; display: flex; align-items: center; }
 .gate-slides, .gate-slide { position: absolute; inset: 0; }
 .gate-slides { left: 34%; }
-.gate-slide { background-size: cover; background-repeat: no-repeat; opacity: 0; transform: scale(1.04); transition: opacity 1.4s ease, transform 7s ease; }
+.gate-slide { background-position: var(--pos, center); background-size: cover; background-repeat: no-repeat; opacity: 0; transform: scale(1.04); transition: opacity 1.4s ease, transform 7s ease; }
 .gate-slide.on { opacity: 1; transform: scale(1); }
 .gate-full::after { content: ''; position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(ellipse at 18% 40%, rgba(214,140,90,.22), transparent 55%), linear-gradient(90deg, #1d1612 0%, #1d1612 34%, rgba(29,22,18,.7) 40%, rgba(29,22,18,0) 52%); }
@@ -875,8 +875,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 @media (max-width: 760px) {
   .gate-full { align-items: flex-end; min-height: calc(100svh - 53px); }
   .gate-slides { left: 0; }
-  .gate-slide:first-child { background-position: 58% 20% !important; }
-  .gate-slide:last-child { background-position: 80% 30% !important; }
+  .gate-slide { background-position: var(--mpos, center); }
   .gate-full::after { background: linear-gradient(0deg, rgba(29,22,18,.92) 0%, rgba(29,22,18,.7) 42%, rgba(29,22,18,.1) 72%, rgba(29,22,18,0) 100%); }
   .gate-full-in { padding: 160px 18px 48px; }
   .gate-full-hook { font-size: 14px; margin: 10px 0 16px; }
