@@ -482,7 +482,7 @@ route('GET', '/api/admin/export.csv', async (req, res) => {
 });
 
 // ---------------- 정적 파일 ----------------
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.json': 'application/json' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.mp4': 'video/mp4', '.ico': 'image/x-icon', '.json': 'application/json' };
 function serveStatic(req, res, pathname) {
   let rel = decodeURIComponent(pathname);
   if (rel === '/' || rel === '') rel = '/index.html';
@@ -495,8 +495,23 @@ function serveStatic(req, res, pathname) {
     return false;
   }
   if (!stat.isFile()) return false;
-  const ext = path.extname(file);
-  res.writeHead(200, { 'Content-Type': TYPES[ext] || 'application/octet-stream', 'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=300', 'Content-Length': stat.size });
+  const ext = path.extname(file).toLowerCase();
+  const head = { 'Content-Type': TYPES[ext] || 'application/octet-stream', 'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=300', 'Accept-Ranges': 'bytes' };
+  // 영상은 부분 요청(Range)을 받아야 아이폰 사파리에서 재생되고 앞뒤로 넘길 수 있다
+  const m = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+  if (m && (m[1] || m[2])) {
+    let start = m[1] ? Number(m[1]) : Math.max(0, stat.size - Number(m[2]));
+    let end = m[1] && m[2] ? Math.min(Number(m[2]), stat.size - 1) : stat.size - 1;
+    if (start >= stat.size || start > end) {
+      res.writeHead(416, { 'Content-Range': `bytes */${stat.size}` });
+      return res.end(), true;
+    }
+    res.writeHead(206, { ...head, 'Content-Range': `bytes ${start}-${end}/${stat.size}`, 'Content-Length': end - start + 1 });
+    if (req.method === 'HEAD') return res.end(), true;
+    fs.createReadStream(file, { start, end }).pipe(res);
+    return true;
+  }
+  res.writeHead(200, { ...head, 'Content-Length': stat.size });
   if (req.method === 'HEAD') return res.end(), true;
   fs.createReadStream(file).pipe(res);
   return true;

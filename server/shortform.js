@@ -73,6 +73,8 @@ const LUNCH = ['80~90분', '휴식'];
 export const SHORTFORM_WEEKS = [
   {
     week: 1, stage: 1, title: '도우인과 현대 중국어', titleZh: '认识抖音与现代汉语',
+    // 학습 목표 안내 영상(직접 만든 AI 영상, public/media)
+    intro: { src: '/media/w01-intro.mp4', poster: '/media/w01-intro.jpg', title: '1주차 학습 목표 안내' },
     goal: '중국 숏폼 콘텐츠 언어 유형을 배우고, 자기소개에 쓰는 기본 구어체를 익힌다.',
     goals: ["중국 숏폼의 콘텐츠 유형과 크리에이터 문화를 이해한다.", "크리에이터가 영상 처음과 끝에 쓰는 기본 표현을 익힌다.", "표준 중국어와 일상 구어체의 차이를 인식한다."],
     videos: ["30초 자기소개 숏폼 오프닝", "채널 소개(나는 어떤 播主인가)", "팔로우·좋아요를 부탁하는 마무리"],

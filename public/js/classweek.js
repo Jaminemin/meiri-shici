@@ -80,10 +80,12 @@ export function taskBlock(W, level) {
 // 수업 안내 본문 (맛보기와 학습 화면이 같이 쓴다)
 export function classWeekBody(W, videos, level = '') {
   return `
-    ${coverHtml({ ...W, caption: W.patterns?.[0]?.zh || W.titleZh })}
-    <p class="cw-topic"><b>주제:</b> <span class="zh">${esc(W.titleZh)}</span></p>
-    <div class="card">
-      <div class="ai-label">학습 목표</div>
+    <div class="card cw-goal-card">
+      <div class="cw-goal-head"><span class="ai-label">학습 목표</span><span class="zh cw-goal-zh">${esc(W.titleZh)}</span></div>
+      <div class="cw-media ${W.intro?.src ? 'two' : ''}">
+        ${coverHtml({ ...W, caption: W.patterns?.[0]?.zh || W.titleZh })}
+        ${W.intro?.src ? `<video class="cw-intro" controls playsinline preload="metadata" poster="${esc(W.intro.poster || '')}" aria-label="${esc(W.intro.title || '학습 목표 안내 영상')}"><source src="${esc(W.intro.src)}" type="video/mp4"></video>` : ''}
+      </div>
       <ol class="cw-goals">${W.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol>
       <div class="muted" style="font-size:14px">핵심 언어 학습: <b style="color:var(--ink)">${esc(W.focus)}</b></div>
     </div>
