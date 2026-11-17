@@ -39,6 +39,12 @@ export function baseClassWeek(gid) {
 }
 
 export const WORDS_PER_WEEK = 15;
+// 주차별 단어 수: 숏폼 과정은 주차마다 45개, 이전 과정은 15개
+export function wordTotal(gid) {
+  const c = courseOf(gid);
+  if (c?.format === 'class') return SHORTFORM_STUDY[Number(gid) - c.offset]?.words.length || WORDS_PER_WEEK;
+  return WORDS_PER_WEEK;
+}
 
 export const WEEKS = [
   {
@@ -319,7 +325,7 @@ export function weekData(gid) {
       course: course.key,
       format: 'class',
       hsk: null,
-      // 주차별 단어 15개 · 문장 8개 (퀴즈는 단어로 만든다)
+      // 주차별 단어 45개 · 문장 24개 (퀴즈는 단어로 만든다)
       words: (SHORTFORM_STUDY[local]?.words || []).map(([hanzi, pinyin, meaning], i) => ({ id: `${n}-${i + 1}`, hanzi, pinyin, meaning, hanKr: '' })),
       examples: (SHORTFORM_STUDY[local]?.sentences || []).map(([zh, py, ko]) => ({ zh, py, ko, krRead: '' })),
       patterns: (w.patterns || []).map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || '', formPy: '', formKr: '' })),

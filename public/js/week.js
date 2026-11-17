@@ -1,5 +1,3 @@
-// 주차당 단어 수 (server/curriculum.js의 WORDS_PER_WEEK와 같아야 함)
-const WORDS_PER_WEEK = 15;
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
 import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.js';
 import { classWeekBody, bindClassWeek, taskBlock, gradeHtml, stageLabel } from './classweek.js';
@@ -17,14 +15,14 @@ const shuffle = (a) => a.map((x) => [Math.random(), x]).sort((p, q) => p[0] - q[
 function knownKey(week) {
   return `ms_known_${state.me.user.id}_${week}`;
 }
-function loadKnown(week, serverCount) {
+function loadKnown(week, serverCount, total) {
   try {
     const v = JSON.parse(localStorage.getItem(knownKey(week)) || '[]');
     if (Array.isArray(v) && v.length) return new Set(v);
   } catch {
     /* 무시 */
   }
-  return serverCount >= WORDS_PER_WEEK ? new Set(['all']) : new Set();
+  return serverCount >= total ? new Set(['all']) : new Set();
 }
 function saveKnown(week, set) {
   try {
@@ -43,7 +41,7 @@ export async function renderWeek(app, ctx) {
   const OLD_TAB = { task: 'writing', videos: 'class', creator: 'class', pattern: 'pattern' };
   let tab = CLS ? OLD_TAB[ctx.tab] || ctx.tab || 'class' : ctx.tab || 'words';
   if (CLS && !['class', 'words', 'pattern', 'quiz', 'writing'].includes(tab)) tab = 'class';
-  let known = loadKnown(W.gid, d.state.words);
+  let known = loadKnown(W.gid, d.state.words, W.words.length);
   if (known.has('all')) known = new Set(W.words.map((w) => w.id));
 
   const tabs = CLS ? [

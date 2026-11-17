@@ -18,8 +18,8 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
       (w) => `<${link ? `a href="#/week/${w.gid}${tab ? `/${tab}` : ''}"` : 'div'} class="week-card ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}">
       ${w.format === 'class' ? coverHtml(w, { small: true }) : ''}<div class="wn">${w.week}주차</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div>
       ${w.format === 'class'
-        ? `<div class="steps3" title="단어 · 퀴즈 · 과제"><span class="${w.words >= 15 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
-      <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/15 · 퀴즈 ${w.quiz ?? '–'}/10 · 과제 ${w.writing ? '✓' : '–'}</div>`
+        ? `<div class="steps3" title="단어 · 퀴즈 · 과제"><span class="${w.words >= (w.wordTotal || 15) ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/${w.wordTotal || 15} · 퀴즈 ${w.quiz ?? '–'}/10 · 과제 ${w.writing ? '✓' : '–'}</div>`
         : `<div class="steps3" title="단어 · 퀴즈 · 작문"><span class="${w.words >= 15 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
       <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/15 · 퀴즈 ${w.quiz ?? '–'}/10 · 작문 ${w.writing ? '✓' : '–'}</div>`}
     </${link ? 'a' : 'div'}>`,
@@ -32,7 +32,7 @@ export function weekList(weeks, currentGid) {
     const open = w.gid === currentGid;
     const subs = w.format === 'class' ? [
       ['class', '수업 안내', ''],
-      ['words', '단어', `${w.words}/15`],
+      ['words', '단어', `${w.words}/${w.wordTotal || 15}`],
       ['pattern', '문장', ''],
       ['quiz', '퀴즈', `${w.quiz ?? '–'}/10`],
       ['writing', '과제', w.writing ? '제출' : '–'],
