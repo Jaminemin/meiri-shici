@@ -837,19 +837,53 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   .sf-bottom { bottom: 38px; }
 }
 
-/* 대문: 실제 거리 브이로그 사진 배경 */
-.gate-photo { position: relative; max-width: 800px; margin: 0 auto; aspect-ratio: 16 / 9; border-radius: 22px; overflow: hidden;
-  background: #1a1d27 url('/img/hero-vlog.jpg') right center / auto 100% no-repeat; box-shadow: 0 12px 32px rgba(0,0,0,.14); }
-.gate-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #1a1d27 0%, #1a1d27 38%, rgba(26,29,39,.55) 46%, rgba(26,29,39,0) 58%); }
-.gate-photo-txt { position: absolute; z-index: 1; left: 6%; top: 50%; transform: translateY(-50%); text-align: left; color: #fff; max-width: 40%; }
-.gate-photo-tag { display: inline-block; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); backdrop-filter: blur(4px); }
-.gate-photo-title { font-size: clamp(34px, 7vw, 64px); font-weight: 900; line-height: 1.05; margin: 12px 0 8px; color: #fff; letter-spacing: -0.02em; white-space: nowrap; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
-.gate-photo-zh { font-size: clamp(14px, 2.4vw, 20px); margin: 0; color: rgba(255,255,255,.92); text-shadow: 0 1px 8px rgba(0,0,0,.4); }
-.gate-photo-univ { position: absolute; z-index: 1; left: 6%; bottom: 6%; width: min(190px, 34%); line-height: 0; background: rgba(255,255,255,.92); border-radius: 12px; padding: 7px 12px; }
+/* 대문: 전체 화면 배경 (AI 쇼호스트 이미지 두 장을 번갈아) */
+.gate-full { position: relative; min-height: calc(100svh - 53px); overflow: hidden; background: #141726; color: #fff; display: flex; align-items: center; }
+.gate-slides, .gate-slide { position: absolute; inset: 0; }
+.gate-slides { left: 34%; }
+.gate-slide { background-size: cover; background-repeat: no-repeat; opacity: 0; transform: scale(1.04); transition: opacity 1.4s ease, transform 7s ease; }
+.gate-slide.on { opacity: 1; transform: scale(1); }
+.gate-full::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 18% 40%, rgba(88,70,200,.35), transparent 55%), linear-gradient(90deg, #141726 0%, #141726 34%, rgba(20,23,38,.7) 40%, rgba(20,23,38,0) 52%); }
+.gate-full-in { position: relative; z-index: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 48px 32px 72px; }
+.gate-full-in > * { max-width: 520px; }
+.gate-photo-tag { display: inline-block; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.35); backdrop-filter: blur(4px); color: #fff; }
+.gate-photo-title { font-size: clamp(40px, 7vw, 76px); font-weight: 900; line-height: 1.05; margin: 14px 0 8px; color: #fff; letter-spacing: -0.02em; white-space: nowrap; text-shadow: 0 2px 14px rgba(0,0,0,.4); }
+.gate-photo-zh { font-size: clamp(16px, 2.4vw, 22px); margin: 0; color: rgba(255,255,255,.92); text-shadow: 0 1px 8px rgba(0,0,0,.45); }
+.gate-full-hook { margin: 16px 0 22px; font-size: 16px; line-height: 1.6; color: rgba(255,255,255,.9); text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+.gate-full-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.gate-glass { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; text-decoration: none; color: #fff;
+  background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.28); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: background-color .2s ease, transform .15s ease; }
+.gate-glass:hover { background: rgba(255,255,255,.26); transform: translateY(-2px); color: #fff; }
+.gate-glass .level-icon { font-size: 28px; line-height: 1; }
+.gate-glass > span:last-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gate-glass small { font-size: 11px; font-weight: 700; color: #ffd36b; }
+.gate-glass b { font-size: 16px; }
+.gate-glass em { font-style: normal; font-size: 12px; color: rgba(255,255,255,.8); }
+.gate-full-note { margin: 12px 0 0; font-size: 12.5px; color: rgba(255,255,255,.75); }
+.gate-photo-univ { display: block; width: 180px; line-height: 0; margin-top: 26px; background: rgba(255,255,255,.94); border-radius: 12px; padding: 7px 12px; }
 .gate-photo-univ img { width: 100%; height: auto; display: block; }
-@media (max-width: 680px) {
-  .gate-photo { aspect-ratio: 4 / 5; border-radius: 18px; background-position: 62% 30%; background-size: cover; }
-  .gate-photo::after { background: linear-gradient(0deg, rgba(10,12,20,.78) 0%, rgba(10,12,20,.25) 50%, rgba(10,12,20,0) 70%); }
-  .gate-photo-txt { top: auto; bottom: 20%; transform: none; max-width: 88%; }
-  .gate-photo-univ { width: 150px; bottom: 5%; }
+.gate-dots { position: absolute; z-index: 1; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 8px; }
+.gate-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.45); transition: width .3s ease, background-color .3s ease; }
+.gate-dots i.on { width: 22px; border-radius: 4px; background: #fff; }
+
+/* 오른쪽 위 로그인 버튼 + 구글 로고 */
+.g-logo { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: #fff; flex: none; }
+.g-logo svg { width: 15px; height: 15px; }
+.hdr-login, .hdr-browse { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.hdr-login { padding-left: 6px; }
+@media (max-width: 760px) {
+  .gate-full { align-items: flex-end; min-height: calc(100svh - 53px); }
+  .gate-slides { left: 0; }
+  .gate-slide { background-position: 42% 20% !important; }
+  .gate-full::after { background: linear-gradient(0deg, rgba(12,14,26,.92) 0%, rgba(12,14,26,.7) 42%, rgba(12,14,26,.1) 72%, rgba(12,14,26,0) 100%); }
+  .gate-full-in { padding: 160px 18px 48px; }
+  .gate-full-hook { font-size: 14px; margin: 10px 0 16px; }
+  .gate-glass { padding: 12px; gap: 8px; }
+  .gate-glass .level-icon { font-size: 22px; }
+  .gate-glass b { font-size: 14px; }
+  .gate-photo-univ { width: 140px; margin-top: 18px; }
+  .hdr-browse { display: none; }
+  .hdr-login span:last-child { display: none; }
+  .hdr-login::after { content: '로그인'; }
 }
