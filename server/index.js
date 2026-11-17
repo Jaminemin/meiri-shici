@@ -12,7 +12,7 @@ import { readSession, sessionCookie, clearCookie, tempCookie, parseCookies } fro
 import { authUrl, exchangeCode, fetchUserInfo } from './lib/google.js';
 import { initDb, db, dbReady, log, getSetting, setSetting } from './lib/db.js';
 import { checkQuota, correctWriting, checkSentence } from './lib/ai.js';
-import { WEEKS, COURSES, courseOf, localWeek, weekData, curriculumSummary, WORDS_PER_WEEK, DEFAULT_COURSE, pickCourse, visibleCourses, isClassWeek, SHORTFORM_INFO } from './curriculum.js';
+import { WEEKS, COURSES, courseOf, localWeek, weekData, curriculumSummary, WORDS_PER_WEEK, DEFAULT_COURSE, pickCourse, visibleCourses, isClassWeek, SHORTFORM_INFO, wordTotal } from './curriculum.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(here, '..', 'public');
@@ -51,13 +51,14 @@ async function requireAdmin(req) {
 
 // ---------------- 진도 계산 ----------------
 function weekState(p, gid) {
-  const words = Math.min(WORDS_PER_WEEK, p?.words_learned || 0);
+  const total = wordTotal(gid ?? p?.week);
+  const words = Math.min(total, p?.words_learned || 0);
   const quiz = p?.quiz_best ?? null;
   const writing = Boolean(p?.writing_done);
-  // 숏폼 주차도 ① 단어 15개 외우기 ② 퀴즈 통과 ③ 과제 제출 — 셋 다 하면 완료
+  // 숏폼 주차도 ① 단어 모두 외우기(숏폼 45개) ② 퀴즈 통과 ③ 과제 제출 — 셋 다 하면 완료
   const checked = words > 0;
-  const steps = (words >= WORDS_PER_WEEK ? 1 : 0) + (quiz !== null && quiz >= PASS_QUIZ ? 1 : 0) + (writing ? 1 : 0);
-  return { words, quiz, quizCount: p?.quiz_count || 0, writing, checked, steps, totalSteps: 3, done: steps === 3, completedAt: p?.completed_at || null };
+  const steps = (words >= total ? 1 : 0) + (quiz !== null && quiz >= PASS_QUIZ ? 1 : 0) + (writing ? 1 : 0);
+  return { words, wordTotal: total, quiz, quizCount: p?.quiz_count || 0, writing, checked, steps, totalSteps: 3, done: steps === 3, completedAt: p?.completed_at || null };
 }
 
 async function refreshCompletion(userId, week) {
@@ -229,7 +230,7 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
       attendedToday: Boolean(att),
       totalWeeks: weeks.length,
       wordsLearned: weeks.reduce((a, w) => a + w.words, 0),
-      totalWords: weeks.length * WORDS_PER_WEEK,
+      totalWords: weeks.reduce((a, w) => a + (w.wordTotal || WORDS_PER_WEEK), 0),
       quizAvg: (() => {
         const q = weeks.filter((w) => w.quiz !== null);
         return q.length ? Math.round((q.reduce((a, w) => a + w.quiz, 0) / q.length) * 10) / 10 : null;
@@ -270,9 +271,9 @@ route('POST', '/api/attendance', async (req, res) => {
 route('POST', '/api/weeks/:n/words', async (req, res, { p, body }) => {
   const u = await requireUser(req);
   const n = weekNo(p.n);
-  const count = Math.max(0, Math.min(WORDS_PER_WEEK, Math.round(Number(body.count) || 0)));
+  const count = Math.max(0, Math.min(wordTotal(n), Math.round(Number(body.count) || 0)));
   const r = await touchProgress(u.id, n, () => db()`UPDATE progress SET words_learned = GREATEST(words_learned, ${count}) WHERE user_id = ${u.id} AND week = ${n}`);
-  await log(u.id, '단어 학습', `${n}주차 단어 ${count}/${WORDS_PER_WEEK}`);
+  await log(u.id, '단어 학습', `${n}주차 단어 ${count}/${wordTotal(n)}`);
   sendJson(res, 200, r);
 });
 
@@ -400,7 +401,7 @@ route('GET', '/api/admin/users', async (req, res, { url }) => {
   const rows = await db()`
     SELECT u.id, u.email, u.name, u.picture, u.role, u.status, u.memo, u.created_at, u.approved_at, u.last_login_at, u.last_active_at,
       COALESCE(sum(CASE WHEN p.completed_at IS NOT NULL THEN 1 ELSE 0 END), 0)::int AS done_weeks,
-      COALESCE(sum(LEAST(p.words_learned, 15)), 0)::int AS words,
+      COALESCE(sum(LEAST(p.words_learned, 45)), 0)::int AS words,
       (SELECT count(*)::int FROM writings w WHERE w.user_id = u.id) AS writings
     FROM users u LEFT JOIN progress p ON p.user_id = u.id
     ${status && status !== 'all' ? db()`WHERE u.status = ${status}` : db()``}
