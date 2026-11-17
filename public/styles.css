@@ -838,13 +838,13 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 }
 
 /* 대문: 전체 화면 배경 (AI 쇼호스트 이미지 두 장을 번갈아) */
-.gate-full { position: relative; min-height: calc(100svh - 53px); overflow: hidden; background: #141726; color: #fff; display: flex; align-items: center; }
+.gate-full { position: relative; min-height: calc(100svh - 53px); overflow: hidden; background: #1d1612; color: #fff; display: flex; align-items: center; }
 .gate-slides, .gate-slide { position: absolute; inset: 0; }
 .gate-slides { left: 34%; }
 .gate-slide { background-size: cover; background-repeat: no-repeat; opacity: 0; transform: scale(1.04); transition: opacity 1.4s ease, transform 7s ease; }
 .gate-slide.on { opacity: 1; transform: scale(1); }
 .gate-full::after { content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse at 18% 40%, rgba(88,70,200,.35), transparent 55%), linear-gradient(90deg, #141726 0%, #141726 34%, rgba(20,23,38,.7) 40%, rgba(20,23,38,0) 52%); }
+  background: radial-gradient(ellipse at 18% 40%, rgba(214,140,90,.22), transparent 55%), linear-gradient(90deg, #1d1612 0%, #1d1612 34%, rgba(29,22,18,.7) 40%, rgba(29,22,18,0) 52%); }
 .gate-full-in { position: relative; z-index: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 48px 32px 72px; }
 .gate-full-in > * { max-width: 520px; }
 .gate-photo-tag { display: inline-block; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.35); backdrop-filter: blur(4px); color: #fff; }
@@ -861,8 +861,8 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .gate-glass b { font-size: 16px; }
 .gate-glass em { font-style: normal; font-size: 12px; color: rgba(255,255,255,.8); }
 .gate-full-note { margin: 12px 0 0; font-size: 12.5px; color: rgba(255,255,255,.75); }
-.gate-photo-univ { display: block; width: 180px; line-height: 0; margin-top: 26px; background: rgba(255,255,255,.94); border-radius: 12px; padding: 7px 12px; }
-.gate-photo-univ img { width: 100%; height: auto; display: block; }
+.gate-photo-univ { display: block; width: 200px; line-height: 0; margin-top: 26px; }
+.gate-photo-univ img { width: 100%; height: auto; display: block; filter: brightness(0) invert(1) drop-shadow(0 1px 6px rgba(0,0,0,.35)); opacity: .95; }
 .gate-dots { position: absolute; z-index: 1; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 8px; }
 .gate-dots i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.45); transition: width .3s ease, background-color .3s ease; }
 .gate-dots i.on { width: 22px; border-radius: 4px; background: #fff; }
@@ -875,8 +875,9 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 @media (max-width: 760px) {
   .gate-full { align-items: flex-end; min-height: calc(100svh - 53px); }
   .gate-slides { left: 0; }
-  .gate-slide { background-position: 42% 20% !important; }
-  .gate-full::after { background: linear-gradient(0deg, rgba(12,14,26,.92) 0%, rgba(12,14,26,.7) 42%, rgba(12,14,26,.1) 72%, rgba(12,14,26,0) 100%); }
+  .gate-slide:first-child { background-position: 58% 20% !important; }
+  .gate-slide:last-child { background-position: 80% 30% !important; }
+  .gate-full::after { background: linear-gradient(0deg, rgba(29,22,18,.92) 0%, rgba(29,22,18,.7) 42%, rgba(29,22,18,.1) 72%, rgba(29,22,18,0) 100%); }
   .gate-full-in { padding: 160px 18px 48px; }
   .gate-full-hook { font-size: 14px; margin: 10px 0 16px; }
   .gate-glass { padding: 12px; gap: 8px; }
