@@ -3,6 +3,7 @@ import { esc, get, post, put, del, toast, confirmBox, fmtDate, ago } from './cor
 import { feedbackHtml } from './fb.js';
 import { adminTabs } from './admin.js';
 import { statusBadge, dueText } from './lms.js';
+import { coverHtml } from './cover.js';
 
 const weekOptions = (weeks, gid) => weeks.map((w) => `<option value="${w.gid}" ${w.gid === gid ? 'selected' : ''}>${w.week}주차 · ${esc(w.title)}${w.published === false ? ' (비공개)' : ''}</option>`).join('');
 const scoreInputs = (items, scores = {}) =>
@@ -202,6 +203,19 @@ export async function renderAdminContent(app, ctx) {
     ${adminTabs('content')}
     <div class="card row between" style="flex-wrap:wrap;gap:10px"><label class="row" style="gap:8px">주차 <select id="c-week">${weekOptions(d.weeks, gid)}</select></label>
       <span>${d.edited ? '<span class="badge warn">고친 내용 있음</span>' : '<span class="badge">기본 내용</span>'} <a href="#/week/${gid}" class="muted">학생 화면 보기 →</a></span></div>
+    <div class="card c-cover">
+      <div class="card-head"><h3>대표 이미지</h3>${d.cover ? '<span class="badge accent">올린 사진</span>' : '<span class="badge">기본 표지</span>'}</div>
+      <div class="c-cover-grid">
+        <div>${coverHtml({ week: d.week, title: c.title, titleZh: c.titleZh, stage: d.weeks.find((w) => w.gid === gid)?.stage, keywords: c.keywords, caption: c.patterns?.[0]?.[2] || c.titleZh, videos: c.videos, cover: d.cover })}</div>
+        <div>
+          <p class="muted" style="font-size:13px;margin-top:0">직접 찍은 사진, 사용 허락을 받은 사진, 무료 사용이 허용된 사진만 올려 주세요. 도우인 화면을 캡처한 사진처럼 다른 사람의 얼굴이나 저작물이 담긴 이미지는 허락 없이 올리지 않습니다. 사진이 없으면 숏폼 화면처럼 꾸민 기본 표지가 나옵니다.</p>
+          <label class="vlabel">사진 파일 (JPG·PNG·WebP, 자동으로 줄여서 올립니다)<input type="file" id="cv-file" accept="image/jpeg,image/png,image/webp"></label>
+          <label class="vlabel">출처 표기 (사진 아래 왼쪽에 보임)<input id="cv-src" maxlength="100" placeholder="예: 직접 촬영 / Unsplash · 작가 이름" value="${esc(d.cover?.source || '')}"></label>
+          <label class="vlabel">출처 주소 (선택)<input id="cv-url" type="url" maxlength="500" placeholder="https://…" value="${esc(d.cover?.sourceUrl || '')}"></label>
+          <div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px">${d.cover ? '<button class="btn danger" id="cv-del" type="button">사진 지우기</button>' : ''}<button class="btn primary" id="cv-up" type="button">사진 올리기</button></div>
+        </div>
+      </div>
+    </div>
     <form class="card cform" id="c-form">
       <div class="vform">
         <label>제목<input name="title" value="${esc(c.title)}" maxlength="80"></label>
@@ -260,6 +274,39 @@ export async function renderAdminContent(app, ctx) {
       toast(err.message, 'bad');
     }
   };
+  // 사진은 브라우저에서 가로 1280px 이하 JPG로 줄여서 올린다
+  const shrink = (file) =>
+    new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const k = Math.min(1, 1280 / img.width);
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width * k);
+        cv.height = Math.round(img.height * k);
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        URL.revokeObjectURL(img.src);
+        resolve(cv.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => reject(new Error('이미지를 읽지 못했습니다.'));
+      img.src = URL.createObjectURL(file);
+    });
+  app.querySelector('#cv-up').onclick = async () => {
+    const file = app.querySelector('#cv-file').files[0];
+    if (!file) return toast('올릴 사진을 골라 주세요.', 'bad');
+    if (!app.querySelector('#cv-src').value.trim()) return toast('출처를 적어 주세요. 직접 찍었다면 "직접 촬영"이라고 쓰면 됩니다.', 'bad');
+    try {
+      const data = await shrink(file);
+      await put(`/api/admin/content/${gid}/cover`, { data, source: app.querySelector('#cv-src').value, sourceUrl: app.querySelector('#cv-url').value });
+      toast('대표 이미지를 올렸습니다.');
+      renderAdminContent(app, { week: gid });
+    } catch (e) {
+      toast(e.message, 'bad');
+    }
+  };
+  app.querySelector('#cv-del')?.addEventListener('click', async () => {
+    if (!(await confirmBox('대표 이미지를 지우고 기본 표지로 되돌릴까요?', { danger: true }))) return;
+    try { await del(`/api/admin/content/${gid}/cover`); toast('지웠습니다.'); renderAdminContent(app, { week: gid }); } catch (e) { toast(e.message, 'bad'); }
+  });
   app.querySelectorAll('[data-vid]').forEach((box) => (box.querySelector('[data-vsave]').onclick = async () => {
     try { await put(`/api/admin/videos/${box.dataset.vid}`, { transcript: box.querySelector('[data-tr]').value, permission: box.querySelector('[data-perm]').value }); toast('자막을 저장했습니다.'); } catch (e) { toast(e.message, 'bad'); }
   }));

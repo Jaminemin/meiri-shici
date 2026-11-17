@@ -179,6 +179,16 @@ async function migrate() {
       comment TEXT NOT NULL DEFAULT '',
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
+  // 주차 대표 이미지: 교수자가 쓸 권리가 있는 사진만 올린다(출처 함께 표기)
+  await sql`
+    CREATE TABLE IF NOT EXISTS week_covers (
+      gid INT PRIMARY KEY,
+      mime TEXT NOT NULL,
+      data BYTEA NOT NULL,
+      source TEXT NOT NULL DEFAULT '',
+      source_url TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
   // AI 회화 기록 (대화 원문과 AI 피드백을 따로 둔다)
   await sql`
     CREATE TABLE IF NOT EXISTS ai_sessions (

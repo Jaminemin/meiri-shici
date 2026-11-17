@@ -1,6 +1,7 @@
 // 숏폼 과정(수업 안내형) 주차 화면: 학습 목표 · 도우인 영상 · 핵심 문형 · 180분 수업 흐름 · 수준별 과제 · 과제 제출
 import { state, esc, post, toast } from './core.js';
 import { statusBadge, dueText, startTalkFromWeek } from './lms.js';
+import { coverHtml } from './cover.js';
 import { feedbackHtml } from './fb.js';
 
 export const STAGE_NAME = { 1: '일상 중국어 적응', 2: '실제 의사소통', 3: '사회문화와 언어 분석', 4: '표현의 생산과 활용' };
@@ -76,6 +77,8 @@ function taskBlock(W, level) {
 // 수업 안내 본문 (맛보기와 학습 화면이 같이 쓴다)
 export function classWeekBody(W, videos, level = '') {
   return `
+    ${coverHtml({ ...W, caption: W.patterns?.[0]?.zh || W.titleZh })}
+    <p class="cw-topic"><b>주제:</b> <span class="zh">${esc(W.titleZh)}</span></p>
     <div class="card">
       <div class="ai-label">학습 목표</div>
       <ol class="cw-goals">${W.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol>

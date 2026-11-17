@@ -3,7 +3,7 @@
 import { HttpError, sendJson, clampStr } from './lib/util.js';
 import { db, dbReady, log } from './lib/db.js';
 import { checkQuota, correctWriting, convoTurn, convoFeedback } from './lib/ai.js';
-import { COURSES, DEFAULT_COURSE, ASSESS, CONVO, LEVELS, TEAM_ROLES, EDITABLE, weekData, curriculumSummary, isClassWeek, localWeek, setCourseWeek, baseClassWeek, hasOverride } from './curriculum.js';
+import { COURSES, DEFAULT_COURSE, ASSESS, CONVO, LEVELS, TEAM_ROLES, EDITABLE, weekData, curriculumSummary, isClassWeek, localWeek, setCourseWeek, baseClassWeek, hasOverride, setCover } from './curriculum.js';
 
 const C = () => COURSES[DEFAULT_COURSE];
 const gidOf = (local) => C().offset + local;
@@ -370,7 +370,7 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
     // 편집 화면에는 문형을 [문형, 설명, 예문, 뜻, 병음] 원래 형식으로 준다
     const current = Object.fromEntries(EDITABLE.map((k) => [k, k === 'patterns' ? (w.patterns || []).map((x) => [x.form, x.explain, x.zh, x.ko, x.py]) : (w[k] ?? (k === 'caution' ? '' : null))]));
     const videos = await db()`SELECT id, url, title, creator, note, transcript, permission FROM week_videos WHERE week = ${gid} ORDER BY id`;
-    sendJson(res, 200, { gid, week: localWeek(gid), current, base: { title: base.title }, edited: hasOverride(gid), dueAt: w.dueAt, published: w.published, weeks: curriculumSummary(DEFAULT_COURSE), videos });
+    sendJson(res, 200, { gid, week: localWeek(gid), current, base: { title: base.title }, edited: hasOverride(gid), dueAt: w.dueAt, published: w.published, cover: w.cover, weeks: curriculumSummary(DEFAULT_COURSE), videos });
   });
 
   route('PUT', '/api/admin/content/:week', async (req, res, { p, body }) => {
@@ -418,6 +418,41 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
     await requireAdmin(req);
     const r = await db()`UPDATE week_videos SET transcript = ${clampStr(body.transcript, 6000)}, permission = ${clampStr(body.permission, 200).trim()} WHERE id = ${Number(p.id)} RETURNING id`;
     if (!r.length) throw new HttpError(404, '영상을 찾지 못했습니다.', 'no_video');
+    sendJson(res, 200, { ok: true });
+  });
+
+  // ================= 주차 대표 이미지 =================
+  route('GET', '/api/covers/:week', async (req, res, { p }) => {
+    const [c] = await db()`SELECT mime, data, updated_at FROM week_covers WHERE gid = ${Number(p.week)}`;
+    if (!c) throw new HttpError(404, '이미지가 없습니다.', 'no_cover');
+    res.writeHead(200, { 'Content-Type': c.mime, 'Cache-Control': 'public, max-age=86400', 'X-Content-Type-Options': 'nosniff' });
+    res.end(c.data);
+  });
+
+  route('PUT', '/api/admin/content/:week/cover', async (req, res, { p, body }) => {
+    const admin = await requireAdmin(req);
+    const gid = weekNo(p.week);
+    if (!isClassWeek(gid)) throw new HttpError(400, '숏폼 과정 주차만 고칠 수 있습니다.', 'not_class');
+    const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(body.data || ''));
+    if (!m) throw new HttpError(400, 'JPG·PNG·WebP 이미지만 올릴 수 있습니다.', 'bad_image');
+    const buf = Buffer.from(m[2], 'base64');
+    if (buf.length > 2.5 * 1024 * 1024) throw new HttpError(413, '이미지가 너무 큽니다. 2.5MB 이하로 올려 주세요.', 'too_large');
+    const source = clampStr(body.source, 100).trim();
+    const sourceUrl = clampStr(body.sourceUrl, 500).trim();
+    if (sourceUrl && !/^https?:\/\//i.test(sourceUrl)) throw new HttpError(400, '출처 주소는 http:// 또는 https://로 시작해야 합니다.', 'bad_url');
+    const [c] = await db()`INSERT INTO week_covers (gid, mime, data, source, source_url, updated_at) VALUES (${gid}, ${m[1]}, ${buf}, ${source}, ${sourceUrl}, now())
+      ON CONFLICT (gid) DO UPDATE SET mime = EXCLUDED.mime, data = EXCLUDED.data, source = EXCLUDED.source, source_url = EXCLUDED.source_url, updated_at = now() RETURNING updated_at`;
+    setCover(gid, { updatedAt: c.updated_at, source, sourceUrl });
+    await log(admin.id, '대표 이미지 변경', `${localWeek(gid)}주차${source ? ` · ${source}` : ''}`);
+    sendJson(res, 200, { ok: true });
+  });
+
+  route('DELETE', '/api/admin/content/:week/cover', async (req, res, { p }) => {
+    const admin = await requireAdmin(req);
+    const gid = weekNo(p.week);
+    await db()`DELETE FROM week_covers WHERE gid = ${gid}`;
+    setCover(gid, null);
+    await log(admin.id, '대표 이미지 삭제', `${localWeek(gid)}주차`);
     sendJson(res, 200, { ok: true });
   });
 
@@ -490,5 +525,7 @@ export async function loadCourseWeeks() {
   if (!dbReady()) return;
   const rows = await db()`SELECT gid, data, due_at, published FROM course_weeks`;
   for (const r of rows) setCourseWeek(r.gid, { data: r.data, dueAt: r.due_at, published: r.published });
+  const covers = await db()`SELECT gid, source, source_url, updated_at FROM week_covers`;
+  for (const c of covers) setCover(c.gid, { updatedAt: c.updated_at, source: c.source, sourceUrl: c.source_url });
   if (rows.length) console.log(`[수업] 교수자가 고친 주차 ${rows.length}개를 불러왔습니다.`);
 }

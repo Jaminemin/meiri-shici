@@ -21,6 +21,13 @@ export function setCourseWeek(gid, { data, dueAt, published } = {}) {
   META.set(n, { dueAt: dueAt ? new Date(dueAt).toISOString() : null, published: published !== false });
 }
 export const weekMeta = (gid) => META.get(Number(gid)) || { dueAt: null, published: true };
+// 주차 대표 이미지 정보 (이미지 자체는 DB week_covers에 있고 /api/covers/:gid로 내려준다)
+const COVERS = new Map();
+export function setCover(gid, c) {
+  if (c) COVERS.set(Number(gid), { url: `/api/covers/${Number(gid)}?v=${new Date(c.updatedAt).getTime()}`, source: c.source || '', sourceUrl: c.sourceUrl || '' });
+  else COVERS.delete(Number(gid));
+}
+export const coverOf = (gid) => COVERS.get(Number(gid)) || null;
 export const hasOverride = (gid) => OVERRIDE.has(Number(gid));
 // 편집할 수 있는 항목 (shortform.js의 주차 형식 그대로)
 export const EDITABLE = ['title', 'titleZh', 'goal', 'goals', 'focus', 'videos', 'keywords', 'patterns', 'plan', 'tasks', 'assess', 'caution'];
@@ -319,6 +326,7 @@ export function weekData(gid) {
       dueAt: meta.dueAt,
       published: meta.published,
       convo: CONVO.find((x) => x.week === local) || null,
+      cover: coverOf(n),
     };
   }
   // 여행 과정(travel.js)은 주차마다 단어·문형·예문 15개를 직접 갖는다.
@@ -345,7 +353,7 @@ export function weekData(gid) {
 // 과정의 주차 목록 (gid 포함)
 export function curriculumSummary(courseKey = DEFAULT_COURSE) {
   const c = pickCourse(courseKey);
-  return c.weeks.map((b) => ({ ...b, ...(c.format === 'class' ? OVERRIDE.get(c.offset + b.week) || {} : {}) })).map((w) => ({ ...(c.format === 'class' ? { dueAt: weekMeta(c.offset + w.week).dueAt, published: weekMeta(c.offset + w.week).published } : {}), gid: c.offset + w.week, week: w.week, hsk: w.hsk ?? null, stage: w.stage ?? null, format: c.format || 'words', title: w.title, titleZh: w.titleZh, goal: w.goal, sample: (w.words || []).slice(0, 3).map((x) => x[0]), mockName: w.mock ? (c.key === 'emcee' ? '멘트 퀴즈' : '모의고사') : null }));
+  return c.weeks.map((b) => ({ ...b, ...(c.format === 'class' ? OVERRIDE.get(c.offset + b.week) || {} : {}) })).map((w) => ({ ...(c.format === 'class' ? { dueAt: weekMeta(c.offset + w.week).dueAt, published: weekMeta(c.offset + w.week).published, cover: coverOf(c.offset + w.week), keywords: w.keywords || [], caption: w.patterns?.[0]?.[2] || '' } : {}), gid: c.offset + w.week, week: w.week, hsk: w.hsk ?? null, stage: w.stage ?? null, format: c.format || 'words', title: w.title, titleZh: w.titleZh, goal: w.goal, sample: (w.words || []).slice(0, 3).map((x) => x[0]), mockName: w.mock ? (c.key === 'emcee' ? '멘트 퀴즈' : '모의고사') : null }));
 }
 
 // 주차 번호(gid)를 과정 안의 주차 번호로
