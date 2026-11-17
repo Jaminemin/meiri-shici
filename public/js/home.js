@@ -178,7 +178,9 @@ export async function renderHome(app, ctx = {}) {
         ? `<div class="stat"><div class="label">과제 제출</div><div class="value">${s.tasksDone}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`
         : `<div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`}
     </div>
-    ${cls ? `<div class="card course-banner"><div><div class="ai-label">지금 듣는 과정</div><h3 style="margin:4px 0 2px">🎬 ${esc(d.course.name)}</h3><div class="zh muted">${esc(d.course.nameZh || '')}</div></div><a class="btn" href="#/course">과정 소개·평가 보기 →</a></div>` : ''}
+    ${cls && d.dueSoon?.length ? `<div class="notice info due-alert">📅 마감이 다가오는 과제: ${d.dueSoon.map((x) => `<a href="#/week/${x.gid}/task">${x.week}주차 ${esc(x.title)}</a> <small>(${new Date(x.dueAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })})</small>`).join(' · ')}</div>` : ''}
+    ${cls ? `<div class="quick-links"><a class="card quick" href="#/talk"><span>🤖</span><b>AI 회화</b><small class="muted">주차별 상황 역할극</small></a><a class="card quick" href="#/project"><span>👥</span><b>팀 프로젝트</b><small class="muted">개인 대본 · 팀 영상</small></a><a class="card quick" href="#/grades"><span>📊</span><b>내 성적</b><small class="muted">평가 결과 · 의견</small></a></div>` : ''}
+    ${cls ? `<div class="card course-banner"><div><div class="ai-label">지금 듣는 과정</div><h3 style="margin:4px 0 2px">🎬 ${esc(d.course.name)}${d.level ? ` <span class="badge accent">${esc(d.level)}</span>` : ''}</h3><div class="zh muted">${esc(d.course.nameZh || '')}</div></div><a class="btn" href="#/course">과정 소개·평가 보기 →</a></div>` : ''}
     <div class="home-lower"${cls ? ' hidden' : ''}>
       <div class="home-track">
         <div class="section-title">듣기/쓰기/말하기 수업 복습하기</div>

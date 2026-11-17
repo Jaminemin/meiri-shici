@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { config } from './lib/config.js';
 import { notifySignup, mailReady } from './lib/mail.js';
+import { registerLms, loadCourseWeeks, getLevel, markSubmitted, weekGradeFor } from './lms.js';
 import { HttpError, sendJson, redirect, readJsonBody, nowIso, clampStr } from './lib/util.js';
 import { readSession, sessionCookie, clearCookie, tempCookie, parseCookies } from './lib/session.js';
 import { authUrl, exchangeCode, fetchUserInfo } from './lib/google.js';
@@ -119,7 +120,7 @@ function withLocalWeek(rows) {
 
 async function weekVideos(gid) {
   if (!dbReady()) return [];
-  return db()`SELECT id, url, title, creator, note FROM week_videos WHERE week = ${gid} ORDER BY id`;
+  return db()`SELECT id, url, title, creator, note, transcript, permission FROM week_videos WHERE week = ${gid} ORDER BY id`;
 }
 
 // ---------------- 라우터 ----------------
@@ -212,7 +213,9 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
   if (!c.ready) return sendJson(res, 200, { notReady: true, course: courseMeta(c), courses: courseList() });
   const rows = await db()`SELECT * FROM progress WHERE user_id = ${u.id}`;
   const byWeek = Object.fromEntries(rows.map((r) => [r.week, r]));
-  const weeks = curriculumSummary(c.key).map((w) => ({ ...w, ...weekState(byWeek[w.gid], w.gid) }));
+  const weeks = curriculumSummary(c.key)
+    .filter((w) => w.published !== false || u.role === 'admin')
+    .map((w) => ({ ...w, ...weekState(byWeek[w.gid], w.gid) }));
   const done = weeks.filter((w) => w.done).length;
   const current = weeks.find((w) => !w.done) || weeks[weeks.length - 1];
   const s = await streakOf(u.id);
@@ -241,6 +244,9 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
       ...s,
     },
     current: { gid: current.gid, week: current.week, title: current.title },
+    level: await getLevel(u.id),
+    // 과제 알림: 마감이 안 지났고 아직 안 낸 주차 (가까운 순)
+    dueSoon: weeks.filter((w) => w.dueAt && !w.writing && new Date(w.dueAt) > new Date()).sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt)).slice(0, 3).map((w) => ({ gid: w.gid, week: w.week, title: w.title, dueAt: w.dueAt })),
     todayWord: today.words.length ? today.words[dayIdx % today.words.length] : null,
     recentWritings: withLocalWeek(writings),
   });
@@ -249,9 +255,11 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
 route('GET', '/api/weeks/:n', async (req, res, { p }) => {
   const u = await requireUser(req);
   const n = weekNo(p.n);
+  const wd = weekData(n);
+  if (wd.published === false && u.role !== 'admin') throw new HttpError(403, '아직 공개되지 않은 주차입니다.', 'not_published');
   const [row] = await db()`SELECT * FROM progress WHERE user_id = ${u.id} AND week = ${n}`;
   const writings = await db()`SELECT id, content, feedback, score, created_at FROM writings WHERE user_id = ${u.id} AND week = ${n} ORDER BY created_at DESC LIMIT 10`;
-  sendJson(res, 200, { week: weekData(n), state: weekState(row, n), writings: withLocalWeek(writings), total: courseOf(n).weeks.length, passQuiz: PASS_QUIZ, videos: isClassWeek(n) ? await weekVideos(n) : [] });
+  sendJson(res, 200, { week: weekData(n), state: weekState(row, n), writings: withLocalWeek(writings), total: courseOf(n).weeks.length, passQuiz: PASS_QUIZ, videos: isClassWeek(n) ? await weekVideos(n) : [], grade: isClassWeek(n) ? await weekGradeFor(u.id, n) : null, level: await getLevel(u.id) });
 });
 
 // 출석체크: 하루에 한 번, 활동 기록에 '출석'으로 남긴다 (달력과 연속 학습일에 반영)
@@ -300,13 +308,14 @@ route('POST', '/api/weeks/:n/writing', async (req, res, { p, body }) => {
   const week = weekData(n);
   let fb;
   try {
-    fb = await correctWriting(week, text);
+    fb = await correctWriting(week, text, await getLevel(u.id));
   } catch (e) {
     throw e;
   }
   const score = Math.max(0, Math.min(100, Math.round(Number(fb.score) || 0)));
   const [w] = await db()`INSERT INTO writings (user_id, week, content, feedback, score) VALUES (${u.id}, ${n}, ${text}, ${db().json(fb)}, ${score}) RETURNING id, content, feedback, score, created_at`;
   const r = await touchProgress(u.id, n, () => db()`UPDATE progress SET writing_done = true WHERE user_id = ${u.id} AND week = ${n}`);
+  await markSubmitted(u.id, n);
   await log(u.id, '작문 제출', `${n}주차 작문 (AI 점수 ${score})`);
   sendJson(res, 200, { writing: w, ...r, quota });
 });
@@ -495,6 +504,8 @@ function serveStatic(req, res, pathname) {
   return true;
 }
 
+registerLms({ route, requireUser, requireAdmin, weekNo });
+
 const server = http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -525,10 +536,11 @@ const server = http.createServer(async (req, res) => {
 
 server.requestTimeout = 120_000;
 initDb()
+  .then(() => loadCourseWeeks())
   .catch((e) => console.error('[DB] 연결 실패:', e.message))
   .finally(() => {
     server.listen(config.port, () => {
-      console.log(`每日十五词 서버 시작: ${config.baseUrl} (포트 ${config.port})`);
+      console.log(`숏폼으로 배우는 현대중국어 서버 시작: ${config.baseUrl} (포트 ${config.port})`);
       console.log(`  가입 알림 메일: ${mailReady() ? `켜짐 → ${config.notifyTo.join(', ')}` : '꺼짐 (SMTP_HOST·SMTP_USER·SMTP_PASS·SIGNUP_NOTIFY_TO 설정 필요)'}`);
       console.log(`  구글 로그인: ${config.googleReady ? '설정됨' : '미설정'} · DB: ${dbReady() ? '연결됨' : '미연결'} · AI: ${config.aiReady ? '설정됨' : '미설정'} · 관리자: ${config.adminEmails.join(', ') || '(없음)'}`);
     });

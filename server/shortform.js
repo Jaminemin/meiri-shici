@@ -301,3 +301,42 @@ export const SHORTFORM_WEEKS = [
     assess: '초급: 정확한 기본 표현·발음·전달력 / 중급: 표현의 다양성·논리성·자연스러운 구어체',
   },
 ];
+
+// ---------------- 평가 (교수자가 점수를 확정한다. AI 점수는 참고용으로 따로 저장) ----------------
+// 항목: [키, 이름, 배점]
+export const ASSESS = {
+  components: [
+    ['participation', '출석 및 수업 참여', 10],
+    ['weekly', '주차별 학습 및 과제', 20],
+    ['midterm', '중간 종합평가', 25],
+    ['project', '숏폼 제작 프로젝트', 30],
+    ['final', '최종 발표 및 종합평가', 15],
+  ],
+  weekly: [['task', '과제 수행', 4], ['accuracy', '언어 정확성', 3], ['expression', '표현 활용', 3]],
+  midterm: { week: 8, items: [['listening', '영상 청취 및 이해', 30], ['vocab', '어휘·문형', 20], ['translation', '한중 번역', 20], ['speaking', '말하기 및 역할극', 30]] },
+  final: { week: 15, items: [['accuracy', '표현의 정확성·다양성', 5], ['delivery', '발음·전달력', 5], ['structure', '구성·논리성', 5]] },
+  projectIndividual: [['script', '중국어 대본 정확성', 8], ['vocab', '어휘 및 문형 활용', 4], ['contribution', '역할 수행 및 기여도', 3]],
+  projectTeam: [['plan', '콘텐츠 기획 및 구성', 5], ['video', '영상 및 자막 완성도', 5], ['delivery', '중국어 발음 및 전달력', 5]],
+};
+export const TEAM_ROLES = [['기획', '주제 선정, 스토리 구성'], ['대본', '중국어 문장 통합 및 수정'], ['촬영', '출연, 촬영, 음성 녹음'], ['편집', '영상 편집, 자막, 최종본']];
+export const LEVELS = ['초급', '중급'];
+
+// 숏폼 제작 프로젝트(30점): 개인 15 + 팀 15. 과정 소개 화면에 그대로 보인다.
+SHORTFORM_INFO.rubricTitle = '숏폼 제작 프로젝트 (30점) — 개인 대본 + 팀 영상';
+SHORTFORM_INFO.rubric = [...ASSESS.projectIndividual.map(([, n, v]) => [`개인 · ${n}`, v]), ...ASSESS.projectTeam.map(([, n, v]) => [`팀 · ${n}`, v])];
+SHORTFORM_INFO.rubricNote = '팀 점수는 팀원 공통으로, 개인 점수는 학생별로 따로 매깁니다. 학생은 각자 중국어 대본을 쓰고 교수자 승인을 받은 뒤 3~4명씩 팀을 이뤄 영상을 만듭니다.';
+
+// ---------------- AI 회화 상황 (주차별) ----------------
+export const CONVO = [
+  { week: 1, role: '중국인 대학생', situation: '처음 만나 자기소개하기', opener: '你好！我是北京大学的学生，我叫小林。你叫什么名字？' },
+  { week: 2, role: '중국인 대학생', situation: '서로의 하루 일과 이야기하기', opener: '你好！你平时每天几点起床？一天都做什么？' },
+  { week: 3, role: '중국 음식점 직원', situation: '음식점에서 음식 주문하기', opener: '欢迎光临！请问几位？想吃点儿什么？' },
+  { week: 4, role: '온라인 쇼핑 판매자', situation: '상품의 가격과 품질 문의하기', opener: '亲，您好！请问有什么可以帮您的吗？' },
+  { week: 5, role: '중국 현지인', situation: '길을 묻고 안내받기', opener: '你好，你是不是迷路了？需要帮忙吗？' },
+  { week: 6, role: '길거리 인터뷰를 하는 중국 대학생', situation: '즉흥 인터뷰에 대답하기', opener: '你好！我们在做街头采访，可以问你几个问题吗？' },
+  { week: 7, role: '친한 친구', situation: '고민을 털어놓고 위로받기', opener: '你今天看起来有点儿不开心，怎么了？' },
+  { week: 9, role: '중국 직장 동료', situation: '업무 요청과 일정 조율하기', opener: '早上好！下午的会议资料准备好了吗？' },
+  { week: 10, role: '유행어를 즐겨 쓰는 중국 대학생', situation: '인터넷 유행어 뜻 묻고 이야기하기', opener: '最近大家都说"躺平"，你知道这是什么意思吗？' },
+  { week: 11, role: '중국 대학생', situation: '한중 청년문화와 소비 습관 비교하기', opener: '你们韩国的年轻人周末一般喜欢做什么？' },
+  { week: 12, role: '토론 상대', situation: '사회 이슈에 대해 의견 주고받기', opener: '你觉得短视频对年轻人的影响是好的还是坏的？为什么？' },
+];

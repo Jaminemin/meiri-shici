@@ -7,12 +7,16 @@ const ST = { approved: ['승인', 'accent'], pending: ['승인 대기', 'warn'],
 const badge = (s) => `<span class="badge ${ST[s]?.[1] || ''}">${ST[s]?.[0] || esc(s)}</span>`;
 const avatar = (u) => `<span class="avatar">${u.picture ? `<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">` : esc((u.name || '?').slice(0, 1))}</span>`;
 
-function adminTabs(active) {
+export function adminTabs(active) {
   return `<div class="tabs">${[
     ['', '대시보드'],
     ['users', '회원 관리'],
-    ['writings', '작문·첨삭'],
+    ['grading', '과제 평가'],
+    ['gradebook', '성적부'],
+    ['teams', '팀 프로젝트'],
+    ['content', '주차 콘텐츠'],
     ['videos', '주차 영상'],
+    ['writings', '작문·첨삭'],
   ]
     .map(([k, l]) => `<button onclick="location.hash='#/admin${k ? '/' + k : ''}'" class="${active === k ? 'on' : ''}">${l}</button>`)
     .join('')}</div>`;

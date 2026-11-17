@@ -6,6 +6,8 @@ import { renderCommonApps } from './common.js';
 import { renderHome, renderCourse, renderMyWritings, renderTrack } from './home.js';
 import { renderWeek } from './week.js';
 import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings, renderAdminVideos } from './admin.js';
+import { renderGrades, renderProject, renderTalk, renderTalkSession } from './lms.js';
+import { renderAdminGrading, renderAdminGrade, renderAdminGradebook, renderAdminTeams, renderAdminContent } from './adminlms.js';
 
 const app = document.getElementById('app');
 
@@ -20,6 +22,9 @@ function navLinks(active) {
   const links = [
     ['home', '🧑‍🎓 내 학습'],
     ['course', '📖 15주 과정'],
+    ['talk', '🤖 AI 회화'],
+    ['project', '👥 팀 프로젝트'],
+    ['grades', '📊 내 성적'],
     ['writings', '✏️ 내 작문<small class="nav-sub">AI 첨삭 작문 연습</small>'],
   ];
   if (u.role === 'admin') links.push(['admin', '관리자']);
@@ -111,6 +116,10 @@ async function route() {
     if (parts[0] === 'course') return renderCourse(app, ctx);
     if (parts[0] === 'track') return renderTrack(app, parts[1]);
     if (parts[0] === 'writings') return renderMyWritings(app, ctx);
+    if (parts[0] === 'grades') return renderGrades(app);
+    if (parts[0] === 'project') return renderProject(app);
+    if (parts[0] === 'talk' && parts[1]) return renderTalkSession(app, Number(parts[1]));
+    if (parts[0] === 'talk') return renderTalk(app);
     if (parts[0] === 'week' && parts[1]) return renderWeek(app, { ...ctx, week: Number(parts[1]), tab: parts[2] || 'words' });
     if (parts[0] === 'admin') {
       if (u.role !== 'admin') return (location.hash = '#/home');
@@ -118,6 +127,11 @@ async function route() {
       if (parts[1] === 'users') return renderAdminUsers(app, ctx);
       if (parts[1] === 'writings') return renderAdminWritings(app, ctx);
       if (parts[1] === 'videos') return renderAdminVideos(app, ctx);
+      if (parts[1] === 'grading' && parts[2] && parts[3]) return renderAdminGrade(app, { ...ctx, week: Number(parts[2]), uid: Number(parts[3]) });
+      if (parts[1] === 'grading') return renderAdminGrading(app, { ...ctx, week: parts[2] ? Number(parts[2]) : null });
+      if (parts[1] === 'gradebook') return renderAdminGradebook(app, ctx);
+      if (parts[1] === 'teams') return renderAdminTeams(app, ctx);
+      if (parts[1] === 'content') return renderAdminContent(app, { ...ctx, week: parts[2] ? Number(parts[2]) : null });
       return renderAdmin(app, ctx);
     }
     app.innerHTML = '<div class="page"><div class="empty">없는 화면입니다. <a href="#/home">처음으로</a></div></div>';
