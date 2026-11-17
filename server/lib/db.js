@@ -88,6 +88,18 @@ async function migrate() {
       at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
   await sql`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL)`;
+  // 주차별 도우인 영상 링크 (영상 파일은 저장하지 않고 원본 링크만 둔다)
+  await sql`
+    CREATE TABLE IF NOT EXISTS week_videos (
+      id SERIAL PRIMARY KEY,
+      week INT NOT NULL,
+      url TEXT NOT NULL,
+      title TEXT NOT NULL DEFAULT '',
+      creator TEXT NOT NULL DEFAULT '',
+      note TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`CREATE INDEX IF NOT EXISTS week_videos_week_idx ON week_videos (week, id)`;
   await sql`CREATE INDEX IF NOT EXISTS activity_at_idx ON activity (at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS activity_user_idx ON activity (user_id, at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS writings_user_idx ON writings (user_id, created_at DESC)`;

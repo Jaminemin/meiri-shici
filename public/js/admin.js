@@ -12,6 +12,7 @@ function adminTabs(active) {
     ['', '대시보드'],
     ['users', '회원 관리'],
     ['writings', '작문·첨삭'],
+    ['videos', '주차 영상'],
   ]
     .map(([k, l]) => `<button onclick="location.hash='#/admin${k ? '/' + k : ''}'" class="${active === k ? 'on' : ''}">${l}</button>`)
     .join('')}</div>`;
@@ -201,4 +202,58 @@ export async function renderAdminWritings(app) {
   app.innerHTML = `<div class="page"><div class="page-head"><div><h1>작문·첨삭 모아 보기</h1><p>회원들이 제출한 작문과 AI 첨삭 결과(최근 100건)입니다.</p></div></div>
     ${adminTabs('writings')}
     ${d.writings.map((w) => `<div><a href="#/admin/users/${w.user_id}" class="muted" style="font-size:13px">${esc(w.name)} (${esc(w.email)}) →</a>${feedbackHtml(w)}</div>`).join('') || '<div class="empty">아직 작문이 없습니다.</div>'}</div>`;
+}
+
+// 주차별 도우인 영상 링크 관리 (영상 파일은 올리지 않고 원본 링크만 넣는다)
+export async function renderAdminVideos(app) {
+  app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
+  const d = await get('/api/admin/videos');
+  const pick = Number(sessionStorage.getItem('ms_vweek')) || d.weeks[0].gid;
+  const byWeek = (gid) => d.videos.filter((v) => v.week === gid);
+  app.innerHTML = `<div class="page">
+    <div class="page-head"><div><h1>관리자</h1><p>주차마다 학생들이 볼 도우인 영상 링크를 넣습니다.</p></div></div>
+    ${adminTabs('videos')}
+    <div class="notice info">영상 파일은 앱에 올리지 않고 도우인 원본 링크만 연결합니다. 제작자와 사용 허가 여부를 메모에 남겨 두세요.</div>
+    <div class="card">
+      <div class="card-head"><h3>영상 링크 넣기</h3></div>
+      <div class="vform">
+        <label>주차<select id="v-week">${d.weeks.map((w) => `<option value="${w.gid}" ${w.gid === pick ? 'selected' : ''}>${w.week}주차 · ${esc(w.title)}</option>`).join('')}</select></label>
+        <label>도우인 링크<input id="v-url" type="url" placeholder="https://www.douyin.com/video/…" required></label>
+        <label>영상 제목<input id="v-title" maxlength="200" placeholder="예: 西安美食探店"></label>
+        <label>제작자<input id="v-creator" maxlength="100" placeholder="예: 계정 이름"></label>
+        <label class="wide">메모 (선택)<input id="v-note" maxlength="300" placeholder="예: 0:15~0:45 구간 사용 · 제작자 허락 받음"></label>
+        <div class="wide row" style="justify-content:flex-end"><button class="btn primary" id="v-add">＋ 링크 넣기</button></div>
+      </div>
+    </div>
+    ${d.weeks
+      .map((w) => {
+        const vs = byWeek(w.gid);
+        return `<div class="card vweek"><div class="card-head"><h3>${w.week}주차 · ${esc(w.title)} <small class="zh muted">${esc(w.titleZh)}</small></h3><span class="badge ${vs.length ? 'accent' : ''}">${vs.length}개</span></div>
+        ${vs.length ? vs.map((v) => `<div class="row between vrow"><a href="${esc(v.url)}" target="_blank" rel="noopener noreferrer"><b>${esc(v.title || v.url)}</b></a><span class="muted" style="font-size:13px">${esc([v.creator, v.note].filter(Boolean).join(' · '))}</span><button class="btn small danger" data-vdel="${v.id}">삭제</button></div>`).join('') : '<p class="muted" style="margin:0;font-size:14px">아직 넣은 영상이 없습니다.</p>'}</div>`;
+      })
+      .join('')}
+  </div>`;
+  app.querySelector('#v-week').onchange = (e) => sessionStorage.setItem('ms_vweek', e.target.value);
+  app.querySelector('#v-add').onclick = async () => {
+    const body = { week: Number(app.querySelector('#v-week').value), url: app.querySelector('#v-url').value.trim(), title: app.querySelector('#v-title').value.trim(), creator: app.querySelector('#v-creator').value.trim(), note: app.querySelector('#v-note').value.trim() };
+    if (!body.url) return toast('도우인 링크를 넣어 주세요.', 'bad');
+    try {
+      sessionStorage.setItem('ms_vweek', String(body.week));
+      await post('/api/admin/videos', body);
+      toast('영상 링크를 넣었습니다.');
+      renderAdminVideos(app);
+    } catch (e) {
+      toast(e.message, 'bad');
+    }
+  };
+  app.querySelectorAll('[data-vdel]').forEach((b) => (b.onclick = async () => {
+    if (!(await confirmBox('이 영상 링크를 지울까요?'))) return;
+    try {
+      await del(`/api/admin/videos/${b.dataset.vdel}`);
+      toast('지웠습니다.');
+      renderAdminVideos(app);
+    } catch (e) {
+      toast(e.message, 'bad');
+    }
+  }));
 }

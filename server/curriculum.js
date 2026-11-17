@@ -7,6 +7,9 @@ import { TRAVEL_DRAFT_WEEKS } from './travel.js';
 import { HSK_DRAFT_WEEKS } from './hsk.js';
 import { EMCEE_DRAFT_WEEKS } from './emcee.js';
 import { FORM_PY, FORM_KR, WORD_KR, EXAMPLE_KR } from './formpy.js';
+import { SHORTFORM_WEEKS, SHORTFORM_INFO } from './shortform.js';
+
+export { SHORTFORM_INFO };
 
 export const WORDS_PER_WEEK = 15;
 
@@ -255,11 +258,18 @@ export const WEEKS = [
 
 // 과정 목록. 주차 번호(gid)는 과정마다 다르게 준다: 여행 1~15, HSK 101~115, 사회자 201~215.
 // 기존 진도와 저장 기록은 여행 과정(1~15) 번호를 그대로 쓴다.
+// 숏폼(301~315)은 수업 안내형(format: 'class') 과정이다. 지금 화면에는 숏폼 과정만 보이고,
+// 이전 세 과정은 hidden으로 두어 지난 기록(진도·작문)만 그대로 남긴다.
 export const COURSES = {
-  travel: { key: 'travel', name: '여행 중국어', level: '초급', offset: 0, ready: true, weeks: TRAVEL_DRAFT_WEEKS },
-  hsk: { key: 'hsk', name: 'HSK 중국어', level: '중급', offset: 100, ready: true, weeks: HSK_DRAFT_WEEKS },
-  emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: true, weeks: EMCEE_DRAFT_WEEKS },
+  shortform: { key: 'shortform', name: SHORTFORM_INFO.name, nameZh: SHORTFORM_INFO.nameZh, level: '초급~중급', offset: 300, ready: true, format: 'class', weeks: SHORTFORM_WEEKS },
+  travel: { key: 'travel', name: '여행 중국어', level: '초급', offset: 0, ready: true, hidden: true, weeks: TRAVEL_DRAFT_WEEKS },
+  hsk: { key: 'hsk', name: 'HSK 중국어', level: '중급', offset: 100, ready: true, hidden: true, weeks: HSK_DRAFT_WEEKS },
+  emcee: { key: 'emcee', name: '사회자 중국어', level: '고급', offset: 200, ready: true, hidden: true, weeks: EMCEE_DRAFT_WEEKS },
 };
+export const DEFAULT_COURSE = 'shortform';
+export const pickCourse = (key) => COURSES[key] || COURSES[DEFAULT_COURSE];
+export const visibleCourses = () => Object.values(COURSES).filter((c) => !c.hidden);
+export const isClassWeek = (gid) => courseOf(gid)?.format === 'class';
 
 export function courseOf(gid) {
   const n = Number(gid);
@@ -272,6 +282,21 @@ export function weekData(gid) {
   if (!course) return null;
   const local = n - course.offset;
   const w = course.weeks.find((x) => x.week === local);
+  if (course.format === 'class') {
+    return {
+      ...w,
+      gid: n,
+      week: local,
+      course: course.key,
+      format: 'class',
+      hsk: null,
+      words: [],
+      examples: [],
+      patterns: (w.patterns || []).map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || '', formPy: '', formKr: '' })),
+      // AI 첨삭에 넘길 이번 주 과제 (초급·중급)
+      mission: `초급 과제: ${w.tasks.basic} / 중급 과제: ${w.tasks.inter}`,
+    };
+  }
   // 여행 과정(travel.js)은 주차마다 단어·문형·예문 15개를 직접 갖는다.
   // 그 밖의 과정은 기존 방식(기본 + 추가 목록)으로 합친다.
   const draft = Array.isArray(w.patterns);
@@ -294,9 +319,9 @@ export function weekData(gid) {
 }
 
 // 과정의 주차 목록 (gid 포함)
-export function curriculumSummary(courseKey = 'travel') {
-  const c = COURSES[courseKey] || COURSES.travel;
-  return c.weeks.map((w) => ({ gid: c.offset + w.week, week: w.week, hsk: w.hsk, title: w.title, titleZh: w.titleZh, goal: w.goal, sample: w.words.slice(0, 3).map((x) => x[0]), mockName: w.mock ? (c.key === 'emcee' ? '멘트 퀴즈' : '모의고사') : null }));
+export function curriculumSummary(courseKey = DEFAULT_COURSE) {
+  const c = pickCourse(courseKey);
+  return c.weeks.map((w) => ({ gid: c.offset + w.week, week: w.week, hsk: w.hsk ?? null, stage: w.stage ?? null, format: c.format || 'words', title: w.title, titleZh: w.titleZh, goal: w.goal, sample: (w.words || []).slice(0, 3).map((x) => x[0]), mockName: w.mock ? (c.key === 'emcee' ? '멘트 퀴즈' : '모의고사') : null }));
 }
 
 // 주차 번호(gid)를 과정 안의 주차 번호로

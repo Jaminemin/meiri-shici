@@ -11,11 +11,11 @@ import { readSession, sessionCookie, clearCookie, tempCookie, parseCookies } fro
 import { authUrl, exchangeCode, fetchUserInfo } from './lib/google.js';
 import { initDb, db, dbReady, log, getSetting, setSetting } from './lib/db.js';
 import { checkQuota, correctWriting, checkSentence } from './lib/ai.js';
-import { WEEKS, COURSES, courseOf, localWeek, weekData, curriculumSummary, WORDS_PER_WEEK } from './curriculum.js';
+import { WEEKS, COURSES, courseOf, localWeek, weekData, curriculumSummary, WORDS_PER_WEEK, DEFAULT_COURSE, pickCourse, visibleCourses, isClassWeek, SHORTFORM_INFO } from './curriculum.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC = path.join(here, '..', 'public');
-const TOTAL_WEEKS = COURSES.travel.weeks.length;
+const TOTAL_WEEKS = COURSES[DEFAULT_COURSE].weeks.length;
 const PASS_QUIZ = 8; // 10문제 중 8개 이상이면 통과
 
 // ---------------- 사용자 ----------------
@@ -49,17 +49,23 @@ async function requireAdmin(req) {
 }
 
 // ---------------- 진도 계산 ----------------
-function weekState(p) {
+function weekState(p, gid) {
   const words = Math.min(WORDS_PER_WEEK, p?.words_learned || 0);
   const quiz = p?.quiz_best ?? null;
   const writing = Boolean(p?.writing_done);
+  // 수업 안내형(숏폼) 주차: ① 수업 확인(영상·지도안을 보고 '확인' 누름) ② 과제 제출 — 둘 다 하면 완료
+  if (isClassWeek(gid ?? p?.week)) {
+    const checked = words > 0;
+    const steps = (checked ? 1 : 0) + (writing ? 1 : 0);
+    return { words, quiz, quizCount: p?.quiz_count || 0, writing, checked, steps, totalSteps: 2, done: steps === 2, completedAt: p?.completed_at || null };
+  }
   const steps = (words >= WORDS_PER_WEEK ? 1 : 0) + (quiz !== null && quiz >= PASS_QUIZ ? 1 : 0) + (writing ? 1 : 0);
-  return { words, quiz, quizCount: p?.quiz_count || 0, writing, steps, done: steps === 3, completedAt: p?.completed_at || null };
+  return { words, quiz, quizCount: p?.quiz_count || 0, writing, steps, totalSteps: 3, done: steps === 3, completedAt: p?.completed_at || null };
 }
 
 async function refreshCompletion(userId, week) {
   const [p] = await db()`SELECT * FROM progress WHERE user_id = ${userId} AND week = ${week}`;
-  const st = weekState(p);
+  const st = weekState(p, week);
   if (st.done && !p.completed_at) {
     await db()`UPDATE progress SET completed_at = now() WHERE user_id = ${userId} AND week = ${week}`;
     await log(userId, '주차 완료', `${week}주차를 모두 마쳤습니다.`);
@@ -74,7 +80,7 @@ async function touchProgress(userId, week, patch) {
   await db()`UPDATE progress SET updated_at = now() WHERE user_id = ${userId} AND week = ${week}`;
   const justDone = await refreshCompletion(userId, week);
   const [p] = await db()`SELECT * FROM progress WHERE user_id = ${userId} AND week = ${week}`;
-  return { state: weekState(p), justDone };
+  return { state: weekState(p, week), justDone };
 }
 
 function kstDate(d) {
@@ -103,11 +109,17 @@ function weekNo(v) {
 }
 // 과정 정보 (준비 중인 과정은 ready=false)
 function courseMeta(c) {
-  return { key: c.key, name: c.name, level: c.level, ready: c.ready, weeks: c.weeks.length };
+  return { key: c.key, name: c.name, nameZh: c.nameZh || '', level: c.level, ready: c.ready, format: c.format || 'words', weeks: c.weeks.length };
 }
+const courseList = () => visibleCourses().map(courseMeta);
 // 작문·기록에 저장된 주차 번호를 화면용(과정 안의 주차 번호)으로 바꿔 준다
 function withLocalWeek(rows) {
   return rows.map((r) => ({ ...r, course: courseOf(r.week)?.key || 'travel', gid: r.week, week: localWeek(r.week) }));
+}
+
+async function weekVideos(gid) {
+  if (!dbReady()) return [];
+  return db()`SELECT id, url, title, creator, note FROM week_videos WHERE week = ${gid} ORDER BY id`;
 }
 
 // ---------------- 라우터 ----------------
@@ -181,25 +193,26 @@ route('GET', '/api/me', async (req, res) => {
 });
 
 route('GET', '/api/curriculum', (req, res, { url }) => {
-  const c = COURSES[url.searchParams.get('course')] || COURSES.travel;
-  sendJson(res, 200, { course: courseMeta(c), weeks: curriculumSummary(c.key), courses: Object.values(COURSES).map(courseMeta) });
+  const c = pickCourse(url.searchParams.get('course'));
+  sendJson(res, 200, { course: courseMeta(c), weeks: curriculumSummary(c.key), courses: courseList() });
 });
 // 로그인 없이 보는 맛보기: 1주차의 단어·문형·예문만 제공(저장·퀴즈·작문은 로그인 후)
-route('GET', '/api/preview', (req, res, { url }) => {
-  const c = COURSES[url.searchParams.get('course')] || COURSES.travel;
-  if (!c.ready) return sendJson(res, 200, { notReady: true, course: courseMeta(c), courses: Object.values(COURSES).map(courseMeta) });
+route('GET', '/api/preview', async (req, res, { url }) => {
+  const c = pickCourse(url.searchParams.get('course'));
+  if (!c.ready) return sendJson(res, 200, { notReady: true, course: courseMeta(c), courses: courseList() });
   const w = weekData(c.offset + 1);
+  if (c.format === 'class') return sendJson(res, 200, { course: courseMeta(c), week: w, info: SHORTFORM_INFO, videos: await weekVideos(w.gid), total: c.weeks.length });
   sendJson(res, 200, { course: courseMeta(c), week: { week: w.week, hsk: w.hsk, title: w.title, titleZh: w.titleZh, goal: w.goal, words: w.words, patterns: w.patterns, examples: w.examples, mission: w.mission }, total: c.weeks.length });
 });
 
 // ---------------- 학습자 ----------------
 route('GET', '/api/dashboard', async (req, res, { url }) => {
   const u = await requireUser(req);
-  const c = COURSES[url.searchParams.get('course')] || COURSES.travel;
-  if (!c.ready) return sendJson(res, 200, { notReady: true, course: courseMeta(c), courses: Object.values(COURSES).map(courseMeta) });
+  const c = pickCourse(url.searchParams.get('course'));
+  if (!c.ready) return sendJson(res, 200, { notReady: true, course: courseMeta(c), courses: courseList() });
   const rows = await db()`SELECT * FROM progress WHERE user_id = ${u.id}`;
   const byWeek = Object.fromEntries(rows.map((r) => [r.week, r]));
-  const weeks = curriculumSummary(c.key).map((w) => ({ ...w, ...weekState(byWeek[w.gid]) }));
+  const weeks = curriculumSummary(c.key).map((w) => ({ ...w, ...weekState(byWeek[w.gid], w.gid) }));
   const done = weeks.filter((w) => w.done).length;
   const current = weeks.find((w) => !w.done) || weeks[weeks.length - 1];
   const s = await streakOf(u.id);
@@ -211,7 +224,7 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
     user: publicUser(u),
     weeks,
     course: courseMeta(c),
-    courses: Object.values(COURSES).map(courseMeta),
+    courses: courseList(),
     summary: {
       doneWeeks: done,
       attendedToday: Boolean(att),
@@ -223,10 +236,12 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
         return q.length ? Math.round((q.reduce((a, w) => a + w.quiz, 0) / q.length) * 10) / 10 : null;
       })(),
       writings: (await db()`SELECT count(*)::int AS n FROM writings WHERE user_id = ${u.id}`)[0].n,
+      checkedWeeks: weeks.filter((w) => w.checked).length,
+      tasksDone: weeks.filter((w) => w.writing).length,
       ...s,
     },
     current: { gid: current.gid, week: current.week, title: current.title },
-    todayWord: today.words[dayIdx % today.words.length],
+    todayWord: today.words.length ? today.words[dayIdx % today.words.length] : null,
     recentWritings: withLocalWeek(writings),
   });
 });
@@ -236,7 +251,7 @@ route('GET', '/api/weeks/:n', async (req, res, { p }) => {
   const n = weekNo(p.n);
   const [row] = await db()`SELECT * FROM progress WHERE user_id = ${u.id} AND week = ${n}`;
   const writings = await db()`SELECT id, content, feedback, score, created_at FROM writings WHERE user_id = ${u.id} AND week = ${n} ORDER BY created_at DESC LIMIT 10`;
-  sendJson(res, 200, { week: weekData(n), state: weekState(row), writings: withLocalWeek(writings), total: courseOf(n).weeks.length, passQuiz: PASS_QUIZ });
+  sendJson(res, 200, { week: weekData(n), state: weekState(row, n), writings: withLocalWeek(writings), total: courseOf(n).weeks.length, passQuiz: PASS_QUIZ, videos: isClassWeek(n) ? await weekVideos(n) : [] });
 });
 
 // 출석체크: 하루에 한 번, 활동 기록에 '출석'으로 남긴다 (달력과 연속 학습일에 반영)
@@ -254,6 +269,16 @@ route('POST', '/api/weeks/:n/words', async (req, res, { p, body }) => {
   const count = Math.max(0, Math.min(WORDS_PER_WEEK, Math.round(Number(body.count) || 0)));
   const r = await touchProgress(u.id, n, () => db()`UPDATE progress SET words_learned = GREATEST(words_learned, ${count}) WHERE user_id = ${u.id} AND week = ${n}`);
   await log(u.id, '단어 학습', `${n}주차 단어 ${count}/${WORDS_PER_WEEK}`);
+  sendJson(res, 200, r);
+});
+
+// 숏폼 주차: 수업 안내(목표·영상·지도안)를 보고 '확인'을 누르면 기록한다
+route('POST', '/api/weeks/:n/check', async (req, res, { p }) => {
+  const u = await requireUser(req);
+  const n = weekNo(p.n);
+  if (!isClassWeek(n)) throw new HttpError(400, '이 주차는 수업 확인 단계가 없습니다.', 'not_class');
+  const r = await touchProgress(u.id, n, () => db()`UPDATE progress SET words_learned = GREATEST(words_learned, 1) WHERE user_id = ${u.id} AND week = ${n}`);
+  await log(u.id, '수업 확인', `${localWeek(n)}주차 수업 안내 확인`);
   sendJson(res, 200, r);
 });
 
@@ -303,6 +328,43 @@ route('GET', '/api/writings', async (req, res) => {
 });
 
 // ---------------- 관리자 ----------------
+// 과정 소개 (로그인 없이도 볼 수 있음)
+route('GET', '/api/course-info', async (req, res) => {
+  sendJson(res, 200, { info: SHORTFORM_INFO, course: courseMeta(COURSES[DEFAULT_COURSE]), weeks: curriculumSummary(DEFAULT_COURSE) });
+});
+
+// ---------------- 관리자: 주차별 도우인 영상 링크 ----------------
+route('GET', '/api/admin/videos', async (req, res) => {
+  await requireAdmin(req);
+  const rows = await db()`SELECT id, week, url, title, creator, note, created_at FROM week_videos ORDER BY week, id`;
+  sendJson(res, 200, { videos: rows, weeks: curriculumSummary(DEFAULT_COURSE) });
+});
+
+route('POST', '/api/admin/videos', async (req, res, { body }) => {
+  const admin = await requireAdmin(req);
+  const n = weekNo(body.week);
+  if (!isClassWeek(n)) throw new HttpError(400, '숏폼 과정 주차에만 영상을 넣을 수 있습니다.', 'not_class');
+  const url = clampStr(body.url, 1000).trim();
+  let ok = false;
+  try {
+    ok = ['http:', 'https:'].includes(new URL(url).protocol);
+  } catch {
+    ok = false;
+  }
+  if (!ok) throw new HttpError(400, '영상 주소는 http:// 또는 https://로 시작해야 합니다.', 'bad_url');
+  const [v] = await db()`INSERT INTO week_videos (week, url, title, creator, note) VALUES (${n}, ${url}, ${clampStr(body.title, 200).trim()}, ${clampStr(body.creator, 100).trim()}, ${clampStr(body.note, 300).trim()}) RETURNING id, week, url, title, creator, note, created_at`;
+  await log(admin.id, '영상 추가', `${localWeek(n)}주차 · ${v.title || v.url}`.slice(0, 200));
+  sendJson(res, 200, { video: v });
+});
+
+route('DELETE', '/api/admin/videos/:id', async (req, res, { p }) => {
+  const admin = await requireAdmin(req);
+  const [v] = await db()`DELETE FROM week_videos WHERE id = ${Number(p.id)} RETURNING week, title, url`;
+  if (!v) throw new HttpError(404, '영상을 찾지 못했습니다.', 'no_video');
+  await log(admin.id, '영상 삭제', `${localWeek(v.week)}주차 · ${v.title || v.url}`.slice(0, 200));
+  sendJson(res, 200, { ok: true });
+});
+
 route('GET', '/api/admin/overview', async (req, res) => {
   await requireAdmin(req);
   const counts = await db()`SELECT status, count(*)::int AS n FROM users GROUP BY status`;
@@ -310,7 +372,7 @@ route('GET', '/api/admin/overview', async (req, res) => {
   const pending = await db()`SELECT id, email, name, picture, created_at FROM users WHERE status = 'pending' ORDER BY created_at ASC LIMIT 50`;
   const weekDone = await db()`SELECT week, count(*)::int AS n FROM progress WHERE completed_at IS NOT NULL GROUP BY week ORDER BY week`;
   const weekStarted = await db()`SELECT week, count(*)::int AS n FROM progress GROUP BY week ORDER BY week`;
-  const daily = await db()`SELECT to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS d, count(DISTINCT user_id)::int AS n FROM activity WHERE at > now() - interval '14 days' AND action IN ('단어 학습', '퀴즈', '작문 제출') GROUP BY d ORDER BY d`;
+  const daily = await db()`SELECT to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS d, count(DISTINCT user_id)::int AS n FROM activity WHERE at > now() - interval '14 days' AND action IN ('단어 학습', '퀴즈', '작문 제출', '수업 확인') GROUP BY d ORDER BY d`;
   const signups = await db()`SELECT to_char(created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') AS d, count(*)::int AS n FROM users WHERE created_at > now() - interval '14 days' GROUP BY d ORDER BY d`;
   const recent = await db()`SELECT a.action, a.detail, a.at, u.name, u.email FROM activity a LEFT JOIN users u ON u.id = a.user_id ORDER BY a.at DESC LIMIT 30`;
   const wr = await db()`SELECT count(*)::int AS n, round(avg(score))::int AS avg FROM writings`;
@@ -318,7 +380,7 @@ route('GET', '/api/admin/overview', async (req, res) => {
   sendJson(res, 200, {
     counts: { total: Object.values(c).reduce((a, b) => a + b, 0), approved: c.approved || 0, pending: c.pending || 0, rejected: c.rejected || 0, suspended: c.suspended || 0, active7: active7[0].n },
     pending,
-    weekDone: Array.from({ length: TOTAL_WEEKS }, (_, i) => ({ week: i + 1, done: weekDone.find((x) => x.week === i + 1)?.n || 0, started: weekStarted.find((x) => x.week === i + 1)?.n || 0 })),
+    weekDone: Array.from({ length: TOTAL_WEEKS }, (_, i) => { const g = COURSES[DEFAULT_COURSE].offset + i + 1; return { week: i + 1, done: weekDone.find((x) => x.week === g)?.n || 0, started: weekStarted.find((x) => x.week === g)?.n || 0 }; }),
     daily,
     signups,
     writings: wr[0],
@@ -349,7 +411,7 @@ route('GET', '/api/admin/users/:id', async (req, res, { p }) => {
   const byWeek = Object.fromEntries(rows.map((r) => [r.week, r]));
   const writings = await db()`SELECT id, week, content, feedback, score, created_at FROM writings WHERE user_id = ${u.id} ORDER BY created_at DESC LIMIT 50`;
   const activity = await db()`SELECT action, detail, at FROM activity WHERE user_id = ${u.id} ORDER BY at DESC LIMIT 50`;
-  sendJson(res, 200, { user: { ...publicUser(u), memo: u.memo, lastLoginAt: u.last_login_at }, weeks: curriculumSummary().map((w) => ({ ...w, ...weekState(byWeek[w.gid]) })), writings: withLocalWeek(writings), activity, streak: await streakOf(u.id) });
+  sendJson(res, 200, { user: { ...publicUser(u), memo: u.memo, lastLoginAt: u.last_login_at }, weeks: curriculumSummary().map((w) => ({ ...w, ...weekState(byWeek[w.gid], w.gid) })), writings: withLocalWeek(writings), activity, streak: await streakOf(u.id) });
 });
 
 route('POST', '/api/admin/users/:id', async (req, res, { p, body }) => {

@@ -1,10 +1,11 @@
 // 로그인 없이 보는 1주차 맛보기 (단어·문형·예문만, 저장·퀴즈·작문 없음)
 import { state, esc, get, speak } from './core.js';
 import { pandaCell } from './panda-art.js';
+import { classWeekBody, stageLabel } from './classweek.js';
 
 const NUM_COLORS = ['#2d5bd1', '#1c9a8f', '#7a4fd0', '#e0821a', '#3c9a4e', '#d4456f'];
 
-export async function renderPreview(app, course = 'travel') {
+export async function renderPreview(app, course = '') {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   let d;
   try {
@@ -18,6 +19,7 @@ export async function renderPreview(app, course = 'travel') {
     return;
   }
   const W = d.week;
+  if (W.format === 'class') return previewClass(app, d);
   const loginCta = state.me?.googleReady
     ? `<a class="btn primary big" href="/auth/google">구글 계정으로 시작하기</a>`
     : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
@@ -96,4 +98,24 @@ export async function renderPreview(app, course = 'travel') {
   </div>`;
 
   app.querySelectorAll('[data-say]').forEach((b) => b.addEventListener('click', () => speak(b.dataset.say)));
+}
+
+// 숏폼 과정 맛보기: 1주차 수업 안내를 그대로 보여 준다 (수업 확인·과제 제출은 로그인 후)
+function previewClass(app, d) {
+  const W = d.week;
+  const loginCta = state.me?.googleReady
+    ? `<a class="btn primary big" href="/auth/google">구글 계정으로 시작하기</a>`
+    : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
+  app.innerHTML = `<div class="page cw-page">
+    <div class="page-head">
+      <div><a href="#/" class="muted" style="text-decoration:none">← 처음으로</a>
+        <div class="cw-stage">${esc(stageLabel(W))}</div>
+        <h1 style="margin-top:4px">맛보기 · ${W.week}주차 ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
+        <p>🎯 ${esc(W.goal)}</p></div>
+      <div class="cta">${loginCta}</div>
+    </div>
+    <div class="notice info">로그인 없이 1주차 수업 안내를 둘러보는 중입니다. 수업 확인, 과제 제출과 AI 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
+    ${classWeekBody(W, d.videos)}
+    <div class="card" style="text-align:center;margin-top:16px"><h3 style="margin:0 0 6px">15주 전체 과정이 궁금하다면</h3><p class="muted" style="margin:0 0 12px">로그인하면 15주 과정 소개, 주차별 수업, 과제 제출과 AI 첨삭을 이용할 수 있어요.</p>${loginCta}</div>
+  </div>`;
 }
