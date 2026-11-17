@@ -28,7 +28,7 @@ export async function renderLanding(app, { browse = false } = {}) {
       <span class="gate-photo-tag">抖音 · 15주 과정</span>
       <h1 class="gate-photo-title">숏폼 중국어</h1>
       <p class="gate-photo-zh zh">短视频与现代汉语学习</p>
-      <p class="gate-full-hook">도우인(抖音) 숏폼으로 15주 동안 실제 중국어를 듣고, 분석하고, 번역하고, 직접 만들어 봐요!</p>
+      <p class="gate-full-hook">중국어로 크리에이터가 돼 봐요!<br>브이로그부터 맛집 라이브 방송까지!</p>
       <div class="gate-full-cards">
         ${LEVELS.map((c) => `<a class="gate-glass" href="${levelHref(c)}"><span class="level-icon">${c.icon}</span><span><small>${esc(c.level)}</small><b>${esc(c.name)}</b><em>${c.key === 'common' ? '필수 앱 보기 →' : signedIn ? '학습하기 →' : '1주차 맛보기 →'}</em></span></a>`).join('')}
       </div>
