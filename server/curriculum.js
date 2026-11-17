@@ -1,6 +1,7 @@
 // 每日十五词 15주 학습 내용 (HSK 1~3급 수준). 한 주에 단어 10개 + 핵심 문형 + 예문 + 작문 미션.
 // 단어 형식: [한자, 병음, 뜻]
 
+import { SHORTFORM_STUDY } from './shortform-study.js';
 import { EXTRA_EXAMPLES } from './examples15.js';
 import { EXTRA_WORDS, PATTERNS } from './vocab15.js';
 import { TRAVEL_DRAFT_WEEKS } from './travel.js';
@@ -318,8 +319,9 @@ export function weekData(gid) {
       course: course.key,
       format: 'class',
       hsk: null,
-      words: [],
-      examples: [],
+      // 주차별 단어 15개 · 문장 8개 (퀴즈는 단어로 만든다)
+      words: (SHORTFORM_STUDY[local]?.words || []).map(([hanzi, pinyin, meaning], i) => ({ id: `${n}-${i + 1}`, hanzi, pinyin, meaning, hanKr: '' })),
+      examples: (SHORTFORM_STUDY[local]?.sentences || []).map(([zh, py, ko]) => ({ zh, py, ko, krRead: '' })),
       patterns: (w.patterns || []).map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || '', formPy: '', formKr: '' })),
       // 이번 주 숏폼 크리에이터 표현: [표현, 병음, 뜻, 쓰는 상황]
       creator: (w.creator || []).map(([zh, py, ko, use]) => ({ zh, py: py || '', ko: ko || '', use: use || '' })),

@@ -2,7 +2,8 @@
 const WORDS_PER_WEEK = 15;
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
 import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.js';
-import { renderClassWeek } from './classweek.js';
+import { classWeekBody, bindClassWeek, taskBlock, gradeHtml, stageLabel } from './classweek.js';
+import { startTalkFromWeek } from './lms.js';
 import { feedbackHtml } from './fb.js';
 import { arrangeItems, sentenceChoiceItems } from './practice.js';
 import { sceneCard } from './scenes.js';
@@ -36,13 +37,22 @@ function saveKnown(week, set) {
 export async function renderWeek(app, ctx) {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   let d = await get(`/api/weeks/${ctx.week}`);
-  if (d.week.format === 'class') return renderClassWeek(app, ctx, d);
   const W = d.week;
-  let tab = ctx.tab;
+  // 숏폼(수업형) 주차: 수업 안내 · 단어 · 문장 · 퀴즈 · 과제
+  const CLS = W.format === 'class';
+  const OLD_TAB = { task: 'writing', videos: 'class', creator: 'class', pattern: 'pattern' };
+  let tab = CLS ? OLD_TAB[ctx.tab] || ctx.tab || 'class' : ctx.tab || 'words';
+  if (CLS && !['class', 'words', 'pattern', 'quiz', 'writing'].includes(tab)) tab = 'class';
   let known = loadKnown(W.gid, d.state.words);
   if (known.has('all')) known = new Set(W.words.map((w) => w.id));
 
-  const tabs = [
+  const tabs = CLS ? [
+    ['class', '수업 안내'],
+    ['words', '① 단어'],
+    ['pattern', '② 문장'],
+    ['quiz', '③ 퀴즈'],
+    ['writing', '④ 과제'],
+  ] : [
     ['words', '① 단어'],
     ['pattern', '② 문형·예문'],
     ['listen', '③ 듣기'],
@@ -56,7 +66,7 @@ export async function renderWeek(app, ctx) {
   function head() {
     const st = d.state;
     return `<div class="page-head week-head">
-      <div><a href="#/course" class="muted" style="text-decoration:none">← 15주 과정</a>
+      <div><a href="#/course" class="muted" style="text-decoration:none">← 15주 과정</a>${CLS ? `<div class="cw-stage">${esc(stageLabel(W))}</div>` : ''}
         <h1 style="margin-top:6px">${W.week}주차 · ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
         <p>🎯 ${esc(W.goal)}</p></div>
       <div style="text-align:right">${st.done ? '<div class="seal">完成</div>' : `<div class="muted" style="font-size:13px">진행 ${st.steps}/3</div><div class="steps3" style="width:140px"><span class="${st.words >= W.words.length ? 'on' : ''}"></span><span class="${st.quiz !== null && st.quiz >= d.passQuiz ? 'on' : ''}"></span><span class="${st.writing ? 'on' : ''}"></span></div>`}</div>
@@ -71,6 +81,7 @@ export async function renderWeek(app, ctx) {
 
   function draw() {
     let body = '';
+    if (tab === 'class') body = classTab();
     if (tab === 'words') body = wordsTab();
     if (tab === 'pattern') body = patternTab();
     if (tab === 'listen') body = listenTab();
@@ -78,9 +89,14 @@ export async function renderWeek(app, ctx) {
     if (tab === 'quiz') body = quizIntro();
     if (tab === 'writing') body = writingTab();
     if (tab === 'mock') body = mockIntro();
-    app.innerHTML = `<div class="page">${head()}<div id="body">${body}</div>${nav()}</div>`;
+    app.innerHTML = `<div class="page${CLS ? ' cw-page' : ''}">${head()}<div id="body">${body}</div>${nav()}</div>`;
     app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), history.replaceState(null, '', `#/week/${W.gid}/${tab}`), draw())));
     bind();
+  }
+
+  // ---------- 수업 안내 (숏폼) ----------
+  function classTab() {
+    return `${classWeekBody(W, d.videos, d.level)}<div class="row end" style="margin-top:14px"><button class="btn primary" data-go="words">다음: ① 단어 →</button></div>`;
   }
 
   // ---------- 단어 ----------
@@ -102,7 +118,7 @@ export async function renderWeek(app, ctx) {
           </div></div>`,
         )
         .join('')}</div>
-      <div class="row end" style="margin-top:14px"><button class="btn primary" data-go="pattern">다음: 문형·예문 →</button></div>`;
+      <div class="row end" style="margin-top:14px"><button class="btn primary" data-go="pattern">${CLS ? '다음: ② 문장 →' : '다음: 문형·예문 →'}</button></div>`;
   }
 
   let sendTimer = null;
@@ -121,7 +137,7 @@ export async function renderWeek(app, ctx) {
 
   // ---------- 문형 ----------
   function patternTab() {
-    return `${W.course === 'travel' ? sceneCard(W.week, W.scene) : ''}<div class="section-label">핵심 문형 <small>${W.patterns.length}개 · 설명과 예시를 함께 봅니다</small></div>
+    const patterns = W.patterns.length ? `<div class="section-label">핵심 문형 <small>${W.patterns.length}개 · 설명과 예시를 함께 봅니다</small></div>
       <div class="pattern-grid">${W.patterns
         .map(
           (p, i) => `<div class="pattern" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
@@ -131,11 +147,13 @@ export async function renderWeek(app, ctx) {
             <div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(p.zh)}</div>${p.py ? `<div class="py">${esc(p.py)}</div>` : ''}<div class="muted">${esc(p.ko)}</div></div><button class="speak" data-speak="${esc(p.zh)}" aria-label="예문 듣기">🔊</button></div></div>` : ''}
         </div>`,
         )
-        .join('')}</div>
-      <div class="card"><h3>예문</h3>${W.examples
-        .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh"><span aria-hidden="true">🐼</span> ${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
-        .join('')}</div>
-      <div class="row end"><button class="btn primary" data-go="listen">다음: 듣기 연습 →</button></div>`;
+        .join('')}</div>` : '';
+    const sentences = `<div class="card"><h3>${CLS ? `이번 주 문장 <small class="muted" style="font-weight:400">${W.examples.length}개 · 🔊를 눌러 듣고 따라 읽어 보세요</small>` : '예문'}</h3>${W.examples
+        .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
+        .join('')}</div>`;
+    const next = `<div class="row end"><button class="btn primary" data-go="${CLS ? 'quiz' : 'listen'}">${CLS ? '다음: ③ 퀴즈 →' : '다음: 듣기 연습 →'}</button></div>`;
+    if (CLS) return `${sentences}${patterns}${next}`;
+    return `${W.course === 'travel' ? sceneCard(W.week, W.scene) : ''}${patterns}${sentences}${next}`;
   }
 
   // ---------- 듣기·말하기: 단어 카드를 문장 순서대로 배열 (저장 없음) ----------
@@ -239,7 +257,7 @@ export async function renderWeek(app, ctx) {
   let quiz = null;
   function makeQuiz() {
     const words = W.words;
-    return shuffle(words).map((w, i) => {
+    return shuffle(words).slice(0, 10).map((w, i) => {
       const type = i % 3;
       const others = shuffle(words.filter((x) => x.id !== w.id)).slice(0, 3);
       const opts = shuffle([w, ...others]);
@@ -327,7 +345,7 @@ export async function renderWeek(app, ctx) {
       <div class="fb-score">${score}<small class="muted" style="font-size:20px"> / 10</small></div>
       <h2 style="margin-top:10px">${score === 10 ? '모두 맞췄습니다! 축하드려요~ 🎉' : pass ? '통과! 🎉' : '아쉽지만 복습 후 다시 시도해보세요~'}</h2>
       <p class="muted">${pass ? '작문 미션으로 배운 단어를 직접 써 보세요.' : `${d.passQuiz}개 이상 맞히면 통과예요. 단어를 한 번 더 보고 다시 도전해 보세요.`}</p>
-      <div class="row" style="justify-content:center"><button class="btn" id="q-retry">다시 풀기</button><button class="btn primary" data-go="${pass ? 'writing' : 'words'}">${pass ? '작문 미션 →' : '단어 다시 보기'}</button></div></div>`;
+      <div class="row" style="justify-content:center"><button class="btn" id="q-retry">다시 풀기</button><button class="btn primary" data-go="${pass ? 'writing' : 'words'}">${pass ? (CLS ? '④ 과제 →' : '작문 미션 →') : '단어 다시 보기'}</button></div></div>`;
     body.querySelector('#q-retry').onclick = () => {
       quiz = { list: makeQuiz(), i: 0, score: 0 };
       quizStep();
@@ -371,8 +389,8 @@ export async function renderWeek(app, ctx) {
     </div>`;
   }
   function writingTab() {
-    return `${W.course === 'emcee' ? sentenceCheckCard() : ''}${fillSection()}<div class="card">
-      <div class="ai-label">작문 미션</div><h2 style="margin-top:4px">${esc(W.mission)}</h2>
+    return `${CLS ? `<div class="section-title">수준별 과제</div>${taskBlock(W, d.level)}${gradeHtml(d.grade)}` : ''}${W.course === 'emcee' ? sentenceCheckCard() : ''}${CLS ? '' : fillSection()}<div class="card" id="cw-task">
+      <div class="ai-label">${CLS ? '과제 제출' : '작문 미션'}</div>${CLS ? '<p class="muted" style="font-size:14px;margin-top:4px">초급 또는 중급 과제 중 하나를 골라 중국어로 써서 내세요. AI 선생님이 수준에 맞게 첨삭하고, 교수님께도 제출돼요.</p>' : `<h2 style="margin-top:4px">${esc(W.mission)}</h2>`}
       <p class="muted" style="font-size:14px">배운 단어와 예문을 눌러서 문장을 만들어 보세요. 직접 입력해도 돼요.</p>
       <div class="ai-label" style="margin-top:6px">단어</div>
       <div class="tags" style="margin-bottom:10px">${W.words.map((w) => `<button class="tag zh" style="border:0;cursor:pointer;font-size:15px" data-ins="${esc(w.hanzi)}" title="${esc(w.pinyin)} · ${esc(w.meaning)}">${esc(w.hanzi)}</button>`).join('')}</div>
@@ -482,6 +500,13 @@ export async function renderWeek(app, ctx) {
 
   function bind() {
     const $ = (s) => app.querySelector(s);
+    if (CLS && tab === 'class') {
+      bindClassWeek(app);
+      app.querySelector('#cw-talk')?.addEventListener('click', async (e) => {
+        e.target.disabled = true;
+        try { await startTalkFromWeek(W.week); } catch (err) { e.target.disabled = false; toast(err.message, 'bad'); }
+      });
+    }
     app.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
     // 단어
     app.querySelectorAll('[data-know]').forEach(

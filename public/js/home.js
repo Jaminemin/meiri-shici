@@ -18,8 +18,8 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
       (w) => `<${link ? `a href="#/week/${w.gid}${tab ? `/${tab}` : ''}"` : 'div'} class="week-card ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}">
       ${w.format === 'class' ? coverHtml(w, { small: true }) : ''}<div class="wn">${w.week}주차</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div>
       ${w.format === 'class'
-        ? `<div class="steps3 steps2" title="수업 확인 · 과제 제출"><span class="${w.checked ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
-      <div class="muted" style="font-size:12px;margin-top:6px">수업 확인 ${w.checked ? '✓' : '–'} · 과제 ${w.writing ? '✓' : '–'}</div>`
+        ? `<div class="steps3" title="단어 · 퀴즈 · 과제"><span class="${w.words >= 15 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/15 · 퀴즈 ${w.quiz ?? '–'}/10 · 과제 ${w.writing ? '✓' : '–'}</div>`
         : `<div class="steps3" title="단어 · 퀴즈 · 작문"><span class="${w.words >= 15 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
       <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/15 · 퀴즈 ${w.quiz ?? '–'}/10 · 작문 ${w.writing ? '✓' : '–'}</div>`}
     </${link ? 'a' : 'div'}>`,
@@ -31,10 +31,11 @@ export function weekList(weeks, currentGid) {
   const group = (w) => {
     const open = w.gid === currentGid;
     const subs = w.format === 'class' ? [
-      ['class', '수업 안내', w.checked ? '확인' : '–'],
-      ['videos', '크리에이터 표현', ''],
-      ['pattern', '핵심 표현', ''],
-      ['task', '과제 제출', w.writing ? '제출' : '–'],
+      ['class', '수업 안내', ''],
+      ['words', '단어', `${w.words}/15`],
+      ['pattern', '문장', ''],
+      ['quiz', '퀴즈', `${w.quiz ?? '–'}/10`],
+      ['writing', '과제', w.writing ? '제출' : '–'],
     ] : [
       ['words', '단어', `${w.words}/15`],
       ['pattern', '문형·예문', ''],
@@ -172,14 +173,14 @@ export async function renderHome(app, ctx = {}) {
     <div class="stats">
       <div class="stat"><div class="label">완료한 주차</div><div class="value">${s.doneWeeks}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.doneWeeks / s.totalWeeks) * 100}%"></div></div></div>
       ${cls
-        ? `<div class="stat"><div class="label">수업 확인</div><div class="value">${s.checkedWeeks}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.checkedWeeks / s.totalWeeks) * 100}%"></div></div></div>`
+        ? `<div class="stat"><div class="label">외운 단어 · 퀴즈 평균</div><div class="value">${s.wordsLearned}<small class="muted" style="font-size:16px"> / ${s.totalWords}</small></div><div class="sub">퀴즈 평균 ${s.quizAvg ?? '–'}점</div></div>`
         : `<div class="stat"><div class="label">외운 단어</div><div class="value">${s.wordsLearned}<small class="muted" style="font-size:16px"> / ${s.totalWords}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.wordsLearned / s.totalWords) * 100}%"></div></div></div>`}
       <div class="stat"><div class="label">연속 학습일</div><div class="value">${s.streak}<small class="muted" style="font-size:16px">일</small></div><div class="sub">지금까지 ${s.totalDays}일 공부</div></div>
       ${cls
         ? `<div class="stat"><div class="label">과제 제출</div><div class="value">${s.tasksDone}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`
         : `<div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`}
     </div>
-    ${cls && d.dueSoon?.length ? `<div class="notice info due-alert">📅 마감이 다가오는 과제: ${d.dueSoon.map((x) => `<a href="#/week/${x.gid}/task">${x.week}주차 ${esc(x.title)}</a> <small>(${new Date(x.dueAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })})</small>`).join(' · ')}</div>` : ''}
+    ${cls && d.dueSoon?.length ? `<div class="notice info due-alert">📅 마감이 다가오는 과제: ${d.dueSoon.map((x) => `<a href="#/week/${x.gid}/writing">${x.week}주차 ${esc(x.title)}</a> <small>(${new Date(x.dueAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })})</small>`).join(' · ')}</div>` : ''}
     ${cls ? `<div class="quick-links"><a class="card quick" href="#/talk"><span>🤖</span><b>AI 회화</b><small class="muted">주차별 상황 역할극</small></a><a class="card quick" href="#/project"><span>👥</span><b>팀 프로젝트</b><small class="muted">개인 대본 · 팀 영상</small></a><a class="card quick" href="#/grades"><span>📊</span><b>내 성적</b><small class="muted">평가 결과 · 의견</small></a></div>` : ''}
     ${cls ? `<div class="card course-banner"><div><div class="ai-label">지금 듣는 과정</div><h3 style="margin:4px 0 2px">🎬 ${esc(d.course.name)}${d.level ? ` <span class="badge accent">${esc(d.level)}</span>` : ''}</h3><div class="zh muted">${esc(d.course.nameZh || '')}</div></div><a class="btn" href="#/course">과정 소개·평가 보기 →</a></div>` : ''}
     <div class="home-lower"${cls ? ' hidden' : ''}>
