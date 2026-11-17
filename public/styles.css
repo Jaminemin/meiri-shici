@@ -912,3 +912,14 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .word .top { flex-wrap: wrap; }
 .word .hz.long { white-space: normal; word-break: keep-all; }
 @media (max-width: 480px) { .tabs { gap: 0; } .tabs button { padding: 10px 6px; font-size: 13.5px; } }
+
+/* 학습 화면 전체 배경: 수업 장면 사진(투명도 50%) */
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: url('/img/study-bg.jpg') center / cover no-repeat; opacity: 0.5; }
+@media (max-width: 760px) { body::before { background-image: url('/img/study-bg-m.jpg'); } }
+/* 배경 사진 위에 바로 놓이는 글자(제목·탭·소제목)는 반투명 바탕을 깔아 읽기 쉽게 */
+.page > .page-head:not(.week-head) { background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 16px; padding: 14px 18px; }
+.page .tabs { background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 12px 12px 0 0; padding: 0 6px; }
+.page .section-title, .page .section-label { display: inline-block; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-radius: 10px; padding: 4px 12px; }
+/* 어두운 화면에서는 같은 50% 투명도로 두되 사진을 어둡게 해 눈부시지 않게 */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body::before { filter: brightness(0.4); } }
+:root[data-theme="dark"] body::before { filter: brightness(0.4); }
