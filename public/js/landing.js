@@ -1,5 +1,5 @@
 // 대문 페이지(처음 화면). 로그인한 사용자는 바로 대시보드로 보낸다.
-import { state, esc, get } from './core.js';
+import { state, esc } from './core.js';
 
 // 대문에서 고르는 과목 (준비 중인 과목은 ready=false)
 const LEVELS = [
@@ -16,38 +16,40 @@ export async function renderLanding(app, { browse = false } = {}) {
     location.hash = u.status !== 'approved' ? '#/pending' : '#/home';
     return;
   }
-  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const loginBtn = me.googleReady
-    ? `<a class="btn primary big" href="/auth/google"><svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#fff" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></svg> 구글 계정으로 로그인하기</a>`
-    : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
   const signedIn = Boolean(u);
   const levelHref = (c) => (c.key === 'common' ? '#/common' : signedIn ? `#/home/${c.key}` : `#/preview/${c.key}`);
-  const panel = signedIn
-    ? `<a class="btn primary big" href="#/home">내 학습으로 돌아가기</a>`
-    : `${loginBtn}<a class="btn big" href="#/preview">로그인 없이 1주차 둘러보기</a>`;
-
   app.innerHTML = `
-  <div class="page">
-    <section class="gate-hero${reduced ? ' reduced' : ''}">
-      <p class="gate-sub hook">도우인(抖音) 숏폼으로 15주 동안 실제 중국어를 듣고, 분석하고, 번역하고, 직접 만들어 봐요!</p>
-      <div class="gate-photo" role="img" aria-label="중국 거리에서 짐벌로 브이로그를 찍는 모습">
-        <div class="gate-photo-txt">
-          <span class="gate-photo-tag">抖音 · 15주 과정</span>
-          <h1 class="gate-photo-title">숏폼 중국어</h1>
-          <p class="gate-photo-zh zh">短视频与现代汉语学习</p>
-        </div>
-        <a class="gate-photo-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a>
+  <section class="gate-full">
+    <div class="gate-slides" aria-hidden="true">
+      <div class="gate-slide on" style="background-image:url('/img/hero-1.jpg');background-position:42% 30%"></div>
+      <div class="gate-slide" style="background-image:url('/img/hero-2.jpg');background-position:46% 25%"></div>
+    </div>
+    <div class="gate-full-in">
+      <span class="gate-photo-tag">抖音 · 15주 과정</span>
+      <h1 class="gate-photo-title">숏폼 중국어</h1>
+      <p class="gate-photo-zh zh">短视频与现代汉语学习</p>
+      <p class="gate-full-hook">도우인(抖音) 숏폼으로 15주 동안 실제 중국어를 듣고, 분석하고, 번역하고, 직접 만들어 봐요!</p>
+      <div class="gate-full-cards">
+        ${LEVELS.map((c) => `<a class="gate-glass" href="${levelHref(c)}"><span class="level-icon">${c.icon}</span><span><small>${esc(c.level)}</small><b>${esc(c.name)}</b><em>${c.key === 'common' ? '필수 앱 보기 →' : signedIn ? '학습하기 →' : '1주차 맛보기 →'}</em></span></a>`).join('')}
       </div>
-      <div class="level-pick">
-        ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="${levelHref(c)}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.key === 'common' ? '필수 앱 보기 →' : c.ready ? (signedIn ? '학습하기 →' : '1주차 맛보기 →') : '준비 중'}</span></a>`).join('')}
-      </div>
-      <div class="gate-panel">
-        <div class="cta">${panel}</div>
-        ${signedIn ? '' : '<p class="muted" style="margin:12px 0 0;font-size:13px">처음 가입하면 관리자가 승인한 뒤부터 학습할 수 있습니다.</p>'}
-      </div>
-    </section>
-
-  </div>`;
+      ${signedIn ? '<a class="btn primary" href="#/home" style="margin-top:14px">내 학습으로 돌아가기</a>' : '<p class="gate-full-note">처음 가입하면 관리자가 승인한 뒤부터 학습할 수 있습니다.</p>'}
+      <a class="gate-photo-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a>
+    </div>
+    <div class="gate-dots" aria-hidden="true"><i class="on"></i><i></i></div>
+  </section>`;
+  // 두 장의 배경을 번갈아 보여 준다 (움직임 줄이기 설정이면 멈춤)
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (!reduced) {
+    let i = 0;
+    const tick = () => {
+      const slides = app.querySelectorAll('.gate-slide');
+      if (!slides.length || !document.body.contains(slides[0])) return clearInterval(t);
+      i = (i + 1) % slides.length;
+      slides.forEach((el, k) => el.classList.toggle('on', k === i));
+      app.querySelectorAll('.gate-dots i').forEach((el, k) => el.classList.toggle('on', k === i));
+    };
+    const t = setInterval(tick, 6000);
+  }
 }
 
 export function renderPending(app) {

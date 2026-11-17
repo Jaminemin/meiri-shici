@@ -1,5 +1,5 @@
 // 화면 이동
-import { state, esc, get, post, fail, toast, speak } from './core.js';
+import { state, esc, get, post, fail, toast, speak, GOOGLE_G } from './core.js';
 import { renderLanding, renderPending } from './landing.js';
 import { renderPreview } from './preview.js';
 import { renderCommonApps } from './common.js';
@@ -49,7 +49,10 @@ function renderChrome(active) {
   const box = document.getElementById('user-area');
   const u = state.me?.user;
   if (!u) {
-    box.innerHTML = '';
+    // 로그인 전: 오른쪽 위에 구글 로그인 + 둘러보기
+    box.innerHTML = state.me?.googleReady
+      ? `<a class="btn primary small hdr-login" href="/auth/google">${GOOGLE_G}<span>구글 계정으로 로그인하기</span></a><a class="btn small hdr-browse" href="#/preview">로그인 없이 1주차 둘러보기</a>`
+      : `<span class="btn small hdr-login" aria-disabled="true" style="opacity:.6">${GOOGLE_G}<span>구글 로그인 준비 중</span></span><a class="btn small hdr-browse" href="#/preview">로그인 없이 1주차 둘러보기</a>`;
     return;
   }
   box.innerHTML = `<a class="home-btn" href="#/welcome" title="초급~고급 과목 선택 메인으로" aria-label="메인페이지로 돌아가기">${HOME_ICON}</a><span class="avatar">${u.picture ? `<img src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">` : esc((u.name || '?').slice(0, 1))}</span><span class="nm">${esc(u.name)}</span>${u.role === 'admin' ? '<span class="badge accent">관리자</span>' : ''}<button class="btn small" id="logout">로그아웃</button>`;

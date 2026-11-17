@@ -1,5 +1,5 @@
 // 로그인 없이 보는 1주차 맛보기 (단어·문형·예문만, 저장·퀴즈·작문 없음)
-import { state, esc, get, speak } from './core.js';
+import { state, esc, get, speak, GOOGLE_G } from './core.js';
 import { pandaCell } from './panda-art.js';
 import { classWeekBody, stageLabel, bindClassWeek } from './classweek.js';
 
@@ -21,7 +21,7 @@ export async function renderPreview(app, course = '') {
   const W = d.week;
   if (W.format === 'class') return previewClass(app, d);
   const loginCta = state.me?.googleReady
-    ? `<a class="btn primary big" href="/auth/google">구글 계정으로 시작하기</a>`
+    ? `<a class="btn primary big" href="/auth/google">${GOOGLE_G} 구글 계정으로 시작하기</a>`
     : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
 
   app.innerHTML = `
@@ -104,7 +104,7 @@ export async function renderPreview(app, course = '') {
 function previewClass(app, d) {
   const W = d.week;
   const loginCta = state.me?.googleReady
-    ? `<a class="btn primary big" href="/auth/google">구글 계정으로 시작하기</a>`
+    ? `<a class="btn primary big" href="/auth/google">${GOOGLE_G} 구글 계정으로 시작하기</a>`
     : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
   app.innerHTML = `<div class="page cw-page">
     <div class="page-head">
