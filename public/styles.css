@@ -981,3 +981,5 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .rep-err:last-child { border-bottom: 0; }
 .rep-table td { vertical-align: top; font-size: 14px; }
 @media (max-width: 760px) { .rep-grid { grid-template-columns: 1fr; } }
+/* 주차 학습 목표 안내 영상 */
+.cw-intro { display: block; width: 100%; max-width: 720px; aspect-ratio: 16 / 9; margin: 10px 0 12px; border-radius: 14px; background: #000; }

@@ -84,6 +84,7 @@ export function classWeekBody(W, videos, level = '') {
     <p class="cw-topic"><b>주제:</b> <span class="zh">${esc(W.titleZh)}</span></p>
     <div class="card">
       <div class="ai-label">학습 목표</div>
+      ${W.intro?.src ? `<video class="cw-intro" controls playsinline preload="metadata" poster="${esc(W.intro.poster || '')}" aria-label="${esc(W.intro.title || '학습 목표 안내 영상')}"><source src="${esc(W.intro.src)}" type="video/mp4"></video>` : ''}
       <ol class="cw-goals">${W.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol>
       <div class="muted" style="font-size:14px">핵심 언어 학습: <b style="color:var(--ink)">${esc(W.focus)}</b></div>
     </div>
