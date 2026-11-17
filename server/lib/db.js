@@ -203,6 +203,51 @@ async function migrate() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
   await sql`CREATE INDEX IF NOT EXISTS ai_sessions_user_idx ON ai_sessions (user_id, created_at DESC)`;
+  // AI 실습: 댓글창 시뮬레이터 글, 유행어 해독 기록, 내 단어장, 교수자용 AI 리포트
+  await sql`
+    CREATE TABLE IF NOT EXISTS comment_posts (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      week INT,
+      level TEXT NOT NULL DEFAULT '',
+      content TEXT NOT NULL,
+      reaction TEXT NOT NULL DEFAULT '',
+      comments JSONB NOT NULL DEFAULT '[]',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`CREATE INDEX IF NOT EXISTS comment_posts_user_idx ON comment_posts (user_id, created_at DESC)`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS decodes (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      text TEXT NOT NULL,
+      result JSONB NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`CREATE INDEX IF NOT EXISTS decodes_user_idx ON decodes (user_id, created_at DESC)`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS my_words (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      hanzi TEXT NOT NULL,
+      pinyin TEXT NOT NULL DEFAULT '',
+      meaning TEXT NOT NULL DEFAULT '',
+      note TEXT NOT NULL DEFAULT '',
+      source TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      UNIQUE (user_id, hanzi)
+    )`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS ai_reports (
+      id SERIAL PRIMARY KEY,
+      week INT,
+      scope TEXT NOT NULL DEFAULT '',
+      data JSONB NOT NULL,
+      stats JSONB NOT NULL DEFAULT '{}',
+      created_by INT REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
   await sql`CREATE INDEX IF NOT EXISTS activity_at_idx ON activity (at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS activity_user_idx ON activity (user_id, at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS writings_user_idx ON writings (user_id, created_at DESC)`;

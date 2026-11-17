@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { config } from './lib/config.js';
 import { notifySignup, mailReady } from './lib/mail.js';
 import { registerLms, loadCourseWeeks, getLevel, markSubmitted, weekGradeFor } from './lms.js';
+import { registerAiLab } from './ailab.js';
 import { HttpError, sendJson, redirect, readJsonBody, nowIso, clampStr } from './lib/util.js';
 import { readSession, sessionCookie, clearCookie, tempCookie, parseCookies } from './lib/session.js';
 import { authUrl, exchangeCode, fetchUserInfo } from './lib/google.js';
@@ -502,6 +503,7 @@ function serveStatic(req, res, pathname) {
 }
 
 registerLms({ route, requireUser, requireAdmin, weekNo });
+registerAiLab({ route, requireUser, requireAdmin });
 
 const server = http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
