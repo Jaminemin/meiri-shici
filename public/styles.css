@@ -659,7 +659,7 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 #back-fab:active { transform: scale(0.94); }
 @media (min-width: 1100px) { body:has(.wl-side) #back-fab { left: 266px; } }
 
-/* ---------- 숏폼으로 배우는 현대중국어 ---------- */
+/* ---------- 숏폼 중국어 ---------- */
 .brand-txt { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-ko { font-size: 15px; }
 .brand-zh { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
@@ -835,4 +835,21 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   .gate-phone-cap { font-size: 11px; }
   .c-cover-grid { grid-template-columns: 1fr; }
   .sf-bottom { bottom: 38px; }
+}
+
+/* 대문: 실제 거리 브이로그 사진 배경 */
+.gate-photo { position: relative; max-width: 800px; margin: 0 auto; aspect-ratio: 16 / 9; border-radius: 22px; overflow: hidden;
+  background: #1a1d27 url('/img/hero-vlog.jpg') right center / auto 100% no-repeat; box-shadow: 0 12px 32px rgba(0,0,0,.14); }
+.gate-photo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #1a1d27 0%, #1a1d27 38%, rgba(26,29,39,.55) 46%, rgba(26,29,39,0) 58%); }
+.gate-photo-txt { position: absolute; z-index: 1; left: 6%; top: 50%; transform: translateY(-50%); text-align: left; color: #fff; max-width: 40%; }
+.gate-photo-tag { display: inline-block; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.35); backdrop-filter: blur(4px); }
+.gate-photo-title { font-size: clamp(34px, 7vw, 64px); font-weight: 900; line-height: 1.05; margin: 12px 0 8px; color: #fff; letter-spacing: -0.02em; white-space: nowrap; text-shadow: 0 2px 12px rgba(0,0,0,.35); }
+.gate-photo-zh { font-size: clamp(14px, 2.4vw, 20px); margin: 0; color: rgba(255,255,255,.92); text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+.gate-photo-univ { position: absolute; z-index: 1; left: 6%; bottom: 6%; width: min(190px, 34%); line-height: 0; background: rgba(255,255,255,.92); border-radius: 12px; padding: 7px 12px; }
+.gate-photo-univ img { width: 100%; height: auto; display: block; }
+@media (max-width: 680px) {
+  .gate-photo { aspect-ratio: 4 / 5; border-radius: 18px; background-position: 62% 30%; background-size: cover; }
+  .gate-photo::after { background: linear-gradient(0deg, rgba(10,12,20,.78) 0%, rgba(10,12,20,.25) 50%, rgba(10,12,20,0) 70%); }
+  .gate-photo-txt { top: auto; bottom: 20%; transform: none; max-width: 88%; }
+  .gate-photo-univ { width: 150px; bottom: 5%; }
 }

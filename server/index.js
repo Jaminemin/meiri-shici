@@ -540,7 +540,7 @@ initDb()
   .catch((e) => console.error('[DB] 연결 실패:', e.message))
   .finally(() => {
     server.listen(config.port, () => {
-      console.log(`숏폼으로 배우는 현대중국어 서버 시작: ${config.baseUrl} (포트 ${config.port})`);
+      console.log(`숏폼 중국어 서버 시작: ${config.baseUrl} (포트 ${config.port})`);
       console.log(`  가입 알림 메일: ${mailReady() ? `켜짐 → ${config.notifyTo.join(', ')}` : '꺼짐 (SMTP_HOST·SMTP_USER·SMTP_PASS·SIGNUP_NOTIFY_TO 설정 필요)'}`);
       console.log(`  구글 로그인: ${config.googleReady ? '설정됨' : '미설정'} · DB: ${dbReady() ? '연결됨' : '미연결'} · AI: ${config.aiReady ? '설정됨' : '미설정'} · 관리자: ${config.adminEmails.join(', ') || '(없음)'}`);
     });
