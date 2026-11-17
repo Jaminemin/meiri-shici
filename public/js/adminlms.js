@@ -223,8 +223,9 @@ export async function renderAdminContent(app, ctx) {
         <label class="wide">한 줄 목표<input name="goal" value="${esc(c.goal)}" maxlength="300"></label>
         <label class="wide">학습 목표 (한 줄에 하나)<textarea name="goals" rows="3">${esc(lines(c.goals))}</textarea></label>
         <label class="wide">핵심 언어 학습<input name="focus" value="${esc(c.focus || '')}" maxlength="200"></label>
-        <label>영상 소재 (한 줄에 하나)<textarea name="videos" rows="3">${esc(lines(c.videos))}</textarea></label>
-        <label>도우인 검색어 (한 줄에 하나)<textarea name="keywords" rows="3" class="zh">${esc(lines(c.keywords))}</textarea></label>
+        <label>만들어 볼 숏폼 (한 줄에 하나)<textarea name="videos" rows="3">${esc(lines(c.videos))}</textarea></label>
+        <label>크리에이터 검색어 (한 줄에 하나)<textarea name="keywords" rows="3" class="zh">${esc(lines(c.keywords))}</textarea></label>
+        <label class="wide">크리에이터 표현 — 한 줄에 「표현 | 병음 | 뜻 | 쓰는 상황」<textarea name="creator" rows="6" class="zh">${esc((c.creator || []).map((p) => p.join(' | ')).join('\n'))}</textarea></label>
         <label class="wide">핵심 표현·문형 — 한 줄에 「문형 | 설명 | 예문 | 뜻 | 병음」<textarea name="patterns" rows="5" class="zh">${esc((c.patterns || []).map((p) => p.join(' | ')).join('\n'))}</textarea></label>
         <label class="wide">180분 수업 흐름 — 한 줄에 「시간 | 활동」<textarea name="plan" rows="7">${esc((c.plan || []).map((p) => p.join(' | ')).join('\n'))}</textarea></label>
         <label>초급 과제<textarea name="basic" rows="2">${esc(c.tasks?.basic || '')}</textarea></label>
@@ -236,11 +237,11 @@ export async function renderAdminContent(app, ctx) {
       </div>
       <div class="row" style="justify-content:space-between;margin-top:14px;gap:8px;flex-wrap:wrap"><button type="button" class="btn danger" id="c-reset" ${d.edited ? '' : 'disabled'}>기본 내용으로 되돌리기</button><button class="btn primary" type="submit">저장</button></div>
     </form>
-    <div class="card"><div class="card-head"><h3>이 주차 영상의 자막·사용 허가</h3><a href="#/admin/videos">영상 링크 넣기 →</a></div>
+    <div class="card"><div class="card-head"><h3>이 주차 참고 자료의 자막·사용 허가</h3><a href="#/admin/videos">참고 자료 링크 넣기 →</a></div>
       ${d.videos.length ? d.videos.map((v) => `<div class="c-video" data-vid="${v.id}"><b>${esc(v.title || v.url)}</b> <small class="muted">${esc(v.creator || '')}</small>
         <label class="vlabel">사용 허가 기록<input data-perm value="${esc(v.permission || '')}" placeholder="예: 제작자 허락 받음(2026-11-17 DM) / 원본 링크만 연결"></label>
         <label class="vlabel">자막 — 한 줄에 「중국어 | 병음 | 한국어」<textarea data-tr rows="5" class="zh">${esc(v.transcript || '')}</textarea></label>
-        <div class="row" style="justify-content:flex-end"><button class="btn small primary" data-vsave>자막 저장</button></div></div>`).join('') : '<p class="muted">아직 넣은 영상이 없습니다.</p>'}
+        <div class="row" style="justify-content:flex-end"><button class="btn small primary" data-vsave>자막 저장</button></div></div>`).join('') : '<p class="muted">아직 넣은 참고 자료가 없습니다. (선택 사항)</p>'}
     </div>
   </div>`;
   app.querySelector('#c-week').onchange = (e) => {
@@ -254,7 +255,7 @@ export async function renderAdminContent(app, ctx) {
   f.onsubmit = async (e) => {
     e.preventDefault();
     const due = val('dueAt');
-    const data = { title: val('title'), titleZh: val('titleZh'), goal: val('goal'), goals: split('goals'), focus: val('focus'), videos: split('videos'), keywords: split('keywords'), patterns: cols('patterns', 5), plan: cols('plan', 2), tasks: { basic: val('basic'), inter: val('inter') }, assess: val('assess'), caution: val('caution') };
+    const data = { title: val('title'), titleZh: val('titleZh'), goal: val('goal'), goals: split('goals'), focus: val('focus'), videos: split('videos'), keywords: split('keywords'), creator: cols('creator', 4), patterns: cols('patterns', 5), plan: cols('plan', 2), tasks: { basic: val('basic'), inter: val('inter') }, assess: val('assess'), caution: val('caution') };
     try {
       await put(`/api/admin/content/${gid}`, { data, dueAt: due ? new Date(`${due}:00+09:00`).toISOString() : null, published: f.elements.published.checked });
       toast('저장했습니다.');

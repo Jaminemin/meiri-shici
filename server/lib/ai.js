@@ -77,7 +77,7 @@ export function parseJsonLoose(text) {
 
 export async function correctWriting(week, text, level = '') {
   const who = week.format === 'class'
-    ? "'숏폼 중국어' 수업(도우인 영상 활용, 초급·중급 혼합반)의 한국인 학습자"
+    ? "'숏폼 중국어' 수업(중국 숏폼 크리에이터 표현 학습, 초급·중급 혼합반)의 한국인 학습자"
     : '한국인 초급 중국어 학습자(여행 중국어 초급 수준)';
   const system = `너는 ${who}를 가르치는 친절한 중국어 선생님이다.
 학습자가 쓴 중국어 작문을 첨삭한다.

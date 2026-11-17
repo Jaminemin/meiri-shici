@@ -30,7 +30,7 @@ export function setCover(gid, c) {
 export const coverOf = (gid) => COVERS.get(Number(gid)) || null;
 export const hasOverride = (gid) => OVERRIDE.has(Number(gid));
 // 편집할 수 있는 항목 (shortform.js의 주차 형식 그대로)
-export const EDITABLE = ['title', 'titleZh', 'goal', 'goals', 'focus', 'videos', 'keywords', 'patterns', 'plan', 'tasks', 'assess', 'caution'];
+export const EDITABLE = ['title', 'titleZh', 'goal', 'goals', 'focus', 'videos', 'creator', 'keywords', 'patterns', 'plan', 'tasks', 'assess', 'caution'];
 export function baseClassWeek(gid) {
   const c = courseOf(gid);
   if (!c || c.format !== 'class') return null;
@@ -321,6 +321,8 @@ export function weekData(gid) {
       words: [],
       examples: [],
       patterns: (w.patterns || []).map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || '', formPy: '', formKr: '' })),
+      // 이번 주 숏폼 크리에이터 표현: [표현, 병음, 뜻, 쓰는 상황]
+      creator: (w.creator || []).map(([zh, py, ko, use]) => ({ zh, py: py || '', ko: ko || '', use: use || '' })),
       // AI 첨삭에 넘길 이번 주 과제 (초급·중급)
       mission: `초급 과제: ${w.tasks.basic} / 중급 과제: ${w.tasks.inter}`,
       dueAt: meta.dueAt,

@@ -1,11 +1,10 @@
-// 숏폼 과정(수업 안내형) 주차 화면: 학습 목표 · 도우인 영상 · 핵심 문형 · 180분 수업 흐름 · 수준별 과제 · 과제 제출
+// 숏폼 과정(수업 안내형) 주차 화면: 학습 목표 · 크리에이터 표현 · 핵심 문형 · 180분 수업 흐름 · 수준별 과제 · 과제 제출
 import { state, esc, post, toast } from './core.js';
 import { statusBadge, dueText, startTalkFromWeek } from './lms.js';
 import { coverHtml } from './cover.js';
 import { feedbackHtml } from './fb.js';
 
 export const STAGE_NAME = { 1: '일상 중국어 적응', 2: '실제 의사소통', 3: '사회문화와 언어 분석', 4: '표현의 생산과 활용' };
-const douyinSearch = (kw) => `https://www.douyin.com/search/${encodeURIComponent(kw)}`;
 
 // 자막: 한 줄에 「중국어 | 병음 | 한국어」
 function transcriptBlock(v) {
@@ -17,23 +16,27 @@ function transcriptBlock(v) {
   </div>`;
 }
 
-function videoBlock(W, videos) {
-  const list = (videos || [])
+// 이번 주 숏폼 크리에이터 표현 + 만들어 볼 숏폼 + (교수자가 넣었다면) 참고 자료 링크
+function creatorBlock(W, videos) {
+  const items = (W.creator || [])
+    .map((c) => `<div class="cw-cr"><div class="cw-cr-main"><button class="speak" data-speak="${esc(c.zh)}" aria-label="듣기">🔊</button><div><span class="zh cw-cr-zh">${esc(c.zh)}</span>${c.py ? ` <span class="py">${esc(c.py)}</span>` : ''}<div class="cw-cr-ko">${esc(c.ko)}</div></div></div>${c.use ? `<div class="muted cw-cr-use">${esc(c.use)}</div>` : ''}</div>`)
+    .join('');
+  const refs = (videos || [])
     .map(
       (v) => `<div class="cw-vwrap"><a class="cw-video" href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">
         <span class="cw-play" aria-hidden="true">▶</span>
-        <span><b>${esc(v.title || '도우인 영상')}</b>${v.creator ? `<small class="muted"> · ${esc(v.creator)}</small>` : ''}${v.note ? `<span class="muted cw-note">${esc(v.note)}</span>` : ''}</span>
+        <span><b>${esc(v.title || '참고 자료')}</b>${v.creator ? `<small class="muted"> · ${esc(v.creator)}</small>` : ''}${v.note ? `<span class="muted cw-note">${esc(v.note)}</span>` : ''}</span>
       </a>${transcriptBlock(v)}</div>`,
     )
     .join('');
-  const kws = (W.keywords || []).map((k) => `<a class="tag zh cw-kw" href="${douyinSearch(k)}" target="_blank" rel="noopener noreferrer" title="도우인에서 검색">${esc(k)} ↗</a>`).join('');
-  return `<div class="card" id="cw-videos">
-    <div class="ai-label">도우인 영상</div>
-    ${list ? `<div class="cw-videos">${list}</div>` : '<p class="muted" style="margin:6px 0 10px">아직 교수자가 이번 주 영상을 넣지 않았어요. 아래 소재와 검색어로 도우인에서 미리 찾아볼 수 있어요.</p>'}
-    <div class="ai-label" style="margin-top:12px">영상 소재</div>
-    <ul class="cw-list">${(W.videos || []).map((v) => `<li>${esc(v)}</li>`).join('')}</ul>
-    ${kws ? `<div class="ai-label" style="margin-top:10px">도우인 검색어</div><div class="tags">${kws}</div>` : ''}
-    <p class="muted cw-copy">영상은 도우인 원본 링크로만 연결합니다. 앱에 영상 파일을 저장하거나 다시 올리지 않습니다.</p>
+  const kws = (W.keywords || []).map((k) => `<span class="tag zh">${esc(k)}</span>`).join('');
+  return `<div class="card" id="cw-creator">
+    <div class="ai-label">이번 주 크리에이터 표현</div>
+    <p class="muted" style="font-size:14px;margin:4px 0 10px">중국 숏폼 크리에이터들이 실제로 많이 쓰는 말이에요. 🔊를 눌러 듣고 따라 해 보세요.</p>
+    ${items ? `<div class="cw-crs">${items}</div>` : '<p class="muted">이번 주 표현을 준비 중이에요.</p>'}
+    ${(W.videos || []).length ? `<div class="ai-label" style="margin-top:14px">이번 주에 만들어 볼 숏폼</div><ul class="cw-list">${W.videos.map((v) => `<li>${esc(v)}</li>`).join('')}</ul>` : ''}
+    ${kws ? `<div class="ai-label" style="margin-top:10px">크리에이터가 자주 찾는 검색어</div><div class="tags">${kws}</div>` : ''}
+    ${refs ? `<div class="ai-label" style="margin-top:14px">참고 자료</div><div class="cw-videos">${refs}</div>` : ''}
   </div>`;
 }
 
@@ -84,7 +87,7 @@ export function classWeekBody(W, videos, level = '') {
       <ol class="cw-goals">${W.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol>
       <div class="muted" style="font-size:14px">핵심 언어 학습: <b style="color:var(--ink)">${esc(W.focus)}</b></div>
     </div>
-    ${videoBlock(W, videos)}
+    ${creatorBlock(W, videos)}
     ${patternBlock(W)}
     ${planBlock(W)}
     <div class="section-title" id="cw-task-head">수준별 과제</div>
@@ -115,7 +118,7 @@ export function renderClassWeek(app, ctx, d) {
   function checkBox() {
     return st.checked
       ? '<div class="notice info">✓ 이번 주 수업 안내를 확인했어요.</div>'
-      : '<div class="card cw-check"><div><b>이번 주 수업 안내를 다 봤나요?</b><div class="muted" style="font-size:14px">학습 목표, 영상, 핵심 표현, 수업 흐름을 확인했으면 눌러 주세요.</div></div><button class="btn primary" id="cw-check">✓ 수업 안내 확인</button></div>';
+      : '<div class="card cw-check"><div><b>이번 주 수업 안내를 다 봤나요?</b><div class="muted" style="font-size:14px">학습 목표, 크리에이터 표현, 핵심 문형, 수업 흐름을 확인했으면 눌러 주세요.</div></div><button class="btn primary" id="cw-check">✓ 수업 안내 확인</button></div>';
   }
 
   function gradeBox() {
@@ -186,7 +189,7 @@ export function renderClassWeek(app, ctx, d) {
   }
 
   draw();
-  const target = { videos: '#cw-videos', task: '#cw-task', pattern: '.cw-patterns' }[ctx.tab];
+  const target = { videos: '#cw-creator', creator: '#cw-creator', task: '#cw-task', pattern: '.cw-patterns' }[ctx.tab];
   if (target) setTimeout(() => app.querySelector(target)?.scrollIntoView({ block: 'start' }), 0);
 }
 
