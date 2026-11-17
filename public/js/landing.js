@@ -21,8 +21,8 @@ export async function renderLanding(app, { browse = false } = {}) {
   app.innerHTML = `
   <section class="gate-full">
     <div class="gate-slides" aria-hidden="true">
-      <div class="gate-slide on" style="background-image:url('/img/hero-1.jpg');background-position:42% 30%"></div>
-      <div class="gate-slide" style="background-image:url('/img/hero-2.jpg');background-position:46% 25%"></div>
+      <div class="gate-slide on" style="background-image:url('/img/hero-1.jpg');background-position:55% 30%"></div>
+      <div class="gate-slide" style="background-image:url('/img/hero-2.jpg');background-position:82% 40%"></div>
     </div>
     <div class="gate-full-in">
       <span class="gate-photo-tag">抖音 · 15주 과정</span>
