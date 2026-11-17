@@ -1,6 +1,7 @@
 // 사용자 대시보드, 15주 과정, 내 작문
 import { esc, get, post, fmtDate, ago, toast } from './core.js';
 import { feedbackHtml } from './fb.js';
+import { coverHtml } from './cover.js';
 
 // 과목 카드 그림: 첫 대문(판다 화면)과 같은 이모지
 const COURSE_ICON = { shortform: '🎬', travel: '✈️', hsk: '📘', emcee: '🎤' };
@@ -15,7 +16,7 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
   return `<div class="week-grid">${weeks
     .map(
       (w) => `<${link ? `a href="#/week/${w.gid}${tab ? `/${tab}` : ''}"` : 'div'} class="week-card ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}">
-      <div class="wn">${w.week}주차</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div>
+      ${w.format === 'class' ? coverHtml(w, { small: true }) : ''}<div class="wn">${w.week}주차</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div>
       ${w.format === 'class'
         ? `<div class="steps3 steps2" title="수업 확인 · 과제 제출"><span class="${w.checked ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
       <div class="muted" style="font-size:12px;margin-top:6px">수업 확인 ${w.checked ? '✓' : '–'} · 과제 ${w.writing ? '✓' : '–'}</div>`
@@ -101,7 +102,7 @@ export function heatmap(days) {
 // 출석 완료 도장: 판다 이모지 + 已打卡 + 날짜 (사선으로 찍힘)
 function attendStamp() {
   const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10).replace(/-/g, '.');
-  return `<div class="attend-stamp" aria-label="출석 완료 도장"><span class="emo" aria-hidden="true">🐼</span><div><div class="w zh">已打卡</div><div class="d">출석 완료 · ${today}</div></div></div>`;
+  return `<div class="attend-stamp" aria-label="출석 완료 도장"><span class="emo" aria-hidden="true">✅</span><div><div class="w zh">已打卡</div><div class="d">출석 완료 · ${today}</div></div></div>`;
 }
 
 export function calendar(days, attended = false) {
@@ -119,11 +120,11 @@ export function calendar(days, attended = false) {
     const canAttend = !attended && k === today;
     const cls = [set.has(k) ? 'on' : '', k === today ? 'today' : '', canAttend ? 'can' : ''].join(' ');
     const hint = canAttend ? ' role="button" tabindex="0" aria-label="오늘 출석체크"' : '';
-    cells.push(`<span class="${cls}"${hint} title="${k}${set.has(k) ? ' · 출석' : canAttend ? ' · 눌러서 출석체크' : ''}">${day}${set.has(k) ? '<i>🐼</i>' : ''}</span>`);
+    cells.push(`<span class="${cls}"${hint} title="${k}${set.has(k) ? ' · 출석' : canAttend ? ' · 눌러서 출석체크' : ''}">${day}${set.has(k) ? '<i>✓</i>' : ''}</span>`);
   }
   const week = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="dow">${w}</span>`).join('');
   const done = [...set].filter((k) => k.startsWith(`${y}-${String(m + 1).padStart(2, '0')}`)).length;
-  const hint = attended ? '' : '<p class="muted cal-hint" style="font-size:13px;margin:0 0 10px">🐼 접속 당일 날짜를 클릭하시면 출석체크가 완료됩니다.</p>';
+  const hint = attended ? '' : '<p class="muted cal-hint" style="font-size:13px;margin:0 0 10px">📅 접속 당일 날짜를 클릭하시면 출석체크가 완료됩니다.</p>';
   return `${hint}<div class="row between" style="margin-bottom:8px"><b>${y}년 ${m + 1}월</b><span class="muted" style="font-size:13px">이번 달 출석 ${done}일</span></div>
     <div class="cal">${week}${cells.join('')}</div>`;
 }
@@ -163,7 +164,7 @@ export async function renderHome(app, ctx = {}) {
   app.innerHTML = `
   <div class="page">
     <div class="page-head"><div><h1>${esc(d.user.name)}님, 加油！</h1><p>${s.attendedToday ? '오늘 출석했어요. 잘하고 있어요!' : '오늘 아직 출석 전이에요. 출석체크를 하고 시작해 볼까요?'}</p></div>
-      <a class="btn big continue-btn" href="#/week/${d.current.gid}">${d.current.week}주차 🐼 ${esc(d.current.title)} 이어 하기 →</a></div>
+      <a class="btn big continue-btn" href="#/week/${d.current.gid}">${d.current.week}주차 · ${esc(d.current.title)} 이어 하기 →</a></div>
     <div class="attend-row">
       <div class="card"><h3>출석 달력</h3>${calendar(s.days, s.attendedToday)}</div>
     </div>
@@ -178,7 +179,9 @@ export async function renderHome(app, ctx = {}) {
         ? `<div class="stat"><div class="label">과제 제출</div><div class="value">${s.tasksDone}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`
         : `<div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`}
     </div>
-    ${cls ? `<div class="card course-banner"><div><div class="ai-label">지금 듣는 과정</div><h3 style="margin:4px 0 2px">🎬 ${esc(d.course.name)}</h3><div class="zh muted">${esc(d.course.nameZh || '')}</div></div><a class="btn" href="#/course">과정 소개·평가 보기 →</a></div>` : ''}
+    ${cls && d.dueSoon?.length ? `<div class="notice info due-alert">📅 마감이 다가오는 과제: ${d.dueSoon.map((x) => `<a href="#/week/${x.gid}/task">${x.week}주차 ${esc(x.title)}</a> <small>(${new Date(x.dueAt).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })})</small>`).join(' · ')}</div>` : ''}
+    ${cls ? `<div class="quick-links"><a class="card quick" href="#/talk"><span>🤖</span><b>AI 회화</b><small class="muted">주차별 상황 역할극</small></a><a class="card quick" href="#/project"><span>👥</span><b>팀 프로젝트</b><small class="muted">개인 대본 · 팀 영상</small></a><a class="card quick" href="#/grades"><span>📊</span><b>내 성적</b><small class="muted">평가 결과 · 의견</small></a></div>` : ''}
+    ${cls ? `<div class="card course-banner"><div><div class="ai-label">지금 듣는 과정</div><h3 style="margin:4px 0 2px">🎬 ${esc(d.course.name)}${d.level ? ` <span class="badge accent">${esc(d.level)}</span>` : ''}</h3><div class="zh muted">${esc(d.course.nameZh || '')}</div></div><a class="btn" href="#/course">과정 소개·평가 보기 →</a></div>` : ''}
     <div class="home-lower"${cls ? ' hidden' : ''}>
       <div class="home-track">
         <div class="section-title">듣기/쓰기/말하기 수업 복습하기</div>

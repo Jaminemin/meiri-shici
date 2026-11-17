@@ -75,7 +75,7 @@ export function parseJsonLoose(text) {
   }
 }
 
-export async function correctWriting(week, text) {
+export async function correctWriting(week, text, level = '') {
   const who = week.format === 'class'
     ? "'숏폼으로 배우는 현대중국어' 수업(도우인 영상 활용, 초급·중급 혼합반)의 한국인 학습자"
     : '한국인 초급 중국어 학습자(여행 중국어 초급 수준)';
@@ -90,7 +90,7 @@ export async function correctWriting(week, text) {
 ${week.week}주차: ${week.title} (${week.titleZh})
 핵심 문형: ${week.patterns.map((p) => p.form).join(' / ') || '없음'}
 ${week.words.length ? `이번 주 단어: ${week.words.map((w) => `${w.hanzi}(${w.pinyin})`).join(', ')}` : `이번 주 언어 학습: ${week.focus || ''}`}
-${week.format === 'class' ? '과제' : '미션'}: ${week.mission}${week.format === 'class' ? '\n학습자가 초급 과제를 했는지 중급 과제를 했는지 보고, 그 수준에 맞게 첨삭한다.' : ''}
+${week.format === 'class' ? '과제' : '미션'}: ${week.mission}${week.format === 'class' ? (level ? `\n학습자 수준: ${level}. ${level === '중급' ? '문장의 자연스러움과 표현의 뉘앙스까지 설명하고, 수정문 말고도 쓸 수 있는 대안 표현을 함께 알려 준다.' : '기본 어순과 문법 오류를 중심으로 쉽게 설명한다.'} 수정문을 유일한 정답처럼 말하지 말고, 원문도 맞는 부분은 맞다고 알려 준다.` : '\n학습자가 초급 과제를 했는지 중급 과제를 했는지 보고, 그 수준에 맞게 첨삭한다.') : ''}
 
 [학습자의 작문]
 ${text}
@@ -164,6 +164,67 @@ answer 도구로 확인 결과를 제출하라.`;
         mcTip: str('행사 사회 상황에서 쓸 때의 한마디 팁(한국어)'),
       },
       required: ['verdict', 'corrected', 'correctedPinyin', 'translation', 'notes', 'mcTip'],
+    },
+  });
+}
+
+// ---------------- AI 회화 파트너 ----------------
+// 주차별 상황에서 중국인 역할을 맡아 대화한다. 학생이 먼저 말하게 하고, 틀린 곳은 짧게 바로잡는다.
+function convoSystem(sc, level) {
+  const basic = level !== '중급';
+  return `너는 '숏폼으로 배우는 현대중국어' 수업의 AI 회화 파트너다. 지금 너는 「${sc.role}」 역할로, 「${sc.situation}」 상황에서 한국인 중국어 학습자와 대화한다.
+- 역할에 맞는 사람처럼 자연스럽게 중국어로 말한다. 한 번에 한두 문장만 말하고, 마지막에 학습자가 대답할 질문이나 말할 거리를 하나 남긴다.
+- 학습자 대신 학습자의 대답을 만들어 주지 않는다. 학습자가 먼저 표현하게 한다.
+- 학습자 문장에 틀린 곳이 있으면 correction에 짧게 바로잡는다. 틀린 곳이 없으면 correction은 빈 문자열로 둔다. 대화는 끊지 않고 이어 간다.
+${basic ? '- 학습자는 초급이다. 짧고 쉬운 문장, 기초 어휘만 쓴다. hint에 한국어 뜻과 대답에 쓸 수 있는 짧은 표현을 적어 준다.' : '- 학습자는 중급이다. 자연스러운 구어체로 말하고, 필요하면 후속 질문을 한다. hint는 꼭 필요할 때만 짧게 쓴다.'}
+- 정치적으로 민감하거나 개인정보를 묻는 이야기는 하지 않고 상황 안에서 대화한다.
+- 병음은 성조 부호를 붙여 정확하게 쓴다.`;
+}
+
+export async function convoTurn(sc, level, messages) {
+  const history = messages.map((m) => `${m.role === 'ai' ? '너' : '학습자'}: ${m.text}`).join('\n');
+  const str = (d) => ({ type: 'string', description: d });
+  return callClaudeJson({
+    system: convoSystem(sc, level),
+    user: `[지금까지의 대화]\n${history}\n\n학습자의 마지막 말에 이어 대답하라. answer 도구로 제출하라.`,
+    maxTokens: 900,
+    schema: {
+      type: 'object',
+      properties: {
+        reply: str('너의 대답(중국어, 한두 문장)'),
+        pinyin: str('대답의 병음'),
+        ko: str('대답의 한국어 뜻'),
+        correction: str('학습자 문장에서 고칠 점(한국어 설명 + 고친 중국어). 없으면 빈 문자열'),
+        hint: str('학습자가 다음에 쓸 수 있는 표현이나 힌트(한국어). 필요 없으면 빈 문자열'),
+      },
+      required: ['reply', 'pinyin', 'ko', 'correction', 'hint'],
+    },
+  });
+}
+
+export async function convoFeedback(sc, level, messages) {
+  const history = messages.map((m) => `${m.role === 'ai' ? '상대' : '학습자'}: ${m.text}`).join('\n');
+  const str = (d) => ({ type: 'string', description: d });
+  return callClaudeJson({
+    system: `너는 한국인 중국어 학습자(${level || '초급'})의 회화 연습을 돌아보는 중국어 선생님이다. 설명은 한국어로 쉽게 쓰고, 병음은 성조 부호를 붙인다. 학습자가 실제로 한 말만 평가하고, 하지 않은 말을 지어내지 않는다.`,
+    user: `[상황] ${sc.role} · ${sc.situation}\n\n[대화]\n${history}\n\n이 대화에서 학습자의 중국어를 돌아보라. answer 도구로 제출하라.`,
+    maxTokens: 1800,
+    schema: {
+      type: 'object',
+      properties: {
+        overall: str('종합 평가 2~3문장(잘한 점 먼저)'),
+        errors: {
+          type: 'array',
+          description: '학습자 문장의 주요 오류(없으면 빈 배열, 최대 5개)',
+          items: { type: 'object', properties: { original: str('학습자가 쓴 표현'), better: str('고친 표현'), why: str('이유(한국어)') }, required: ['original', 'better', 'why'] },
+        },
+        expressions: {
+          type: 'array',
+          description: '이 상황에서 익혀 두면 좋은 표현 3~5개',
+          items: { type: 'object', properties: { zh: str('중국어'), py: str('병음'), ko: str('뜻') }, required: ['zh', 'py', 'ko'] },
+        },
+      },
+      required: ['overall', 'errors', 'expressions'],
     },
   });
 }

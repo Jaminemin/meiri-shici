@@ -1,17 +1,29 @@
 // 숏폼 과정(수업 안내형) 주차 화면: 학습 목표 · 도우인 영상 · 핵심 문형 · 180분 수업 흐름 · 수준별 과제 · 과제 제출
 import { state, esc, post, toast } from './core.js';
+import { statusBadge, dueText, startTalkFromWeek } from './lms.js';
+import { coverHtml } from './cover.js';
 import { feedbackHtml } from './fb.js';
 
 export const STAGE_NAME = { 1: '일상 중국어 적응', 2: '실제 의사소통', 3: '사회문화와 언어 분석', 4: '표현의 생산과 활용' };
 const douyinSearch = (kw) => `https://www.douyin.com/search/${encodeURIComponent(kw)}`;
 
+// 자막: 한 줄에 「중국어 | 병음 | 한국어」
+function transcriptBlock(v) {
+  const rows = String(v.transcript || '').split('\n').map((l) => l.split('|').map((x) => x.trim())).filter((r) => r[0]);
+  if (!rows.length) return '';
+  return `<div class="cw-trans" data-show="zh py ko">
+    <div class="cw-trans-tools"><span class="muted">자막 보기</span><button type="button" class="tag on" data-col="zh">중국어</button><button type="button" class="tag on" data-col="py">병음</button><button type="button" class="tag on" data-col="ko">한국어</button></div>
+    ${rows.map(([zh, py, ko]) => `<div class="cw-line"><button class="speak" data-speak="${esc(zh)}" aria-label="듣기">🔊</button><div><div class="zh c-zh">${esc(zh)}</div>${py ? `<div class="py c-py">${esc(py)}</div>` : ''}${ko ? `<div class="muted c-ko" style="font-size:14px">${esc(ko)}</div>` : ''}</div></div>`).join('')}
+  </div>`;
+}
+
 function videoBlock(W, videos) {
   const list = (videos || [])
     .map(
-      (v) => `<a class="cw-video" href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">
+      (v) => `<div class="cw-vwrap"><a class="cw-video" href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">
         <span class="cw-play" aria-hidden="true">▶</span>
         <span><b>${esc(v.title || '도우인 영상')}</b>${v.creator ? `<small class="muted"> · ${esc(v.creator)}</small>` : ''}${v.note ? `<span class="muted cw-note">${esc(v.note)}</span>` : ''}</span>
-      </a>`,
+      </a>${transcriptBlock(v)}</div>`,
     )
     .join('');
   const kws = (W.keywords || []).map((k) => `<a class="tag zh cw-kw" href="${douyinSearch(k)}" target="_blank" rel="noopener noreferrer" title="도우인에서 검색">${esc(k)} ↗</a>`).join('');
@@ -53,17 +65,20 @@ function planBlock(W) {
   </div>`;
 }
 
-function taskBlock(W) {
+function taskBlock(W, level) {
   return `<div class="cw-tasks">
-    <div class="card cw-task"><span class="badge">초급</span><p>${esc(W.tasks.basic)}</p></div>
-    <div class="card cw-task"><span class="badge accent">중급</span><p>${esc(W.tasks.inter)}</p></div>
+    <div class="card cw-task ${level === '초급' ? 'mine' : ''}"><span class="badge">초급</span>${level === '초급' ? ' <small class="muted">내 수준</small>' : ''}<p>${esc(W.tasks.basic)}</p></div>
+    <div class="card cw-task ${level === '중급' ? 'mine' : ''}"><span class="badge accent">중급</span>${level === '중급' ? ' <small class="muted">내 수준</small>' : ''}<p>${esc(W.tasks.inter)}</p></div>
   </div>
+  ${W.dueAt ? `<p class="cw-due">📅 과제 ${esc(dueText(W.dueAt))}</p>` : ''}
   <p class="muted" style="font-size:14px;margin:6px 2px 0">📝 평가: ${esc(W.assess)}</p>`;
 }
 
 // 수업 안내 본문 (맛보기와 학습 화면이 같이 쓴다)
-export function classWeekBody(W, videos) {
+export function classWeekBody(W, videos, level = '') {
   return `
+    ${coverHtml({ ...W, caption: W.patterns?.[0]?.zh || W.titleZh })}
+    <p class="cw-topic"><b>주제:</b> <span class="zh">${esc(W.titleZh)}</span></p>
     <div class="card">
       <div class="ai-label">학습 목표</div>
       <ol class="cw-goals">${W.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol>
@@ -73,7 +88,8 @@ export function classWeekBody(W, videos) {
     ${patternBlock(W)}
     ${planBlock(W)}
     <div class="section-title" id="cw-task-head">수준별 과제</div>
-    ${taskBlock(W)}`;
+    ${taskBlock(W, level)}
+    ${W.convo && state.me?.user ? `<div class="card cw-convo"><div><div class="ai-label">AI 회화로 연습하기</div><b>${esc(W.convo.situation)}</b><div class="muted" style="font-size:14px">AI 역할: ${esc(W.convo.role)}</div></div><button class="btn" id="cw-talk">🤖 대화 시작</button></div>` : ''}`;
 }
 
 export function stageLabel(W) {
@@ -102,6 +118,15 @@ export function renderClassWeek(app, ctx, d) {
       : '<div class="card cw-check"><div><b>이번 주 수업 안내를 다 봤나요?</b><div class="muted" style="font-size:14px">학습 목표, 영상, 핵심 표현, 수업 흐름을 확인했으면 눌러 주세요.</div></div><button class="btn primary" id="cw-check">✓ 수업 안내 확인</button></div>';
   }
 
+  function gradeBox() {
+    const g = d.grade;
+    if (!g) return '';
+    return `<div class="card cw-grade"><div class="card-head"><h3>교수님 평가</h3>${statusBadge(g.status, g.label)}</div>
+      ${g.total !== null ? `<div class="fb-score" style="display:inline-block">${g.total}</div>` : ''}
+      ${g.comment ? `<div class="ai-box">${esc(g.comment)}</div>` : g.status === 'submitted' || g.status === 'resubmitted' ? '<p class="muted" style="margin:0">교수님이 아직 평가하지 않았어요.</p>' : ''}
+      ${g.status === 'revise' ? '<p style="margin:8px 0 0">✏️ 의견을 보고 아래에서 다시 내 주세요.</p>' : ''}</div>`;
+  }
+
   function submitBox() {
     return `<div class="card" id="cw-task">
       <div class="ai-label">과제 제출</div>
@@ -119,7 +144,12 @@ export function renderClassWeek(app, ctx, d) {
   }
 
   function draw() {
-    app.innerHTML = `<div class="page cw-page">${head()}${classWeekBody(W, d.videos)}${checkBox()}${submitBox()}${nav()}</div>`;
+    app.innerHTML = `<div class="page cw-page">${head()}${classWeekBody(W, d.videos, d.level)}${checkBox()}${gradeBox()}${submitBox()}${nav()}</div>`;
+    bindClassWeek(app);
+    app.querySelector('#cw-talk')?.addEventListener('click', async (e) => {
+      e.target.disabled = true;
+      try { await startTalkFromWeek(W.week); } catch (err) { e.target.disabled = false; toast(err.message, 'bad'); }
+    });
     app.querySelector('#cw-check')?.addEventListener('click', async (e) => {
       e.target.disabled = true;
       try {
@@ -158,4 +188,14 @@ export function renderClassWeek(app, ctx, d) {
   draw();
   const target = { videos: '#cw-videos', task: '#cw-task', pattern: '.cw-patterns' }[ctx.tab];
   if (target) setTimeout(() => app.querySelector(target)?.scrollIntoView({ block: 'start' }), 0);
+}
+
+// 자막 열 켜고 끄기 (중국어·병음·한국어)
+export function bindClassWeek(root) {
+  root.querySelectorAll('.cw-trans').forEach((box) =>
+    box.querySelectorAll('[data-col]').forEach((b) => (b.onclick = () => {
+      b.classList.toggle('on');
+      box.classList.toggle(`hide-${b.dataset.col}`, !b.classList.contains('on'));
+    })),
+  );
 }

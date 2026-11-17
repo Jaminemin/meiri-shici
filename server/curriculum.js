@@ -7,9 +7,35 @@ import { TRAVEL_DRAFT_WEEKS } from './travel.js';
 import { HSK_DRAFT_WEEKS } from './hsk.js';
 import { EMCEE_DRAFT_WEEKS } from './emcee.js';
 import { FORM_PY, FORM_KR, WORD_KR, EXAMPLE_KR } from './formpy.js';
-import { SHORTFORM_WEEKS, SHORTFORM_INFO } from './shortform.js';
+import { SHORTFORM_WEEKS, SHORTFORM_INFO, ASSESS, TEAM_ROLES, LEVELS, CONVO } from './shortform.js';
 
-export { SHORTFORM_INFO };
+export { SHORTFORM_INFO, ASSESS, TEAM_ROLES, LEVELS, CONVO };
+
+// 교수자가 화면에서 고친 주차 내용·마감일·공개 여부 (DB course_weeks를 서버 시작 때와 저장할 때 읽어 둔다)
+const OVERRIDE = new Map();
+const META = new Map(); // gid → { dueAt, published }
+export function setCourseWeek(gid, { data, dueAt, published } = {}) {
+  const n = Number(gid);
+  if (data && typeof data === 'object' && Object.keys(data).length) OVERRIDE.set(n, data);
+  else OVERRIDE.delete(n);
+  META.set(n, { dueAt: dueAt ? new Date(dueAt).toISOString() : null, published: published !== false });
+}
+export const weekMeta = (gid) => META.get(Number(gid)) || { dueAt: null, published: true };
+// 주차 대표 이미지 정보 (이미지 자체는 DB week_covers에 있고 /api/covers/:gid로 내려준다)
+const COVERS = new Map();
+export function setCover(gid, c) {
+  if (c) COVERS.set(Number(gid), { url: `/api/covers/${Number(gid)}?v=${new Date(c.updatedAt).getTime()}`, source: c.source || '', sourceUrl: c.sourceUrl || '' });
+  else COVERS.delete(Number(gid));
+}
+export const coverOf = (gid) => COVERS.get(Number(gid)) || null;
+export const hasOverride = (gid) => OVERRIDE.has(Number(gid));
+// 편집할 수 있는 항목 (shortform.js의 주차 형식 그대로)
+export const EDITABLE = ['title', 'titleZh', 'goal', 'goals', 'focus', 'videos', 'keywords', 'patterns', 'plan', 'tasks', 'assess', 'caution'];
+export function baseClassWeek(gid) {
+  const c = courseOf(gid);
+  if (!c || c.format !== 'class') return null;
+  return c.weeks.find((x) => x.week === Number(gid) - c.offset) || null;
+}
 
 export const WORDS_PER_WEEK = 15;
 
@@ -281,8 +307,10 @@ export function weekData(gid) {
   const course = courseOf(n);
   if (!course) return null;
   const local = n - course.offset;
-  const w = course.weeks.find((x) => x.week === local);
+  let w = course.weeks.find((x) => x.week === local);
   if (course.format === 'class') {
+    w = { ...w, ...(OVERRIDE.get(n) || {}) };
+    const meta = weekMeta(n);
     return {
       ...w,
       gid: n,
@@ -295,6 +323,10 @@ export function weekData(gid) {
       patterns: (w.patterns || []).map(([form, explain, zh, ko, py]) => ({ form, explain, zh, ko, py: py || '', formPy: '', formKr: '' })),
       // AI 첨삭에 넘길 이번 주 과제 (초급·중급)
       mission: `초급 과제: ${w.tasks.basic} / 중급 과제: ${w.tasks.inter}`,
+      dueAt: meta.dueAt,
+      published: meta.published,
+      convo: CONVO.find((x) => x.week === local) || null,
+      cover: coverOf(n),
     };
   }
   // 여행 과정(travel.js)은 주차마다 단어·문형·예문 15개를 직접 갖는다.
@@ -321,7 +353,7 @@ export function weekData(gid) {
 // 과정의 주차 목록 (gid 포함)
 export function curriculumSummary(courseKey = DEFAULT_COURSE) {
   const c = pickCourse(courseKey);
-  return c.weeks.map((w) => ({ gid: c.offset + w.week, week: w.week, hsk: w.hsk ?? null, stage: w.stage ?? null, format: c.format || 'words', title: w.title, titleZh: w.titleZh, goal: w.goal, sample: (w.words || []).slice(0, 3).map((x) => x[0]), mockName: w.mock ? (c.key === 'emcee' ? '멘트 퀴즈' : '모의고사') : null }));
+  return c.weeks.map((b) => ({ ...b, ...(c.format === 'class' ? OVERRIDE.get(c.offset + b.week) || {} : {}) })).map((w) => ({ ...(c.format === 'class' ? { dueAt: weekMeta(c.offset + w.week).dueAt, published: weekMeta(c.offset + w.week).published, cover: coverOf(c.offset + w.week), keywords: w.keywords || [], caption: w.patterns?.[0]?.[2] || '' } : {}), gid: c.offset + w.week, week: w.week, hsk: w.hsk ?? null, stage: w.stage ?? null, format: c.format || 'words', title: w.title, titleZh: w.titleZh, goal: w.goal, sample: (w.words || []).slice(0, 3).map((x) => x[0]), mockName: w.mock ? (c.key === 'emcee' ? '멘트 퀴즈' : '모의고사') : null }));
 }
 
 // 주차 번호(gid)를 과정 안의 주차 번호로

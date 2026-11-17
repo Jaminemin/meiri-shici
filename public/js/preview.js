@@ -1,7 +1,7 @@
 // 로그인 없이 보는 1주차 맛보기 (단어·문형·예문만, 저장·퀴즈·작문 없음)
 import { state, esc, get, speak } from './core.js';
 import { pandaCell } from './panda-art.js';
-import { classWeekBody, stageLabel } from './classweek.js';
+import { classWeekBody, stageLabel, bindClassWeek } from './classweek.js';
 
 const NUM_COLORS = ['#2d5bd1', '#1c9a8f', '#7a4fd0', '#e0821a', '#3c9a4e', '#d4456f'];
 
@@ -118,4 +118,5 @@ function previewClass(app, d) {
     ${classWeekBody(W, d.videos)}
     <div class="card" style="text-align:center;margin-top:16px"><h3 style="margin:0 0 6px">15주 전체 과정이 궁금하다면</h3><p class="muted" style="margin:0 0 12px">로그인하면 15주 과정 소개, 주차별 수업, 과제 제출과 AI 첨삭을 이용할 수 있어요.</p>${loginCta}</div>
   </div>`;
+  bindClassWeek(app);
 }

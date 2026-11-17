@@ -6,6 +6,8 @@ import { renderCommonApps } from './common.js';
 import { renderHome, renderCourse, renderMyWritings, renderTrack } from './home.js';
 import { renderWeek } from './week.js';
 import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings, renderAdminVideos } from './admin.js';
+import { renderGrades, renderProject, renderTalk, renderTalkSession } from './lms.js';
+import { renderAdminGrading, renderAdminGrade, renderAdminGradebook, renderAdminTeams, renderAdminContent } from './adminlms.js';
 
 const app = document.getElementById('app');
 
@@ -20,22 +22,20 @@ function navLinks(active) {
   const links = [
     ['home', '🧑‍🎓 내 학습'],
     ['course', '📖 15주 과정'],
+    ['talk', '🤖 AI 회화'],
+    ['project', '👥 팀 프로젝트'],
+    ['grades', '📊 내 성적'],
     ['writings', '✏️ 내 작문<small class="nav-sub">AI 첨삭 작문 연습</small>'],
   ];
   if (u.role === 'admin') links.push(['admin', '관리자']);
   return links.map(([k, l]) => `<a href="#/${k}" class="${active === k ? 'on' : ''}">${l}${k === 'admin' && state.pendingCount ? `<span class="count">${state.pendingCount}</span>` : ''}</a>`).join('');
 }
 
-// 집 모양 안에 판다 얼굴을 넣은 아이콘: 과목 선택 메인으로 돌아가기
+// 집 모양 아이콘: 과목 선택 메인으로 돌아가기
 const HOME_ICON = `<svg viewBox="0 0 40 40" aria-hidden="true">
   <path d="M5 19 L20 6 L35 19" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M9 18 V34 Q9 36 11 36 H29 Q31 36 31 34 V18" fill="var(--accent-soft, #eef0ff)" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
-  <circle cx="20" cy="27" r="7" fill="#fff"/>
-  <circle cx="14.6" cy="20.4" r="2.6" fill="var(--ink, #222)"/>
-  <circle cx="25.4" cy="20.4" r="2.6" fill="var(--ink, #222)"/>
-  <ellipse cx="16.8" cy="26.4" rx="2" ry="2.5" fill="var(--ink, #222)" transform="rotate(-18 16.8 26.4)"/>
-  <ellipse cx="23.2" cy="26.4" rx="2" ry="2.5" fill="var(--ink, #222)" transform="rotate(18 23.2 26.4)"/>
-  <circle cx="20" cy="30.6" r="0.9" fill="var(--ink, #222)"/>
+  <path d="M17 36 V27 Q17 25 19 25 H21 Q23 25 23 27 V36" fill="#fff" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
 </svg>`;
 
 function renderChrome(active) {
@@ -111,6 +111,10 @@ async function route() {
     if (parts[0] === 'course') return renderCourse(app, ctx);
     if (parts[0] === 'track') return renderTrack(app, parts[1]);
     if (parts[0] === 'writings') return renderMyWritings(app, ctx);
+    if (parts[0] === 'grades') return renderGrades(app);
+    if (parts[0] === 'project') return renderProject(app);
+    if (parts[0] === 'talk' && parts[1]) return renderTalkSession(app, Number(parts[1]));
+    if (parts[0] === 'talk') return renderTalk(app);
     if (parts[0] === 'week' && parts[1]) return renderWeek(app, { ...ctx, week: Number(parts[1]), tab: parts[2] || 'words' });
     if (parts[0] === 'admin') {
       if (u.role !== 'admin') return (location.hash = '#/home');
@@ -118,6 +122,11 @@ async function route() {
       if (parts[1] === 'users') return renderAdminUsers(app, ctx);
       if (parts[1] === 'writings') return renderAdminWritings(app, ctx);
       if (parts[1] === 'videos') return renderAdminVideos(app, ctx);
+      if (parts[1] === 'grading' && parts[2] && parts[3]) return renderAdminGrade(app, { ...ctx, week: Number(parts[2]), uid: Number(parts[3]) });
+      if (parts[1] === 'grading') return renderAdminGrading(app, { ...ctx, week: parts[2] ? Number(parts[2]) : null });
+      if (parts[1] === 'gradebook') return renderAdminGradebook(app, ctx);
+      if (parts[1] === 'teams') return renderAdminTeams(app, ctx);
+      if (parts[1] === 'content') return renderAdminContent(app, { ...ctx, week: parts[2] ? Number(parts[2]) : null });
       return renderAdmin(app, ctx);
     }
     app.innerHTML = '<div class="page"><div class="empty">없는 화면입니다. <a href="#/home">처음으로</a></div></div>';

@@ -100,6 +100,109 @@ async function migrate() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
   await sql`CREATE INDEX IF NOT EXISTS week_videos_week_idx ON week_videos (week, id)`;
+  await sql`ALTER TABLE week_videos ADD COLUMN IF NOT EXISTS transcript TEXT NOT NULL DEFAULT ''`;
+  await sql`ALTER TABLE week_videos ADD COLUMN IF NOT EXISTS permission TEXT NOT NULL DEFAULT ''`;
+  // 교수자가 고친 주차 내용·과제 마감일·공개 여부
+  await sql`
+    CREATE TABLE IF NOT EXISTS course_weeks (
+      gid INT PRIMARY KEY,
+      data JSONB NOT NULL DEFAULT '{}',
+      due_at TIMESTAMPTZ,
+      published BOOLEAN NOT NULL DEFAULT true,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  // 학생 수준(초급·중급)은 사용자 속성이 아니라 수강 등록에 둔다
+  await sql`
+    CREATE TABLE IF NOT EXISTS enrollments (
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      course TEXT NOT NULL,
+      level TEXT NOT NULL DEFAULT '',
+      PRIMARY KEY (user_id, course)
+    )`;
+  // 주차 과제 평가 (교수자 점수·의견·상태). AI 점수는 writings.score에 따로 남는다.
+  await sql`
+    CREATE TABLE IF NOT EXISTS week_grades (
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      week INT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'submitted',
+      scores JSONB NOT NULL DEFAULT '{}',
+      total NUMERIC,
+      comment TEXT NOT NULL DEFAULT '',
+      final_writing_id INT,
+      graded_by INT,
+      graded_at TIMESTAMPTZ,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (user_id, week)
+    )`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS grade_extras (
+      user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      participation NUMERIC,
+      note TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  // 팀 프로젝트: 팀 · 팀원(한 사람은 한 팀) · 개인 대본 · 개인 점수
+  await sql`
+    CREATE TABLE IF NOT EXISTS teams (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      topic TEXT NOT NULL DEFAULT '',
+      topic_status TEXT NOT NULL DEFAULT 'none',
+      video_url TEXT NOT NULL DEFAULT '',
+      video_kind TEXT NOT NULL DEFAULT '',
+      video_note TEXT NOT NULL DEFAULT '',
+      video_at TIMESTAMPTZ,
+      scores JSONB NOT NULL DEFAULT '{}',
+      comment TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS team_members (
+      user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      team_id INT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+      roles TEXT NOT NULL DEFAULT ''
+    )`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS scripts (
+      user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      content TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'draft',
+      ai_feedback JSONB,
+      comment TEXT NOT NULL DEFAULT '',
+      submitted_at TIMESTAMPTZ,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS project_grades (
+      user_id INT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      scores JSONB NOT NULL DEFAULT '{}',
+      comment TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  // 주차 대표 이미지: 교수자가 쓸 권리가 있는 사진만 올린다(출처 함께 표기)
+  await sql`
+    CREATE TABLE IF NOT EXISTS week_covers (
+      gid INT PRIMARY KEY,
+      mime TEXT NOT NULL,
+      data BYTEA NOT NULL,
+      source TEXT NOT NULL DEFAULT '',
+      source_url TEXT NOT NULL DEFAULT '',
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  // AI 회화 기록 (대화 원문과 AI 피드백을 따로 둔다)
+  await sql`
+    CREATE TABLE IF NOT EXISTS ai_sessions (
+      id SERIAL PRIMARY KEY,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      week INT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'conversation',
+      level TEXT NOT NULL DEFAULT '',
+      messages JSONB NOT NULL DEFAULT '[]',
+      feedback JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`;
+  await sql`CREATE INDEX IF NOT EXISTS ai_sessions_user_idx ON ai_sessions (user_id, created_at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS activity_at_idx ON activity (at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS activity_user_idx ON activity (user_id, at DESC)`;
   await sql`CREATE INDEX IF NOT EXISTS writings_user_idx ON writings (user_id, created_at DESC)`;
