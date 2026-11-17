@@ -15,7 +15,7 @@ export function adminTabs(active) {
     ['gradebook', '성적부'],
     ['teams', '팀 프로젝트'],
     ['content', '주차 콘텐츠'],
-    ['videos', '주차 영상'],
+    ['videos', '참고 자료'],
     ['writings', '작문·첨삭'],
   ]
     .map(([k, l]) => `<button onclick="location.hash='#/admin${k ? '/' + k : ''}'" class="${active === k ? 'on' : ''}">${l}</button>`)
@@ -208,21 +208,21 @@ export async function renderAdminWritings(app) {
     ${d.writings.map((w) => `<div><a href="#/admin/users/${w.user_id}" class="muted" style="font-size:13px">${esc(w.name)} (${esc(w.email)}) →</a>${feedbackHtml(w)}</div>`).join('') || '<div class="empty">아직 작문이 없습니다.</div>'}</div>`;
 }
 
-// 주차별 도우인 영상 링크 관리 (영상 파일은 올리지 않고 원본 링크만 넣는다)
+// 주차별 참고 자료 링크 관리 (선택 사항, 파일은 올리지 않고 링크만 넣는다)
 export async function renderAdminVideos(app) {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   const d = await get('/api/admin/videos');
   const pick = Number(sessionStorage.getItem('ms_vweek')) || d.weeks[0].gid;
   const byWeek = (gid) => d.videos.filter((v) => v.week === gid);
   app.innerHTML = `<div class="page">
-    <div class="page-head"><div><h1>관리자</h1><p>주차마다 학생들이 볼 도우인 영상 링크를 넣습니다.</p></div></div>
+    <div class="page-head"><div><h1>관리자</h1><p>필요할 때만 주차별 참고 자료 링크를 넣습니다. 수업은 크리에이터 표현 중심이라 넣지 않아도 됩니다.</p></div></div>
     ${adminTabs('videos')}
-    <div class="notice info">영상 파일은 앱에 올리지 않고 도우인 원본 링크만 연결합니다. 제작자와 사용 허가 여부를 메모에 남겨 두세요.</div>
+    <div class="notice info">파일은 앱에 올리지 않고 링크만 연결합니다. 제작자와 사용 허가 여부를 메모에 남겨 두세요.</div>
     <div class="card">
       <div class="card-head"><h3>영상 링크 넣기</h3></div>
       <div class="vform">
         <label>주차<select id="v-week">${d.weeks.map((w) => `<option value="${w.gid}" ${w.gid === pick ? 'selected' : ''}>${w.week}주차 · ${esc(w.title)}</option>`).join('')}</select></label>
-        <label>도우인 링크<input id="v-url" type="url" placeholder="https://www.douyin.com/video/…" required></label>
+        <label>자료 링크<input id="v-url" type="url" placeholder="https://…" required></label>
         <label>영상 제목<input id="v-title" maxlength="200" placeholder="예: 西安美食探店"></label>
         <label>제작자<input id="v-creator" maxlength="100" placeholder="예: 계정 이름"></label>
         <label class="wide">메모 (선택)<input id="v-note" maxlength="300" placeholder="예: 0:15~0:45 구간 사용 · 제작자 허락 받음"></label>
@@ -240,7 +240,7 @@ export async function renderAdminVideos(app) {
   app.querySelector('#v-week').onchange = (e) => sessionStorage.setItem('ms_vweek', e.target.value);
   app.querySelector('#v-add').onclick = async () => {
     const body = { week: Number(app.querySelector('#v-week').value), url: app.querySelector('#v-url').value.trim(), title: app.querySelector('#v-title').value.trim(), creator: app.querySelector('#v-creator').value.trim(), note: app.querySelector('#v-note').value.trim() };
-    if (!body.url) return toast('도우인 링크를 넣어 주세요.', 'bad');
+    if (!body.url) return toast('자료 링크를 넣어 주세요.', 'bad');
     try {
       sessionStorage.setItem('ms_vweek', String(body.week));
       await post('/api/admin/videos', body);

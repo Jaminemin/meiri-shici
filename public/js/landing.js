@@ -32,7 +32,7 @@ export async function renderLanding(app, { browse = false } = {}) {
       ${SLIDES.map((sl, k) => `<div class="gate-slide${k ? '' : ' on'}" style="background-image:url('/img/${sl[0]}');--pos:${sl[1]};--mpos:${sl[2]}"></div>`).join('')}
     </div>
     <div class="gate-full-in">
-      <span class="gate-photo-tag">抖音 · 15주 과정</span>
+      <span class="gate-photo-tag">短视频 · 15주 과정</span>
       <h1 class="gate-photo-title">숏폼 중국어</h1>
       <p class="gate-photo-zh zh">短视频与现代汉语学习</p>
       <p class="gate-full-hook">중국어로 크리에이터가 돼 봐요!<br>브이로그부터 맛집 라이브 방송까지!</p>

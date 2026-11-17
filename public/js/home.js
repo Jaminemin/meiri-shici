@@ -32,7 +32,7 @@ export function weekList(weeks, currentGid) {
     const open = w.gid === currentGid;
     const subs = w.format === 'class' ? [
       ['class', '수업 안내', w.checked ? '확인' : '–'],
-      ['videos', '도우인 영상', ''],
+      ['videos', '크리에이터 표현', ''],
       ['pattern', '핵심 표현', ''],
       ['task', '과제 제출', w.writing ? '제출' : '–'],
     ] : [

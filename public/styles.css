@@ -797,6 +797,8 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 /* ---------- 주차 표지 (실제 숏폼 화면 느낌, 캐릭터 없음) ---------- */
 .cover { position: relative; margin: 0 0 12px; border-radius: 18px; overflow: hidden; aspect-ratio: 16 / 9; background: #111; }
 .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cover.art { aspect-ratio: 1370 / 758; background: #f1eef8; }
+.cover.art:not(.sm) { max-width: 780px; margin-left: auto; margin-right: auto; }
 .cover-src { position: absolute; left: 12px; bottom: 12px; background: rgba(40, 40, 40, .72); color: #fff; font-size: 12.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px; max-width: 70%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cover-src a { color: #fff; }
 .cover.sf { color: #fff; }
@@ -887,3 +889,13 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
   .hdr-login span:last-child { display: none; }
   .hdr-login::after { content: '로그인'; }
 }
+
+/* 이번 주 크리에이터 표현 */
+.cw-crs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cw-cr { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: var(--surface); }
+.cw-cr-main { display: flex; gap: 8px; align-items: flex-start; }
+.cw-cr-zh { font-size: 19px; font-weight: 700; }
+.cw-cr-main .py { font-size: 13px; color: var(--accent); }
+.cw-cr-ko { font-size: 14px; margin-top: 2px; }
+.cw-cr-use { font-size: 13px; margin-top: 6px; line-height: 1.5; }
+@media (max-width: 680px) { .cw-crs { grid-template-columns: 1fr; } }

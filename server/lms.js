@@ -368,7 +368,7 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
     const base = baseClassWeek(gid);
     const w = weekData(gid);
     // 편집 화면에는 문형을 [문형, 설명, 예문, 뜻, 병음] 원래 형식으로 준다
-    const current = Object.fromEntries(EDITABLE.map((k) => [k, k === 'patterns' ? (w.patterns || []).map((x) => [x.form, x.explain, x.zh, x.ko, x.py]) : (w[k] ?? (k === 'caution' ? '' : null))]));
+    const current = Object.fromEntries(EDITABLE.map((k) => [k, k === 'patterns' ? (w.patterns || []).map((x) => [x.form, x.explain, x.zh, x.ko, x.py]) : k === 'creator' ? (w.creator || []).map((x) => [x.zh, x.py, x.ko, x.use]) : (w[k] ?? (k === 'caution' ? '' : null))]));
     const videos = await db()`SELECT id, url, title, creator, note, transcript, permission FROM week_videos WHERE week = ${gid} ORDER BY id`;
     sendJson(res, 200, { gid, week: localWeek(gid), current, base: { title: base.title }, edited: hasOverride(gid), dueAt: w.dueAt, published: w.published, cover: w.cover, weeks: curriculumSummary(DEFAULT_COURSE), videos });
   });
@@ -392,6 +392,7 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
         videos: lines(d.videos, 10),
         keywords: lines(d.keywords, 10).map((k) => k.slice(0, 30)),
         patterns: (Array.isArray(d.patterns) ? d.patterns : []).slice(0, 12).map((x) => [s(x?.[0], 80), s(x?.[1], 300), s(x?.[2], 200), s(x?.[3], 200), s(x?.[4], 300)]).filter((x) => x[0]),
+        creator: (Array.isArray(d.creator) ? d.creator : []).slice(0, 15).map((x) => [s(x?.[0], 80), s(x?.[1], 120), s(x?.[2], 200), s(x?.[3], 300)]).filter((x) => x[0]),
         plan: (Array.isArray(d.plan) ? d.plan : []).slice(0, 15).map((x) => [s(x?.[0], 30), s(x?.[1], 200)]).filter((x) => x[0] && x[1]),
         tasks: { basic: s(d.tasks?.basic, 500) || base.tasks.basic, inter: s(d.tasks?.inter, 500) || base.tasks.inter },
         assess: s(d.assess, 300),
