@@ -206,7 +206,7 @@ export async function renderAdminContent(app, ctx) {
     <div class="card c-cover">
       <div class="card-head"><h3>대표 이미지</h3>${d.cover ? '<span class="badge accent">올린 사진</span>' : '<span class="badge">기본 표지</span>'}</div>
       <div class="c-cover-grid">
-        <div>${coverHtml({ week: d.week, title: c.title, titleZh: c.titleZh, stage: d.weeks.find((w) => w.gid === gid)?.stage, keywords: c.keywords, caption: c.patterns?.[0]?.[2] || c.titleZh, videos: c.videos, cover: d.cover })}</div>
+        <div>${coverHtml({ format: 'class', week: d.week, title: c.title, titleZh: c.titleZh, stage: d.weeks.find((w) => w.gid === gid)?.stage, keywords: c.keywords, caption: c.patterns?.[0]?.[2] || c.titleZh, videos: c.videos, cover: d.cover })}</div>
         <div>
           <p class="muted" style="font-size:13px;margin-top:0">직접 찍은 사진, 사용 허락을 받은 사진, 무료 사용이 허용된 사진만 올려 주세요. 도우인 화면을 캡처한 사진처럼 다른 사람의 얼굴이나 저작물이 담긴 이미지는 허락 없이 올리지 않습니다. 사진이 없으면 숏폼 화면처럼 꾸민 기본 표지가 나옵니다.</p>
           <label class="vlabel">사진 파일 (JPG·PNG·WebP, 자동으로 줄여서 올립니다)<input type="file" id="cv-file" accept="image/jpeg,image/png,image/webp"></label>

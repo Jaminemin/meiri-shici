@@ -14,6 +14,11 @@ export function coverHtml(w, { small = false } = {}) {
   if (w.cover?.url) {
     return `<figure class="cover ${small ? 'sm' : ''}"><img src="${esc(w.cover.url)}" alt="${esc(`${w.week}주차 ${w.title}`)}" loading="lazy">${w.cover.source ? `<figcaption class="cover-src">${w.cover.sourceUrl && !small ? `<a href="${esc(w.cover.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(w.cover.source)}</a>` : esc(w.cover.source)}</figcaption>` : ''}</figure>`;
   }
+  // 숏폼 과정 1~15주차: 주차별 일러스트 표지 (public/img/weeks/wNN.jpg)
+  const n = Number(w.week);
+  if (w.format === 'class' && n >= 1 && n <= 15) {
+    return `<figure class="cover art ${small ? 'sm' : ''}"><img src="/img/weeks/w${String(n).padStart(2, '0')}.jpg" alt="${esc(`${n}주차 ${w.title} 표지`)}" loading="lazy" decoding="async"></figure>`;
+  }
   const kw = (w.keywords || []).filter(Boolean);
   const caption = w.caption || w.titleZh || '';
   const seed = Number(w.week) || 1;
