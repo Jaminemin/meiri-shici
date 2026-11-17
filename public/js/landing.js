@@ -12,9 +12,7 @@ const OUTFIT = {
 
 // 대문에서 고르는 과목 (준비 중인 과목은 ready=false)
 const LEVELS = [
-  { key: 'travel', name: '여행 중국어', level: '초급', icon: '✈️', ready: true },
-  { key: 'hsk', name: 'HSK 중국어', level: '중급', icon: '📘', ready: true },
-  { key: 'emcee', name: '사회자 중국어', level: '고급', icon: '🎤', ready: true },
+  { key: 'shortform', name: '숏폼으로 배우는 현대중국어', level: '초급~중급', icon: '🎬', ready: true },
   { key: 'common', name: '공통', level: '공통', icon: '📱', ready: true },
 ];
 
@@ -211,8 +209,8 @@ export async function renderLanding(app, { browse = false } = {}) {
   app.innerHTML = `
   <div class="page">
     <section class="gate-hero${reduced ? ' reduced' : ''}">
-      <p class="gate-sub hook">초급부터 고급까지! 15주 동안 매주 15개 단어와 표현을 다양한 시나리오로 함께 배워봐요!</p>
-      <div class="gate-scene">${palaceSvg(!reduced)}<h1 class="gate-title zh">每日十五词</h1><a class="gate-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a></div>
+      <p class="gate-sub hook">도우인(抖音) 숏폼으로 15주 동안 실제 중국어를 듣고, 분석하고, 번역하고, 직접 만들어 봐요!</p>
+      <div class="gate-scene">${palaceSvg(!reduced)}<h1 class="gate-title zh gate-title-long">短视频与现代汉语学习</h1><a class="gate-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a></div>
       <div class="level-pick">
         ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="${levelHref(c)}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.key === 'common' ? '필수 앱 보기 →' : c.ready ? (signedIn ? '학습하기 →' : '1주차 맛보기 →') : '준비 중'}</span></a>`).join('')}
       </div>

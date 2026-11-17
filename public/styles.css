@@ -658,3 +658,62 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 #back-fab svg { width: 26px; height: 26px; }
 #back-fab:active { transform: scale(0.94); }
 @media (min-width: 1100px) { body:has(.wl-side) #back-fab { left: 266px; } }
+
+/* ---------- 숏폼으로 배우는 현대중국어 ---------- */
+.brand-txt { display: flex; flex-direction: column; line-height: 1.15; }
+.brand-ko { font-size: 15px; }
+.brand-zh { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+@media (max-width: 680px) { .brand-ko { font-size: 13.5px; } .brand-zh { font-size: 10px; } }
+.gate-scene .gate-title.gate-title-long { font-size: clamp(20px, 4.4vw, 36px); top: 6%; letter-spacing: 0; }
+.level-pick:has(.level-card:nth-child(2):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.cw-page .card { margin-bottom: 14px; }
+.cw-stage { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 800; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 3px 10px; }
+.cw-goals { margin: 6px 0 10px; padding-left: 20px; line-height: 1.75; }
+.cw-list { margin: 4px 0 0; padding-left: 18px; line-height: 1.7; font-size: 14.5px; }
+.cw-videos { display: grid; gap: 8px; margin: 6px 0 4px; }
+.cw-video { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--ink); background: var(--surface); }
+.cw-video:hover { border-color: var(--accent); }
+.cw-play { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: #161823; color: #fff; font-size: 13px; }
+.cw-note { display: block; font-size: 13px; margin-top: 2px; }
+.cw-kw { text-decoration: none; }
+.cw-copy { font-size: 12.5px; margin: 12px 0 0; }
+.cw-patterns { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-top: 6px; }
+.cw-pat { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--surface); }
+.cw-form { font-size: 19px; font-weight: 700; color: var(--accent); }
+.cw-explain { font-size: 13.5px; margin: 2px 0 8px; }
+.cw-ex { display: flex; align-items: center; gap: 8px; font-size: 17px; }
+.cw-ex .speak { width: 30px; height: 30px; font-size: 13px; flex: none; }
+.cw-plan td:first-child { white-space: nowrap; color: var(--muted); font-variant-numeric: tabular-nums; width: 1%; }
+.cw-plan tr.cw-rest td { color: var(--muted); font-style: italic; }
+.cw-tasks { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cw-tasks .card { margin-bottom: 0; }
+.cw-task p { margin: 8px 0 0; line-height: 1.7; }
+.cw-check { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 16px; }
+#cw-task-head { margin-top: 28px; }
+.steps2 span { flex: 1; }
+.course-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.course-meta { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.course-page .card { margin-bottom: 14px; }
+.course-two { gap: 14px; }
+.stage-block { margin: 14px 0 22px; }
+.stage-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.stage-no { flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 800; }
+.grade-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin: 10px 0; font-size: 14px; }
+.grade-row .progress { grid-column: 1 / -1; }
+.vform { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.vform label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.vform .wide { grid-column: 1 / -1; }
+.vrow { padding: 8px 0; border-bottom: 1px solid var(--line); gap: 10px; flex-wrap: wrap; }
+.vrow:last-child { border-bottom: 0; }
+@media (max-width: 900px) { .course-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 680px) {
+  .cw-tasks, .course-two, .vform { grid-template-columns: 1fr; }
+  .course-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .course-two .grid2 { grid-template-columns: 1fr; }
+}
+@media (max-width: 680px) {
+  .topbar:has(.user-chip:not(:empty)) .brand-txt { display: none; }
+  .continue-btn { white-space: normal; text-align: center; max-width: 100%; }
+}
+@media (min-width: 681px) and (max-width: 1100px) { .topbar:has(.user-chip:not(:empty)) .brand-zh { display: none; } }

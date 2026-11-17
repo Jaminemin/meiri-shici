@@ -2,6 +2,7 @@
 const WORDS_PER_WEEK = 15;
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
 import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.js';
+import { renderClassWeek } from './classweek.js';
 import { feedbackHtml } from './fb.js';
 import { arrangeItems, sentenceChoiceItems } from './practice.js';
 import { sceneCard } from './scenes.js';
@@ -35,6 +36,7 @@ function saveKnown(week, set) {
 export async function renderWeek(app, ctx) {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   let d = await get(`/api/weeks/${ctx.week}`);
+  if (d.week.format === 'class') return renderClassWeek(app, ctx, d);
   const W = d.week;
   let tab = ctx.tab;
   let known = loadKnown(W.gid, d.state.words);

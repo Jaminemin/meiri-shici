@@ -3,7 +3,7 @@ import { esc, get, post, fmtDate, ago, toast } from './core.js';
 import { feedbackHtml } from './fb.js';
 
 // 과목 카드 그림: 첫 대문(판다 화면)과 같은 이모지
-const COURSE_ICON = { travel: '✈️', hsk: '📘', emcee: '🎤' };
+const COURSE_ICON = { shortform: '🎬', travel: '✈️', hsk: '📘', emcee: '🎤' };
 
 export const TRACKS = {
   listen: { name: '듣기 수업', tab: 'listen', icon: '🎧', desc: '음성을 듣고 같은 주차 예문 4개 중 맞는 중국어 문장을 고릅니다. 귀로 익힙니다.' },
@@ -16,8 +16,11 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
     .map(
       (w) => `<${link ? `a href="#/week/${w.gid}${tab ? `/${tab}` : ''}"` : 'div'} class="week-card ${w.done ? 'done' : ''} ${w.gid === currentGid ? 'current' : ''}">
       <div class="wn">${w.week}주차</div><div class="wt">${esc(w.title)}</div><div class="wz zh">${esc(w.titleZh)}</div>
-      <div class="steps3" title="단어 · 퀴즈 · 작문"><span class="${w.words >= 15 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
-      <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/15 · 퀴즈 ${w.quiz ?? '–'}/10 · 작문 ${w.writing ? '✓' : '–'}</div>
+      ${w.format === 'class'
+        ? `<div class="steps3 steps2" title="수업 확인 · 과제 제출"><span class="${w.checked ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">수업 확인 ${w.checked ? '✓' : '–'} · 과제 ${w.writing ? '✓' : '–'}</div>`
+        : `<div class="steps3" title="단어 · 퀴즈 · 작문"><span class="${w.words >= 15 ? 'on' : ''}"></span><span class="${w.quiz !== null && w.quiz >= 8 ? 'on' : ''}"></span><span class="${w.writing ? 'on' : ''}"></span></div>
+      <div class="muted" style="font-size:12px;margin-top:6px">단어 ${w.words}/15 · 퀴즈 ${w.quiz ?? '–'}/10 · 작문 ${w.writing ? '✓' : '–'}</div>`}
     </${link ? 'a' : 'div'}>`,
     )
     .join('')}</div>`;
@@ -26,7 +29,12 @@ export function weekCards(weeks, currentGid, { link = true, tab = '' } = {}) {
 export function weekList(weeks, currentGid) {
   const group = (w) => {
     const open = w.gid === currentGid;
-    const subs = [
+    const subs = w.format === 'class' ? [
+      ['class', '수업 안내', w.checked ? '확인' : '–'],
+      ['videos', '도우인 영상', ''],
+      ['pattern', '핵심 표현', ''],
+      ['task', '과제 제출', w.writing ? '제출' : '–'],
+    ] : [
       ['words', '단어', `${w.words}/15`],
       ['pattern', '문형·예문', ''],
       ['listen', '듣기', ''],
@@ -34,7 +42,7 @@ export function weekList(weeks, currentGid) {
       ['quiz', '퀴즈', `${w.quiz ?? '–'}/10`],
       ['writing', '작문', w.writing ? '완료' : '–'],
     ];
-    if (w.mockName) subs.push(['mock', w.mockName, '']);
+    if (w.mockName && w.format !== 'class') subs.push(['mock', w.mockName, '']);
     return `<div class="wl-group ${open ? 'open' : ''}" data-gid="${w.gid}">
       <button type="button" class="wl-item ${w.done ? 'done' : ''} ${open ? 'current' : ''}" data-gid="${w.gid}" aria-expanded="${open}">
         <span class="wl-num">${w.week}</span>
@@ -142,9 +150,10 @@ export function coursePicker(courses, current) {
 }
 
 export async function renderHome(app, ctx = {}) {
-  const course = ctx.course || 'travel';
+  const course = ctx.course || '';
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
-  const d = await get(`/api/dashboard?course=${encodeURIComponent(course)}`);
+  const d = await get(`/api/dashboard${course ? `?course=${encodeURIComponent(course)}` : ''}`);
+  const cls = d.course?.format === 'class';
   if (d.notReady) {
     app.innerHTML = `<div class="page">${coursePicker(d.courses, d.course.key)}
       <div class="card" style="text-align:center;padding:40px 20px"><h2>${esc(d.course.name)} · 준비 중</h2><p class="muted">이 과목의 자료를 만들고 있어요. 준비되면 여기에서 바로 시작할 수 있습니다.</p></div></div>`;
@@ -161,11 +170,16 @@ export async function renderHome(app, ctx = {}) {
     <div class="home-weeks">${weekList(d.weeks, d.current.gid)}</div>
     <div class="stats">
       <div class="stat"><div class="label">완료한 주차</div><div class="value">${s.doneWeeks}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.doneWeeks / s.totalWeeks) * 100}%"></div></div></div>
-      <div class="stat"><div class="label">외운 단어</div><div class="value">${s.wordsLearned}<small class="muted" style="font-size:16px"> / ${s.totalWords}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.wordsLearned / s.totalWords) * 100}%"></div></div></div>
+      ${cls
+        ? `<div class="stat"><div class="label">수업 확인</div><div class="value">${s.checkedWeeks}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.checkedWeeks / s.totalWeeks) * 100}%"></div></div></div>`
+        : `<div class="stat"><div class="label">외운 단어</div><div class="value">${s.wordsLearned}<small class="muted" style="font-size:16px"> / ${s.totalWords}</small></div><div class="progress" style="margin-top:6px"><div style="width:${(s.wordsLearned / s.totalWords) * 100}%"></div></div></div>`}
       <div class="stat"><div class="label">연속 학습일</div><div class="value">${s.streak}<small class="muted" style="font-size:16px">일</small></div><div class="sub">지금까지 ${s.totalDays}일 공부</div></div>
-      <div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>
+      ${cls
+        ? `<div class="stat"><div class="label">과제 제출</div><div class="value">${s.tasksDone}<small class="muted" style="font-size:16px"> / ${s.totalWeeks}</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`
+        : `<div class="stat"><div class="label">퀴즈 평균 · 작문</div><div class="value">${s.quizAvg ?? '–'}<small class="muted" style="font-size:16px">점</small></div><div class="sub">AI 첨삭 ${s.writings}회</div></div>`}
     </div>
-    <div class="home-lower">
+    ${cls ? `<div class="card course-banner"><div><div class="ai-label">지금 듣는 과정</div><h3 style="margin:4px 0 2px">🎬 ${esc(d.course.name)}</h3><div class="zh muted">${esc(d.course.nameZh || '')}</div></div><a class="btn" href="#/course">과정 소개·평가 보기 →</a></div>` : ''}
+    <div class="home-lower"${cls ? ' hidden' : ''}>
       <div class="home-track">
         <div class="section-title">듣기/쓰기/말하기 수업 복습하기</div>
         <div class="grid3">
@@ -175,7 +189,7 @@ export async function renderHome(app, ctx = {}) {
         </div>
       </div>
     </div>
-    <div class="card"><div class="card-head"><h3>최근 작문</h3><a href="#/writings">전체 보기 →</a></div>
+    <div class="card"><div class="card-head"><h3>${cls ? '최근 과제' : '최근 작문'}</h3><a href="#/writings">전체 보기 →</a></div>
       ${d.recentWritings.map((w) => `<div class="row between" style="padding:8px 0;border-bottom:1px solid var(--line)"><span><span class="badge">${w.week}주차</span> <span class="zh">${esc(w.preview)}</span></span><span><b>${w.score ?? '–'}</b>점 <small class="muted">${ago(w.created_at)}</small></span></div>`).join('') || '<div class="empty" style="padding:16px">아직 작문이 없어요. 주차마다 작문 미션이 있어요.</div>'}
     </div>
   </div>`;
@@ -208,9 +222,51 @@ export async function renderHome(app, ctx = {}) {
 }
 
 export async function renderCourse(app) {
-  const d = await get('/api/dashboard');
-  app.innerHTML = `<div class="page"><div class="page-head"><div><h1>15주 과정</h1><p>HSK 1급(1~6주) → 2급(7~12주) → 3급 맛보기(13~15주). 순서대로 공부하길 권하지만 어느 주차든 열어 볼 수 있어요.</p></div></div>
-    ${weekCards(d.weeks, d.current.gid)}</div>`;
+  app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
+  const [d, ci] = await Promise.all([get('/api/dashboard'), get('/api/course-info')]);
+  if (d.course?.format !== 'class') {
+    app.innerHTML = `<div class="page"><div class="page-head"><div><h1>15주 과정</h1></div></div>${weekCards(d.weeks, d.current.gid)}</div>`;
+    return;
+  }
+  const I = ci.info;
+  const total = I.grading.reduce((a, [, v]) => a + v, 0);
+  const byStage = I.stages.map((st) => ({ ...st, list: d.weeks.filter((w) => w.stage === st.no) }));
+  app.innerHTML = `<div class="page course-page">
+    <div class="page-head"><div>
+      <div class="ai-label">15주 과정 소개</div>
+      <h1 style="margin-top:4px">${esc(I.name)}</h1>
+      <div class="zh" style="font-size:20px;color:var(--accent)">${esc(I.nameZh)}</div>
+      <div class="muted" style="font-style:italic;font-size:14px">${esc(I.nameEn)}</div>
+    </div></div>
+    <div class="course-meta">${I.meta.map(([k, v]) => `<div class="stat"><div class="label">${esc(k)}</div><div class="value" style="font-size:18px">${esc(v)}</div></div>`).join('')}</div>
+    <div class="card"><div class="ai-label">교과목 개요</div><p style="line-height:1.8;margin:6px 0 0">${esc(I.summary)}</p></div>
+    <div class="card"><div class="ai-label">교육 목표 — 15주를 마치면</div><ol class="cw-goals">${I.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol></div>
+
+    <div class="section-title">주차별 수업 (4단계)</div>
+    ${byStage
+      .map(
+        (st) => `<div class="stage-block"><div class="stage-head"><span class="stage-no">${st.no}</span><div><b>${esc(st.name)}</b> <span class="muted">${esc(st.weeks)}</span><div class="muted" style="font-size:13px">${esc(st.desc)}</div></div></div>
+        ${weekCards(st.list, d.current.gid)}</div>`,
+      )
+      .join('')}
+
+    <div class="grid2 course-two">
+      <div class="card"><div class="ai-label">초급·중급 혼합 수업</div><p class="muted" style="font-size:14px">${esc(I.mixed.note)}</p>
+        <div class="grid2"><div><span class="badge">초급</span><ul class="cw-list">${I.mixed.basic.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+        <div><span class="badge accent">중급</span><ul class="cw-list">${I.mixed.inter.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div></div></div>
+      <div class="card"><div class="ai-label">교수·학습 방법</div><ul class="cw-list">${I.methods.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+    </div>
+
+    <div class="card"><div class="ai-label">일반적인 영상 중국어와 무엇이 다른가</div>
+      <div class="table-wrap" style="margin-top:8px"><table class="list"><thead><tr><th>구분</th><th>일반적인 영상 중국어</th><th>이 수업</th></tr></thead><tbody>${I.compare.map(([a, b, c]) => `<tr><td><b>${esc(a)}</b></td><td class="muted">${esc(b)}</td><td>${esc(c)}</td></tr>`).join('')}</tbody></table></div></div>
+
+    <div class="grid2 course-two">
+      <div class="card"><div class="ai-label">성적 구성 (${total}점)</div>${I.grading.map(([k, v]) => `<div class="grade-row"><span>${esc(k)}</span><b>${v}점</b><div class="progress"><div style="width:${v}%"></div></div></div>`).join('')}</div>
+      <div class="card"><div class="ai-label">숏폼 제작 프로젝트 루브릭 (100점)</div>${I.rubric.map(([k, v]) => `<div class="grade-row"><span>${esc(k)}</span><b>${v}</b><div class="progress"><div style="width:${v * 4}%"></div></div></div>`).join('')}<p class="muted" style="font-size:13px;margin:8px 0 0">${esc(I.rubricNote)}</p></div>
+    </div>
+
+    <div class="card"><div class="ai-label">영상 자료와 저작권</div><ol class="cw-goals">${I.copyright.map((x) => `<li>${esc(x)}</li>`).join('')}</ol></div>
+  </div>`;
 }
 
 export async function renderMyWritings(app) {

@@ -5,7 +5,7 @@ import { renderPreview } from './preview.js';
 import { renderCommonApps } from './common.js';
 import { renderHome, renderCourse, renderMyWritings, renderTrack } from './home.js';
 import { renderWeek } from './week.js';
-import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings } from './admin.js';
+import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings, renderAdminVideos } from './admin.js';
 
 const app = document.getElementById('app');
 
@@ -99,7 +99,7 @@ async function route() {
     renderChrome(parts[0] || '');
     if (!parts.length) return renderLanding(app);
     if (parts[0] === 'welcome') return renderLanding(app, { browse: true });
-    if (parts[0] === 'preview') return renderPreview(app, parts[1] || 'travel');
+    if (parts[0] === 'preview') return renderPreview(app, parts[1] || '');
     if (parts[0] === 'common') return renderCommonApps(app);
     if (!u) {
       location.hash = '#/';
@@ -107,7 +107,7 @@ async function route() {
     }
     if (parts[0] === 'pending' || u.status !== 'approved') return renderPending(app);
     const ctx = { params, rerender: route };
-    if (parts[0] === 'home') return renderHome(app, { ...ctx, course: parts[1] || 'travel' });
+    if (parts[0] === 'home') return renderHome(app, { ...ctx, course: parts[1] || '' });
     if (parts[0] === 'course') return renderCourse(app, ctx);
     if (parts[0] === 'track') return renderTrack(app, parts[1]);
     if (parts[0] === 'writings') return renderMyWritings(app, ctx);
@@ -117,6 +117,7 @@ async function route() {
       if (parts[1] === 'users' && parts[2]) return renderAdminUser(app, { ...ctx, id: parts[2] });
       if (parts[1] === 'users') return renderAdminUsers(app, ctx);
       if (parts[1] === 'writings') return renderAdminWritings(app, ctx);
+      if (parts[1] === 'videos') return renderAdminVideos(app, ctx);
       return renderAdmin(app, ctx);
     }
     app.innerHTML = '<div class="page"><div class="empty">없는 화면입니다. <a href="#/home">처음으로</a></div></div>';
