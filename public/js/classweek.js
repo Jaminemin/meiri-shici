@@ -68,7 +68,7 @@ function planBlock(W) {
   </div>`;
 }
 
-function taskBlock(W, level) {
+export function taskBlock(W, level) {
   return `<div class="cw-tasks">
     <div class="card cw-task ${level === '초급' ? 'mine' : ''}"><span class="badge">초급</span>${level === '초급' ? ' <small class="muted">내 수준</small>' : ''}<p>${esc(W.tasks.basic)}</p></div>
     <div class="card cw-task ${level === '중급' ? 'mine' : ''}"><span class="badge accent">중급</span>${level === '중급' ? ' <small class="muted">내 수준</small>' : ''}<p>${esc(W.tasks.inter)}</p></div>
@@ -88,11 +88,17 @@ export function classWeekBody(W, videos, level = '') {
       <div class="muted" style="font-size:14px">핵심 언어 학습: <b style="color:var(--ink)">${esc(W.focus)}</b></div>
     </div>
     ${creatorBlock(W, videos)}
-    ${patternBlock(W)}
     ${planBlock(W)}
-    <div class="section-title" id="cw-task-head">수준별 과제</div>
-    ${taskBlock(W, level)}
     ${W.convo && state.me?.user ? `<div class="card cw-convo"><div><div class="ai-label">AI 회화로 연습하기</div><b>${esc(W.convo.situation)}</b><div class="muted" style="font-size:14px">AI 역할: ${esc(W.convo.role)}</div></div><button class="btn" id="cw-talk">🤖 대화 시작</button></div>` : ''}`;
+}
+
+// 교수님 평가 상자 (과제 탭에서 쓴다)
+export function gradeHtml(g) {
+  if (!g) return '';
+  return `<div class="card cw-grade"><div class="card-head"><h3>교수님 평가</h3>${statusBadge(g.status, g.label)}</div>
+    ${g.total !== null ? `<div class="fb-score" style="display:inline-block">${g.total}</div>` : ''}
+    ${g.comment ? `<div class="ai-box">${esc(g.comment)}</div>` : g.status === 'submitted' || g.status === 'resubmitted' ? '<p class="muted" style="margin:0">교수님이 아직 평가하지 않았어요.</p>' : ''}
+    ${g.status === 'revise' ? '<p style="margin:8px 0 0">✏️ 의견을 보고 아래에서 다시 내 주세요.</p>' : ''}</div>`;
 }
 
 export function stageLabel(W) {

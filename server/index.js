@@ -54,14 +54,10 @@ function weekState(p, gid) {
   const words = Math.min(WORDS_PER_WEEK, p?.words_learned || 0);
   const quiz = p?.quiz_best ?? null;
   const writing = Boolean(p?.writing_done);
-  // 수업 안내형(숏폼) 주차: ① 수업 확인(영상·지도안을 보고 '확인' 누름) ② 과제 제출 — 둘 다 하면 완료
-  if (isClassWeek(gid ?? p?.week)) {
-    const checked = words > 0;
-    const steps = (checked ? 1 : 0) + (writing ? 1 : 0);
-    return { words, quiz, quizCount: p?.quiz_count || 0, writing, checked, steps, totalSteps: 2, done: steps === 2, completedAt: p?.completed_at || null };
-  }
+  // 숏폼 주차도 ① 단어 15개 외우기 ② 퀴즈 통과 ③ 과제 제출 — 셋 다 하면 완료
+  const checked = words > 0;
   const steps = (words >= WORDS_PER_WEEK ? 1 : 0) + (quiz !== null && quiz >= PASS_QUIZ ? 1 : 0) + (writing ? 1 : 0);
-  return { words, quiz, quizCount: p?.quiz_count || 0, writing, steps, totalSteps: 3, done: steps === 3, completedAt: p?.completed_at || null };
+  return { words, quiz, quizCount: p?.quiz_count || 0, writing, checked, steps, totalSteps: 3, done: steps === 3, completedAt: p?.completed_at || null };
 }
 
 async function refreshCompletion(userId, week) {

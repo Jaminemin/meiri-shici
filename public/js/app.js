@@ -118,7 +118,7 @@ async function route() {
     if (parts[0] === 'project') return renderProject(app);
     if (parts[0] === 'talk' && parts[1]) return renderTalkSession(app, Number(parts[1]));
     if (parts[0] === 'talk') return renderTalk(app);
-    if (parts[0] === 'week' && parts[1]) return renderWeek(app, { ...ctx, week: Number(parts[1]), tab: parts[2] || 'words' });
+    if (parts[0] === 'week' && parts[1]) return renderWeek(app, { ...ctx, week: Number(parts[1]), tab: parts[2] || '' });
     if (parts[0] === 'admin') {
       if (u.role !== 'admin') return (location.hash = '#/home');
       if (parts[1] === 'users' && parts[2]) return renderAdminUser(app, { ...ctx, id: parts[2] });

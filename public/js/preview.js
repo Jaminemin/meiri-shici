@@ -100,7 +100,7 @@ export async function renderPreview(app, course = '') {
   app.querySelectorAll('[data-say]').forEach((b) => b.addEventListener('click', () => speak(b.dataset.say)));
 }
 
-// 숏폼 과정 맛보기: 1주차 수업 안내를 그대로 보여 준다 (수업 확인·과제 제출은 로그인 후)
+// 숏폼 과정 맛보기: 1주차 수업 안내·단어·문장을 보여 준다 (퀴즈·과제 제출은 로그인 후)
 function previewClass(app, d) {
   const W = d.week;
   const loginCta = state.me?.googleReady
@@ -114,8 +114,11 @@ function previewClass(app, d) {
         <p>🎯 ${esc(W.goal)}</p></div>
       <div class="cta">${loginCta}</div>
     </div>
-    <div class="notice info">로그인 없이 1주차 수업 안내를 둘러보는 중입니다. 수업 확인, 과제 제출과 AI 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
+    <div class="notice info">로그인 없이 1주차를 둘러보는 중입니다. 퀴즈, 과제 제출과 AI 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
     ${classWeekBody(W, d.videos)}
+    <div class="card"><h3>① 이번 주 단어 <small class="muted" style="font-weight:400">${(W.words || []).length}개</small></h3>
+      <div class="pv-words">${(W.words || []).map((w) => `<div class="pv-word"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="듣기">🔊</button><div><b class="zh">${esc(w.hanzi)}</b> <span class="py">${esc(w.pinyin)}</span><div class="muted" style="font-size:14px">${esc(w.meaning)}</div></div></div>`).join('')}</div></div>
+    <div class="card"><h3>② 이번 주 문장</h3>${(W.examples || []).map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="듣기">🔊</button></div></div>`).join('')}</div>
     <div class="card" style="text-align:center;margin-top:16px"><h3 style="margin:0 0 6px">15주 전체 과정이 궁금하다면</h3><p class="muted" style="margin:0 0 12px">로그인하면 15주 과정 소개, 주차별 수업, 과제 제출과 AI 첨삭을 이용할 수 있어요.</p>${loginCta}</div>
   </div>`;
   bindClassWeek(app);

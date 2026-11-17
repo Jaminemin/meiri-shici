@@ -899,3 +899,16 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .cw-cr-ko { font-size: 14px; margin-top: 2px; }
 .cw-cr-use { font-size: 13px; margin-top: 6px; line-height: 1.5; }
 @media (max-width: 680px) { .cw-crs { grid-template-columns: 1fr; } }
+
+/* 맛보기: 단어 목록 */
+.pv-words { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pv-word { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; }
+.pv-word .zh { font-size: 18px; }
+.pv-word .py { font-size: 13px; color: var(--accent); }
+@media (max-width: 760px) { .pv-words { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .pv-words { grid-template-columns: 1fr; } }
+
+/* 긴 단어(4글자 이상)는 버튼을 아래로 내려 카드 밖으로 넘치지 않게 */
+.word .top { flex-wrap: wrap; }
+.word .hz.long { white-space: normal; word-break: keep-all; }
+@media (max-width: 480px) { .tabs { gap: 0; } .tabs button { padding: 10px 6px; font-size: 13.5px; } }
