@@ -7,6 +7,14 @@ const LEVELS = [
   { key: 'common', name: '공통', level: '공통', icon: '📱', ready: true },
 ];
 
+// 대문 배경 (파일, PC 위치, 모바일 위치) — 수업 장면 네 장을 번갈아 보여 준다
+const SLIDES = [
+  ['hero-1.jpg', '70% 40%', '80% 40%'],
+  ['hero-2.jpg', '78% 40%', '82% 40%'],
+  ['hero-3.jpg', '72% 40%', '62% 40%'],
+  ['hero-4.jpg', '60% 40%', '40% 40%'],
+];
+
 // browse: 로그인한 사용자가 집 아이콘으로 대문을 다시 볼 때 (대시보드로 튕기지 않는다)
 export async function renderLanding(app, { browse = false } = {}) {
   const me = state.me;
@@ -21,8 +29,7 @@ export async function renderLanding(app, { browse = false } = {}) {
   app.innerHTML = `
   <section class="gate-full">
     <div class="gate-slides" aria-hidden="true">
-      <div class="gate-slide on" style="background-image:url('/img/hero-1.jpg');background-position:55% 30%"></div>
-      <div class="gate-slide" style="background-image:url('/img/hero-2.jpg');background-position:82% 40%"></div>
+      ${SLIDES.map((sl, k) => `<div class="gate-slide${k ? '' : ' on'}" style="background-image:url('/img/${sl[0]}');--pos:${sl[1]};--mpos:${sl[2]}"></div>`).join('')}
     </div>
     <div class="gate-full-in">
       <span class="gate-photo-tag">抖音 · 15주 과정</span>
@@ -35,7 +42,7 @@ export async function renderLanding(app, { browse = false } = {}) {
       ${signedIn ? '<a class="btn primary" href="#/home" style="margin-top:14px">내 학습으로 돌아가기</a>' : '<p class="gate-full-note">처음 가입하면 관리자가 승인한 뒤부터 학습할 수 있습니다.</p>'}
       <a class="gate-photo-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a>
     </div>
-    <div class="gate-dots" aria-hidden="true"><i class="on"></i><i></i></div>
+    <div class="gate-dots" aria-hidden="true">${SLIDES.map((_, k) => `<i${k ? '' : ' class="on"'}></i>`).join('')}</div>
   </section>`;
   // 두 장의 배경을 번갈아 보여 준다 (움직임 줄이기 설정이면 멈춤)
   const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
