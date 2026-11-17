@@ -470,7 +470,7 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
 
   route('GET', '/api/talk/:id', async (req, res, { p }) => {
     const u = await requireUser(req);
-    const [s] = await db()`SELECT * FROM ai_sessions WHERE id = ${Number(p.id)} AND user_id = ${u.id}`;
+    const [s] = await db()`SELECT * FROM ai_sessions WHERE id = ${Number(p.id)} AND user_id = ${u.id} AND kind = 'conversation'`;
     if (!s) throw new HttpError(404, '대화를 찾지 못했습니다.', 'no_session');
     sendJson(res, 200, { session: { ...s, week: localWeek(s.week) }, scenario: scenario(localWeek(s.week)), maxTurns: MAX_TURNS });
   });
@@ -489,7 +489,7 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
 
   route('POST', '/api/talk/:id/say', async (req, res, { p, body }) => {
     const u = await requireUser(req);
-    const [s] = await db()`SELECT * FROM ai_sessions WHERE id = ${Number(p.id)} AND user_id = ${u.id}`;
+    const [s] = await db()`SELECT * FROM ai_sessions WHERE id = ${Number(p.id)} AND user_id = ${u.id} AND kind = 'conversation'`;
     if (!s) throw new HttpError(404, '대화를 찾지 못했습니다.', 'no_session');
     if (s.feedback) throw new HttpError(400, '이미 끝난 대화입니다. 새 대화를 시작해 주세요.', 'ended');
     const text = clampStr(body.text, 300).trim();
@@ -509,7 +509,7 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
 
   route('POST', '/api/talk/:id/end', async (req, res, { p }) => {
     const u = await requireUser(req);
-    const [s] = await db()`SELECT * FROM ai_sessions WHERE id = ${Number(p.id)} AND user_id = ${u.id}`;
+    const [s] = await db()`SELECT * FROM ai_sessions WHERE id = ${Number(p.id)} AND user_id = ${u.id} AND kind = 'conversation'`;
     if (!s) throw new HttpError(404, '대화를 찾지 못했습니다.', 'no_session');
     if (s.feedback) return sendJson(res, 200, { feedback: s.feedback });
     if (!s.messages.some((m) => m.role === 'me')) throw new HttpError(400, '먼저 한마디라도 해 보세요.', 'empty');

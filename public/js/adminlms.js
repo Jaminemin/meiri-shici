@@ -312,3 +312,61 @@ export async function renderAdminContent(app, ctx) {
     try { await put(`/api/admin/videos/${box.dataset.vid}`, { transcript: box.querySelector('[data-tr]').value, permission: box.querySelector('[data-perm]').value }); toast('자막을 저장했습니다.'); } catch (e) { toast(e.message, 'bad'); }
   }));
 }
+
+// ================= ✨ AI 학습 리포트 (교수자용) =================
+// 학생들의 퀴즈·과제 첨삭·회화·댓글 답글·해독 기록을 모아 AI가 반 전체 약점과 다음 수업 표현을 정리한다.
+export async function renderAdminReport(app) {
+  app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
+  let week = '';
+  try { week = sessionStorage.getItem('ms_rep_week') || ''; } catch { /* 무시 */ }
+  let d = await get(`/api/admin/report${week ? `?week=${week}` : ''}`);
+  const sayBtn = (zh) => `<button class="speak" data-speak="${esc(zh)}" aria-label="듣기">🔊</button>`;
+  function reportHtml(r) {
+    const R = r.data;
+    return `<div class="card rep-head"><div class="ai-label">${esc(r.scope)} · ${fmtDate(r.created_at, true)}${r.by_name ? ` · ${esc(r.by_name)}` : ''}</div><p style="margin:6px 0 0;font-size:16px">${esc(R.summary)}</p>
+        <div class="muted" style="font-size:13px;margin-top:8px">분석한 학생 ${r.stats?.active ?? '–'}명 / 전체 ${r.stats?.students ?? '–'}명 · 모은 오류 ${r.stats?.errors ?? '–'}개</div></div>
+      <div class="rep-grid">
+        <div class="card"><h3>🎯 다음 수업에서 다룰 표현 TOP ${R.topExpressions.length}</h3>${R.topExpressions.map((x, i) => `<div class="rep-exp"><span class="pnum">${i + 1}</span><div><span class="zh" style="font-size:18px">${esc(x.zh)}</span> ${sayBtn(x.zh)} <span class="py">${esc(x.py)}</span><div><b>${esc(x.ko)}</b></div><div class="muted" style="font-size:13px">${esc(x.why)}</div></div></div>`).join('')}</div>
+        <div class="card"><h3>⚠️ 반에서 자주 나온 오류</h3>${R.commonErrors.map((e) => `<div class="rep-err"><div class="row between"><b>${esc(e.type)}</b><span class="badge">${e.count}회쯤</span></div><div class="zh" style="font-size:14px">${esc(e.example)}</div><div class="muted" style="font-size:13px">💡 ${esc(e.tip)}</div></div>`).join('') || '<p class="muted">눈에 띄는 공통 오류가 없어요.</p>'}</div>
+      </div>
+      <div class="card"><h3>🧑‍🏫 다음 수업 활동 제안</h3><p style="white-space:pre-wrap;margin:0">${esc(R.nextClass)}</p></div>
+      <div class="card"><h3>학생별 메모 <small class="muted" style="font-weight:400">${R.students.length}명</small></h3>
+        <div class="table-wrap"><table class="list rep-table"><thead><tr><th>학생</th><th>잘하는 점</th><th>보완할 점</th><th>다음에 해 볼 것</th></tr></thead><tbody>
+        ${R.students.map((s) => `<tr><td><b>${esc(s.name)}</b></td><td>${esc(s.strength)}</td><td>${esc(s.weakness)}</td><td>${esc(s.next)}</td></tr>`).join('')}</tbody></table></div></div>
+      <p class="muted" style="font-size:13px">AI가 학습 기록만 보고 정리한 참고 자료예요. 성적에는 반영되지 않습니다.</p>`;
+  }
+  function draw() {
+    app.innerHTML = `<div class="page">
+      <div class="page-head"><div><h1>관리자</h1><p>학생들의 퀴즈·과제 첨삭·AI 회화·댓글 답글·유행어 해독 기록을 AI가 모아, 반 전체의 약점과 다음 수업에서 다룰 표현을 정리합니다.</p></div></div>
+      ${adminTabs('report')}
+      <div class="card row between" style="flex-wrap:wrap;gap:10px">
+        <label class="row" style="gap:8px">범위 <select id="rep-week"><option value="">15주 전체</option>${d.weeks.map((w) => `<option value="${w.week}" ${String(w.week) === String(week) ? 'selected' : ''}>${w.week}주차 · ${esc(w.title)}</option>`).join('')}</select></label>
+        <span class="muted" style="font-size:13px">기록이 있는 학생 ${d.stats.active ?? 0}명 / 전체 ${d.stats.students ?? 0}명</span>
+        <button class="btn primary" id="rep-go" ${d.stats.active ? '' : 'disabled title="아직 학생 기록이 없습니다"'}>✨ ${d.report ? 'AI 리포트 새로 만들기' : 'AI 리포트 만들기'}</button>
+      </div>
+      <div id="rep-out">${d.report ? reportHtml(d.report) : `<div class="card empty" style="padding:30px">${d.stats.active ? '아직 만든 리포트가 없어요. 위의 버튼을 눌러 만들어 보세요.' : '학생들이 퀴즈·과제·AI 실습을 하면 여기에서 리포트를 만들 수 있어요.'}</div>`}</div>
+    </div>`;
+    app.querySelector('#rep-week').onchange = async (e) => {
+      week = e.target.value;
+      try { sessionStorage.setItem('ms_rep_week', week); } catch { /* 무시 */ }
+      d = await get(`/api/admin/report${week ? `?week=${week}` : ''}`);
+      draw();
+    };
+    app.querySelector('#rep-go').onclick = async (e) => {
+      const b = e.currentTarget;
+      b.disabled = true;
+      b.textContent = 'AI가 기록을 분석하는 중… (30초~1분)';
+      try {
+        const r = await post('/api/admin/report', { week: week || null });
+        d.report = r.report;
+        draw();
+        toast('AI 리포트를 만들었어요.');
+      } catch (err) {
+        b.disabled = false;
+        b.textContent = '✨ AI 리포트 만들기';
+        toast(err.message, 'bad');
+      }
+    };
+  }
+  draw();
+}

@@ -923,3 +923,61 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 /* 어두운 화면에서는 같은 50% 투명도로 두되 사진을 어둡게 해 눈부시지 않게 */
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body::before { filter: brightness(0.4); } }
 :root[data-theme="dark"] body::before { filter: brightness(0.4); }
+
+/* ===== AI 실습 ===== */
+.lab-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.lab-card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--ink); transition: transform .15s ease; }
+.lab-card:hover { transform: translateY(-2px); }
+.lab-card h3 { margin: 0; }
+.lab-card p { margin: 0; font-size: 14px; flex: 1; }
+.lab-ico { font-size: 30px; }
+@media (max-width: 680px) { .lab-grid { grid-template-columns: 1fr; } }
+/* 댓글창 */
+.cm-post { border-left: 4px solid var(--accent); }
+.cm-tools { display: flex; align-items: center; gap: 6px; margin: 4px 0 10px; flex-wrap: wrap; padding: 6px 10px; border-radius: 12px; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.cm-tools .spacer { flex: 1; }
+.cm-list { padding: 6px 16px; }
+.cm-item { padding: 14px 0; border-bottom: 1px solid var(--line); }
+.cm-item:last-child { border-bottom: 0; }
+.cm-head { display: flex; gap: 10px; align-items: flex-start; }
+.cm-ava { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft, #eef0ff); color: var(--accent); font-weight: 800; }
+.cm-ava.me { background: var(--accent); color: #fff; font-size: 13px; }
+.cm-nick { font-size: 13px; color: var(--muted); font-weight: 700; }
+.cm-text { font-size: 17px; margin: 2px 0; }
+.cm-like { flex: none; font-size: 13px; color: #e0567c; }
+.cm-learn { margin-top: 6px; font-size: 13px; background: color-mix(in srgb, var(--accent) 8%, transparent); border-radius: 8px; padding: 5px 9px; }
+.cm-list.hide-py .py.cm-sub, .cm-list.hide-ko .muted.cm-sub { display: none; }
+.cm-form { display: flex; gap: 6px; margin: 10px 0 0 46px; }
+.cm-form input { flex: 1; min-width: 0; font-size: 16px; }
+.cm-reply { margin: 10px 0 0 46px; padding-left: 12px; border-left: 2px solid var(--line); }
+.cm-me { display: flex; gap: 8px; align-items: center; }
+.cm-eval { margin: 8px 0; padding: 10px 12px; border-radius: 12px; background: var(--surface-2, color-mix(in srgb, var(--accent) 5%, var(--surface))); border: 1px solid var(--line); }
+.cm-fix { margin-top: 6px; }
+.cm-better { margin-top: 8px; font-size: 14px; }
+.cm-follow { display: flex; gap: 8px; margin-top: 6px; }
+@media (max-width: 680px) { .cm-form, .cm-reply { margin-left: 0; } }
+/* 해독기 */
+.dc-summary { margin: 12px 0; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 9%, transparent); font-weight: 600; }
+.dc-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dc-two p { margin: 4px 0 10px; }
+.dc-items { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.dc-term { font-size: 22px; font-weight: 800; }
+.dc-ex { border-top: 1px dashed var(--line); padding-top: 8px; }
+@media (max-width: 680px) { .dc-two, .dc-items { grid-template-columns: 1fr; } }
+/* 내 단어장 */
+.mw-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mw-hz { font-size: 22px; font-weight: 800; }
+.mw-src { font-size: 12px; margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mw-list.hide-mean .mw-mean { filter: blur(6px); }
+.mw-list.hide-mean .mw-item:hover .mw-mean { filter: none; }
+@media (max-width: 900px) { .mw-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .mw-list { grid-template-columns: 1fr; } }
+/* AI 리포트 */
+.rep-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rep-exp { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.rep-exp:last-child { border-bottom: 0; }
+.rep-exp .pnum { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+.rep-err { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.rep-err:last-child { border-bottom: 0; }
+.rep-table td { vertical-align: top; font-size: 14px; }
+@media (max-width: 760px) { .rep-grid { grid-template-columns: 1fr; } }

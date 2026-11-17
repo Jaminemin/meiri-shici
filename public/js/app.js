@@ -7,7 +7,8 @@ import { renderHome, renderCourse, renderMyWritings, renderTrack } from './home.
 import { renderWeek } from './week.js';
 import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings, renderAdminVideos } from './admin.js';
 import { renderGrades, renderProject, renderTalk, renderTalkSession } from './lms.js';
-import { renderAdminGrading, renderAdminGrade, renderAdminGradebook, renderAdminTeams, renderAdminContent } from './adminlms.js';
+import { renderAdminGrading, renderAdminGrade, renderAdminGradebook, renderAdminTeams, renderAdminContent, renderAdminReport } from './adminlms.js';
+import { renderLab, renderComments, renderCommentPost, renderDecode, renderMyWords } from './ailab.js';
 
 const app = document.getElementById('app');
 
@@ -22,7 +23,7 @@ function navLinks(active) {
   const links = [
     ['home', '🧑‍🎓 내 학습'],
     ['course', '📖 15주 과정'],
-    ['talk', '🤖 AI 회화'],
+    ['lab', '✨ AI 실습'],
     ['project', '👥 팀 프로젝트'],
     ['grades', '📊 내 성적'],
     ['writings', '✏️ 내 작문<small class="nav-sub">AI 첨삭 작문 연습</small>'],
@@ -99,7 +100,7 @@ async function route() {
         })
         .catch(() => {});
     }
-    renderChrome(parts[0] || '');
+    renderChrome(['comments', 'decode', 'mywords', 'talk'].includes(parts[0]) ? 'lab' : parts[0] || '');
     if (!parts.length) return renderLanding(app);
     if (parts[0] === 'welcome') return renderLanding(app, { browse: true });
     if (parts[0] === 'preview') return renderPreview(app, parts[1] || '');
@@ -116,6 +117,11 @@ async function route() {
     if (parts[0] === 'writings') return renderMyWritings(app, ctx);
     if (parts[0] === 'grades') return renderGrades(app);
     if (parts[0] === 'project') return renderProject(app);
+    if (parts[0] === 'lab') return renderLab(app);
+    if (parts[0] === 'comments' && parts[1]) return renderCommentPost(app, Number(parts[1]));
+    if (parts[0] === 'comments') return renderComments(app);
+    if (parts[0] === 'decode') return renderDecode(app, parts[1] ? Number(parts[1]) : null);
+    if (parts[0] === 'mywords') return renderMyWords(app);
     if (parts[0] === 'talk' && parts[1]) return renderTalkSession(app, Number(parts[1]));
     if (parts[0] === 'talk') return renderTalk(app);
     if (parts[0] === 'week' && parts[1]) return renderWeek(app, { ...ctx, week: Number(parts[1]), tab: parts[2] || '' });
@@ -129,6 +135,7 @@ async function route() {
       if (parts[1] === 'grading') return renderAdminGrading(app, { ...ctx, week: parts[2] ? Number(parts[2]) : null });
       if (parts[1] === 'gradebook') return renderAdminGradebook(app, ctx);
       if (parts[1] === 'teams') return renderAdminTeams(app, ctx);
+      if (parts[1] === 'report') return renderAdminReport(app);
       if (parts[1] === 'content') return renderAdminContent(app, { ...ctx, week: parts[2] ? Number(parts[2]) : null });
       return renderAdmin(app, ctx);
     }
