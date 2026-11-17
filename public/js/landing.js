@@ -1,10 +1,9 @@
 // 대문 페이지(처음 화면). 로그인한 사용자는 바로 대시보드로 보낸다.
 import { state, esc, get } from './core.js';
-import { coverHtml } from './cover.js';
 
 // 대문에서 고르는 과목 (준비 중인 과목은 ready=false)
 const LEVELS = [
-  { key: 'shortform', name: '숏폼으로 배우는 현대중국어', level: '초급~중급', icon: '🎬', ready: true },
+  { key: 'shortform', name: '숏폼 중국어', level: '초급~중급', icon: '🎬', ready: true },
   { key: 'common', name: '공통', level: '공통', icon: '📱', ready: true },
 ];
 
@@ -31,10 +30,13 @@ export async function renderLanding(app, { browse = false } = {}) {
   <div class="page">
     <section class="gate-hero${reduced ? ' reduced' : ''}">
       <p class="gate-sub hook">도우인(抖音) 숏폼으로 15주 동안 실제 중국어를 듣고, 분석하고, 번역하고, 직접 만들어 봐요!</p>
-      <div class="gate-real">
-        <h1 class="gate-real-title zh">短视频与现代汉语学习</h1>
-        <div class="gate-phones" id="gate-phones" aria-label="수업에서 다루는 숏폼 영상 주제"></div>
-        <a class="gate-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a>
+      <div class="gate-photo" role="img" aria-label="중국 거리에서 짐벌로 브이로그를 찍는 모습">
+        <div class="gate-photo-txt">
+          <span class="gate-photo-tag">抖音 · 15주 과정</span>
+          <h1 class="gate-photo-title">숏폼 중국어</h1>
+          <p class="gate-photo-zh zh">短视频与现代汉语学习</p>
+        </div>
+        <a class="gate-photo-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a>
       </div>
       <div class="level-pick">
         ${LEVELS.map((c) => `<a class="level-card ${c.ready ? '' : 'soon'}" href="${levelHref(c)}"><span class="level-tag">${esc(c.level)}</span><span class="level-icon">${c.icon}</span><b>${esc(c.name)}</b><span class="muted" style="font-size:12px">${c.key === 'common' ? '필수 앱 보기 →' : c.ready ? (signedIn ? '학습하기 →' : '1주차 맛보기 →') : '준비 중'}</span></a>`).join('')}
@@ -46,15 +48,6 @@ export async function renderLanding(app, { browse = false } = {}) {
     </section>
 
   </div>`;
-  // 실제 숏폼 화면처럼 꾸민 주차 표지 세 장 (먹방·길거리 인터뷰·브이로그)
-  get('/api/course-info')
-    .then((ci) => {
-      const box = app.querySelector('#gate-phones');
-      if (!box) return;
-      const pick = [3, 6, 2].map((n) => ci.weeks.find((w) => w.week === n)).filter(Boolean);
-      box.innerHTML = pick.map((w) => `<div class="gate-phone">${coverHtml(w, { small: true })}<div class="gate-phone-cap"><b>${w.week}주차</b> ${esc(w.title)}</div></div>`).join('');
-    })
-    .catch(() => {});
 }
 
 export function renderPending(app) {
