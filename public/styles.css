@@ -906,7 +906,15 @@ details.faq p { margin: 10px 0 0; color: var(--ink-2); font-size: 14px; }
 .pv-word .zh { font-size: 18px; }
 .pv-word .py { font-size: 13px; color: var(--accent); }
 @media (max-width: 760px) { .pv-words { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 420px) { .pv-words { grid-template-columns: 1fr; } }
+@media (max-width: 560px) {
+  .pv-words { gap: 6px; }
+  .pv-word { gap: 5px; padding: 7px 8px; border-radius: 10px; min-width: 0; }
+  .pv-word > div { min-width: 0; }
+  .pv-word .speak { width: 26px; height: 26px; min-width: 26px; font-size: 12px; flex: none; }
+  .pv-word .zh { font-size: 17px; word-break: keep-all; }
+  .pv-word .py { font-size: 11.5px; display: block; }
+  .pv-word .muted { font-size: 12.5px !important; line-height: 1.35; }
+}
 
 /* 긴 단어(4글자 이상)는 버튼을 아래로 내려 카드 밖으로 넘치지 않게 */
 .word .top { flex-wrap: wrap; }
