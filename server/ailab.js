@@ -7,6 +7,7 @@ import { judgeComment, decodeText, classReport } from './lib/ai-lab.js';
 import { COURSES, DEFAULT_COURSE, curriculumSummary, localWeek } from './curriculum.js';
 import { SHORTFORM_STUDY } from './shortform-study.js';
 import { SHORTFORM_WEEKS } from './shortform.js';
+import { SHORTFORM_POSTS } from './shortform-posts.js';
 import { getLevel } from './lms.js';
 
 const C = () => COURSES[DEFAULT_COURSE];
@@ -20,7 +21,7 @@ const MY_WORDS_MAX = 500;
 
 // 주차별 연습용 게시물: 그 주 문장 두 개를 숏폼 캡션처럼 묶는다 (AI 호출 없음)
 // 영상이 있는 주차는 그 세로 숏폼 영상과 캡션을 게시물로 쓴다
-const shortOf = (local) => SHORTFORM_WEEKS.find((w) => w.week === Number(local))?.short || null;
+const shortOf = (local) => SHORTFORM_WEEKS.find((w) => w.week === Number(local))?.short || SHORTFORM_POSTS[Number(local)] || null;
 function practicePosts() {
   return curriculumSummary(DEFAULT_COURSE).map((w) => {
     const v = shortOf(w.week);
@@ -84,7 +85,7 @@ export function registerAiLab({ route, requireUser, requireAdmin }) {
     const w = local ? curriculumSummary(DEFAULT_COURSE).find((x) => x.week === local) : null;
     const history = mine.slice(-4).map((x) => `나: ${x.text}\nAI网友: ${x.reply?.text || ''}`).join('\n');
     const v = local ? shortOf(local) : null;
-    const scene = v && post.content === v.caption ? '\n[영상 장면] 상하이 와이탄을 배경으로 한 여성 크리에이터가 손을 흔들며 자기소개를 하고, 화면에 大家好，我是…/宝子们/家人们/点赞/关注/评论区 같은 자막이 뜬다. 마지막에 하트 손짓을 하며 좋아요·팔로우를 부탁한다.' : '';
+    const scene = v && post.content === v.caption && v.scene ? `\n[게시물 장면] ${v.scene}` : '';
     const r = await judgeComment({ post: (post.reaction ? `${post.content}\n(뜻: ${post.reaction})` : post.content) + scene, history, text, level: post.level, weekTitle: w ? `${w.week}주차 ${w.title} (${w.titleZh})` : '' });
     const item = {
       mine: true,
