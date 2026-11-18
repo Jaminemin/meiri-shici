@@ -87,6 +87,7 @@ async function route() {
   const parts = pathPart.split('/').filter(Boolean);
   const params = new URLSearchParams(query || '');
   window.scrollTo(0, 0);
+  document.body.classList.remove('on-landing');
   backFab.hidden = !parts.length || parts[0] === 'welcome';
   try {
     await loadMe();
