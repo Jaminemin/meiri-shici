@@ -100,10 +100,11 @@ export async function renderWeek(app, ctx) {
   // ---------- 단어 ----------
   let hideMean = false;
   function wordsTab() {
-    return `<div class="row between" style="margin-bottom:12px">
-        <span class="muted">외운 단어를 눌러 표시하세요 · <b id="kn">${known.size}</b>/${W.words.length}</span>
-        <div class="row"><label class="row" style="font-size:14px"><input type="checkbox" id="hide" ${hideMean ? 'checked' : ''}> 뜻 가리기(외우기 모드)</label>
-        <button class="btn small" id="all-known">모두 외웠어요</button></div></div>
+    return `<div class="word-bar">
+        <span class="wb-count">외운 단어 <b id="kn">${known.size}</b>/${W.words.length}</span>
+        <div class="wb-actions"><button class="btn small ${hideMean ? 'primary' : ''}" id="hide" aria-pressed="${hideMean}">${hideMean ? '🙈 뜻 가리는 중' : '🙈 뜻 가리기'}</button>
+        <button class="btn small" id="all-known">✓ 모두 외웠어요</button></div></div>
+      ${hideMean ? '<p class="muted wb-tip">카드를 누르면 가린 뜻이 잠깐 보여요.</p>' : ''}
       <div class="word-list ${hideMean ? 'hide-mean' : ''}" id="wl">${W.words
         .map(
           (w, i) => `<div class="word ${known.has(w.id) ? 'known' : ''}" data-w="${w.id}" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
@@ -530,9 +531,9 @@ export async function renderWeek(app, ctx) {
         draw();
       };
     if ($('#hide'))
-      $('#hide').onchange = (e) => {
-        hideMean = e.target.checked;
-        $('#wl').classList.toggle('hide-mean', hideMean);
+      $('#hide').onclick = () => {
+        hideMean = !hideMean;
+        draw();
       };
     app.querySelectorAll('.word').forEach((c) => (c.onclick = (e) => !e.target.closest('button') && c.classList.toggle('peek')));
     // 듣기·말하기 (단어 카드 배열)
