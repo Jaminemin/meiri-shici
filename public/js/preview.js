@@ -117,9 +117,39 @@ function previewClass(app, d) {
     <div class="notice info">로그인 없이 1주차를 둘러보는 중입니다. 퀴즈, 과제 제출과 AI 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
     ${classWeekBody(W, d.videos)}
     <div class="card"><h3>① 이번 주 단어 <small class="muted" style="font-weight:400">${(W.words || []).length}개</small></h3>
-      <div class="pv-words">${(W.words || []).map((w) => `<div class="pv-word"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="듣기">🔊</button><div><b class="zh">${esc(w.hanzi)}</b> <span class="py">${esc(w.pinyin)}</span><div class="muted" style="font-size:14px">${esc(w.meaning)}</div></div></div>`).join('')}</div></div>
+      <div id="pv-wordbox"></div></div>
     <div class="card"><h3>② 이번 주 문장</h3>${(W.examples || []).map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="듣기">🔊</button></div></div>`).join('')}</div>
     <div class="card" style="text-align:center;margin-top:16px"><h3 style="margin:0 0 6px">15주 전체 과정이 궁금하다면</h3><p class="muted" style="margin:0 0 12px">로그인하면 15주 과정 소개, 주차별 수업, 과제 제출과 AI 첨삭을 이용할 수 있어요.</p>${loginCta}</div>
   </div>`;
   bindClassWeek(app);
+  drawWords(app, W.words || []);
+}
+
+// 맛보기 단어: 뜻 가리기와 외웠어요 표시 (저장하지 않고 화면에서만 기억)
+function drawWords(app, words) {
+  const box = app.querySelector('#pv-wordbox');
+  if (!box) return;
+  const known = new Set();
+  let hide = false;
+  const draw = () => {
+    box.innerHTML = `<div class="word-bar">
+        <span class="wb-count">외운 단어 <b>${known.size}</b>/${words.length}</span>
+        <div class="wb-actions"><button class="btn small ${hide ? 'primary' : ''}" id="pv-hide" aria-pressed="${hide}">${hide ? '🙈 뜻 가리는 중' : '🙈 뜻 가리기'}</button>
+        <button class="btn small" id="pv-all">✓ 모두 외웠어요</button></div></div>
+      ${hide ? '<p class="muted wb-tip">카드를 누르면 가린 뜻이 잠깐 보여요.</p>' : ''}
+      <div class="word-list ${hide ? 'hide-mean' : ''}">${words.map((w, i) => `<div class="word ${known.has(i) ? 'known' : ''}" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
+          <div class="num">${i + 1}</div>
+          <div class="body">
+            <div class="top"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}${w.hanzi.length >= 4 ? ' xl' : ''}">${esc(w.hanzi)}</div>
+              <div class="tools"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button><button class="btn small ${known.has(i) ? 'primary' : ''}" data-know="${i}">${known.has(i) ? '✓ 외움' : '외웠어요'}</button></div></div>
+            <div class="py">${esc(w.pinyin)}</div>
+            <div class="mn">${esc(w.meaning)}</div>
+          </div></div>`).join('')}</div>`;
+    box.querySelector('#pv-hide').onclick = () => { hide = !hide; draw(); };
+    box.querySelector('#pv-all').onclick = () => { words.forEach((_, i) => known.add(i)); draw(); };
+    box.querySelectorAll('[data-know]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); const k = Number(b.dataset.know); known.has(k) ? known.delete(k) : known.add(k); draw(); }));
+    box.querySelectorAll('[data-speak]').forEach((b) => (b.onclick = (e) => { e.stopPropagation(); speak(b.dataset.speak); }));
+    box.querySelectorAll('.word').forEach((c) => (c.onclick = (e) => !e.target.closest('button') && c.classList.toggle('peek')));
+  };
+  draw();
 }
