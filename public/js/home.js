@@ -210,7 +210,6 @@ export async function renderCourse(app) {
   }
   const I = ci.info;
   const total = I.grading.reduce((a, [, v]) => a + v, 0);
-  const byStage = I.stages.map((st) => ({ ...st, list: d.weeks.filter((w) => w.stage === st.no) }));
   app.innerHTML = `<div class="page course-page">
     <div class="page-head"><div>
       <div class="ai-label">15주 과정 소개</div>
@@ -223,12 +222,8 @@ export async function renderCourse(app) {
     <div class="card"><div class="ai-label">교육 목표 — 15주를 마치면</div><ol class="cw-goals">${I.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol></div>
 
     <div class="section-title">주차별 수업 (4단계)</div>
-    ${byStage
-      .map(
-        (st) => `<div class="stage-block"><div class="stage-head"><span class="stage-no">${st.no}</span><div><b>${esc(st.name)}</b> <span class="muted">${esc(st.weeks)}</span><div class="muted" style="font-size:13px">${esc(st.desc)}</div></div></div>
-        ${weekCards(st.list, d.current.gid)}</div>`,
-      )
-      .join('')}
+    <div class="stage-legend">${I.stages.map((st) => `<div class="stage-chip"><span class="stage-no">${st.no}</span><div><b>${esc(st.name)}</b> <span class="muted">${esc(st.weeks)}</span><div class="muted" style="font-size:12.5px">${esc(st.desc)}</div></div></div>`).join('')}</div>
+    ${weekCards(d.weeks, d.current.gid)}
 
     <div class="grid2 course-two">
       <div class="card"><div class="ai-label">초급·중급 혼합 수업</div><p class="muted" style="font-size:14px">${esc(I.mixed.note)}</p>
