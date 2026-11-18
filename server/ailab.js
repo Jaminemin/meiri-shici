@@ -6,6 +6,7 @@ import { checkQuota } from './lib/ai.js';
 import { judgeComment, decodeText, classReport } from './lib/ai-lab.js';
 import { COURSES, DEFAULT_COURSE, curriculumSummary, localWeek } from './curriculum.js';
 import { SHORTFORM_STUDY } from './shortform-study.js';
+import { SHORTFORM_WEEKS } from './shortform.js';
 import { getLevel } from './lms.js';
 
 const C = () => COURSES[DEFAULT_COURSE];
@@ -18,10 +19,14 @@ const MAX_COMMENTS = 10;
 const MY_WORDS_MAX = 500;
 
 // 주차별 연습용 게시물: 그 주 문장 두 개를 숏폼 캡션처럼 묶는다 (AI 호출 없음)
+// 영상이 있는 주차는 그 세로 숏폼 영상과 캡션을 게시물로 쓴다
+const shortOf = (local) => SHORTFORM_WEEKS.find((w) => w.week === Number(local))?.short || null;
 function practicePosts() {
   return curriculumSummary(DEFAULT_COURSE).map((w) => {
+    const v = shortOf(w.week);
+    if (v) return { week: w.week, title: w.title, zh: v.caption, ko: v.captionKo, video: v };
     const s = SHORTFORM_STUDY[w.week]?.sentences || [];
-    return { week: w.week, title: w.title, zh: s.slice(0, 2).map((x) => x[0]).join(''), ko: s.slice(0, 2).map((x) => x[2]).join(' ') };
+    return { week: w.week, title: w.title, zh: s.slice(0, 2).map((x) => x[0]).join(''), ko: s.slice(0, 2).map((x) => x[2]).join(' '), video: null };
   });
 }
 
@@ -59,7 +64,10 @@ export function registerAiLab({ route, requireUser, requireAdmin }) {
     const u = await requireUser(req);
     const [post] = await db()`SELECT * FROM comment_posts WHERE id = ${Number(p.id)} AND user_id = ${u.id}`;
     if (!post) throw new HttpError(404, '연습을 찾지 못했습니다.', 'no_post');
-    sendJson(res, 200, { post: { ...post, week: post.week ? localWeek(post.week) : null }, max: MAX_COMMENTS });
+    const local = post.week ? localWeek(post.week) : null;
+    const v = local ? shortOf(local) : null;
+    const video = v && post.content === v.caption ? v : null;
+    sendJson(res, 200, { post: { ...post, week: local }, video, max: MAX_COMMENTS });
   });
 
   // 내 댓글 달기 → AI가 중국 네티즌으로 답하고, 선생님으로 고쳐 준다
@@ -75,7 +83,9 @@ export function registerAiLab({ route, requireUser, requireAdmin }) {
     const local = post.week ? localWeek(post.week) : null;
     const w = local ? curriculumSummary(DEFAULT_COURSE).find((x) => x.week === local) : null;
     const history = mine.slice(-4).map((x) => `나: ${x.text}\nAI网友: ${x.reply?.text || ''}`).join('\n');
-    const r = await judgeComment({ post: post.reaction ? `${post.content}\n(뜻: ${post.reaction})` : post.content, history, text, level: post.level, weekTitle: w ? `${w.week}주차 ${w.title} (${w.titleZh})` : '' });
+    const v = local ? shortOf(local) : null;
+    const scene = v && post.content === v.caption ? '\n[영상 장면] 상하이 와이탄을 배경으로 한 여성 크리에이터가 손을 흔들며 자기소개를 하고, 화면에 大家好，我是…/宝子们/家人们/点赞/关注/评论区 같은 자막이 뜬다. 마지막에 하트 손짓을 하며 좋아요·팔로우를 부탁한다.' : '';
+    const r = await judgeComment({ post: (post.reaction ? `${post.content}\n(뜻: ${post.reaction})` : post.content) + scene, history, text, level: post.level, weekTitle: w ? `${w.week}주차 ${w.title} (${w.titleZh})` : '' });
     const item = {
       mine: true,
       text,
