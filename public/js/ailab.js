@@ -46,7 +46,7 @@ export async function renderComments(app) {
       <div class="card">
         <div class="cm-modes"><button class="tag ${mode === 'week' ? 'on' : ''}" data-mode="week">주차 연습 게시물</button><button class="tag ${mode === 'custom' ? 'on' : ''}" data-mode="custom">내가 본 영상·게시물</button></div>
         ${mode === 'week' ? `<label class="vlabel" style="margin-top:10px">주차 <select id="cm-week">${d.practice.map((w) => `<option value="${w.week}" ${String(w.week) === String(week) ? 'selected' : ''}>${w.week}주차 · ${esc(w.title)}</option>`).join('')}</select></label>
-          ${pp ? `<div class="cm-postcard ${pp.video ? 'has-video' : ''}">${pp.video ? `<div class="dy-thumb"><img src="${esc(pp.video.poster)}" alt="" loading="lazy"><span class="dy-thumb-play">▶</span></div>` : ''}<div style="min-width:0"><div class="cm-post-tag">${pp.video ? '연습용 숏폼 영상' : '연습용 게시물'}</div><div class="zh cm-post-zh">${esc(pp.zh)} ${say(pp.zh)}</div><div class="muted" style="font-size:14px">${esc(pp.ko)}</div></div></div>` : ''}`
+          ${pp ? `<div class="cm-postcard ${pp.video ? 'has-video' : ''}">${pp.video ? `<div class="dy-thumb ${pp.video.kind === 'image' ? 'img' : ''}"><img src="${esc(pp.video.poster)}" alt="" loading="lazy">${pp.video.kind === 'image' ? '' : '<span class="dy-thumb-play">▶</span>'}</div>` : ''}<div style="min-width:0"><div class="cm-post-tag">${pp.video ? (pp.video.kind === 'image' ? '연습용 숏폼 게시물' : '연습용 숏폼 영상') : '연습용 게시물'}</div><div class="zh cm-post-zh">${esc(pp.zh)} ${say(pp.zh)}</div><div class="muted" style="font-size:14px">${esc(pp.ko)}</div></div></div>` : ''}`
         : `<label class="vlabel" style="margin-top:10px">어떤 영상·게시물에 댓글을 달까요?
             <textarea id="cm-custom" rows="3" maxlength="300" placeholder="예: 상하이 와이탄 야경을 찍은 브이로그. 캡션: 外滩的夜景太美了！ (한국어로 써도 돼요)"></textarea></label>`}
         <div class="row end" style="margin-top:12px"><button class="btn primary" id="cm-go">💬 댓글 연습 시작</button></div>
@@ -109,11 +109,13 @@ export async function renderCommentPost(app, id) {
     const legacy = items.some((c) => !c.mine);
     app.innerHTML = `<div class="page cm-page">
       <div class="page-head"><div>${back('#/comments', 'AI 댓글 연습')}<h1 style="margin-top:6px">💬 댓글 연습</h1><p class="muted" style="font-size:13px">ⓘ ${AI_NOTE}</p></div></div>
-      ${V ? `<div class="dy-wrap"><div class="dy-player">
-          <video id="dy-video" playsinline loop preload="metadata" poster="${esc(V.poster)}"><source src="${esc(V.src)}" type="video/mp4"></video>
-          <button class="dy-big-play" id="dy-play" aria-label="재생">▶</button>
+      ${V ? `<div class="dy-wrap ${V.kind === 'image' ? 'img' : ''}"><div class="dy-player">
+          ${V.kind === 'image'
+            ? `<img class="dy-img-main" src="${esc(V.src)}" alt="${esc(P.week)}주차 게시물 그림"><span class="dy-badge">图文</span>`
+            : `<video id="dy-video" playsinline loop preload="metadata" poster="${esc(V.poster)}"><source src="${esc(V.src)}" type="video/mp4"></video>
+          <button class="dy-big-play" id="dy-play" aria-label="재생">▶</button>`}
         </div>
-        <div class="dy-under"><div class="cm-post-tag">${P.week}주차 · 연습용 숏폼 영상</div><div class="dy-author"><span class="dy-ava">短</span><b>@${esc(V.author)}</b></div><div class="zh cm-post-zh">${esc(V.caption)}</div><div class="dy-tags">${(V.tags || []).map((t) => esc(t)).join(' ')}</div><div class="py cm-sub" style="font-size:13px;margin-top:6px">${esc(V.captionPy || '')}</div><div class="muted" style="font-size:14px">${esc(V.captionKo || P.reaction || '')}</div><div class="row" style="gap:6px;margin-top:6px">${say(V.caption)}<span class="muted" style="font-size:13px">캡션 듣기 · 영상을 보고 아래 评论区에 댓글을 달아 보세요</span></div></div></div>`
+        <div class="dy-under"><div class="cm-post-tag">${P.week}주차 · ${V.kind === 'image' ? '연습용 숏폼 게시물' : '연습용 숏폼 영상'}</div><div class="dy-author"><span class="dy-ava">短</span><b>@${esc(V.author)}</b></div><div class="zh cm-post-zh">${esc(V.caption)}</div><div class="dy-tags">${(V.tags || []).map((t) => esc(t)).join(' ')}</div><div class="py cm-sub" style="font-size:13px;margin-top:6px">${esc(V.captionPy || '')}</div><div class="muted" style="font-size:14px">${esc(V.captionKo || P.reaction || '')}</div><div class="row" style="gap:6px;margin-top:6px">${say(V.caption)}<span class="muted" style="font-size:13px">캡션 듣기 · ${V.kind === 'image' ? '게시물을' : '영상을'} 보고 아래 评论区에 댓글을 달아 보세요</span></div></div></div>`
       : `<div class="card cm-postcard"><div class="cm-post-tag">${P.week ? `${P.week}주차 · ` : ''}${P.reaction ? '연습용 게시물' : '내가 본 영상·게시물'}</div><div class="zh cm-post-zh" style="white-space:pre-wrap">${esc(P.content)} ${P.reaction ? say(P.content) : ''}</div>${P.reaction ? `<div class="muted" style="font-size:14px">${esc(P.reaction)}</div>` : ''}</div>`}
       ${V ? `<div class="dy-comments-head"><b>评论区</b> <span class="muted">댓글 ${items.filter((c) => c.mine).length * 2}</span></div>` : ''}
       ${items.length ? `<div class="cm-tools"><span class="muted" style="font-size:13px">보기</span><button class="tag ${pyOn ? 'on' : ''}" data-t="py">병음</button><button class="tag ${koOn ? 'on' : ''}" data-t="ko">한국어 뜻</button><span class="spacer"></span><button class="btn small danger" id="cm-del">연습 지우기</button></div>
