@@ -1,4 +1,4 @@
-// AI 실습: 허브 · ① 댓글창 시뮬레이터 · ② 유행어 해독기 · 내 단어장(퀴즈)
+// AI 실습: 허브 · ① AI 댓글 연습 · ② 유행어 해독기 · 내 단어장(퀴즈)
 import { esc, get, post, del, toast, ago, speak, confirmBox } from './core.js';
 
 const VERDICT = { good: ['✅', '자연스러워요'], fix: ['✏️', '조금만 고치면 돼요'], rewrite: ['🔄', '다시 써 보면 좋아요'] };
@@ -18,81 +18,81 @@ export async function renderLab(app) {
   app.innerHTML = `<div class="page">
     <div class="page-head"><div><h1>✨ AI 실습</h1><p>책으로는 할 수 없는 연습이에요. 내가 쓴 중국어에 AI가 중국 네티즌처럼 반응하고, 내가 본 진짜 중국어를 풀어 줘요.</p></div></div>
     <div class="lab-grid">
-      <a class="card lab-card" href="#/comments"><span class="lab-ico">💬</span><h3>AI 댓글창</h3><p class="muted">내 숏폼 대본·캡션을 올리면 중국 네티즌 6명이 댓글을 달아요. 중국어로 답글을 달고 평가받아요.</p><span class="track-go">글 올리기 →</span></a>
+      <a class="card lab-card" href="#/comments"><span class="lab-ico">💬</span><h3>AI 댓글 연습</h3><p class="muted">숏폼 게시물에 중국어로 댓글을 달면, AI가 중국 네티즌이 되어 답글을 달고 자연스러운 말투로 고쳐 줘요.</p><span class="track-go">댓글 달기 →</span></a>
       <a class="card lab-card" href="#/decode"><span class="lab-ico">🔍</span><h3>유행어 해독기</h3><p class="muted">도우인·샤오훙슈에서 본 댓글·자막을 붙여 넣으면 진짜 뜻과 말투를 풀어 줘요.</p><span class="track-go">해독하기 →</span></a>
       <a class="card lab-card" href="#/mywords"><span class="lab-ico">📒</span><h3>내 단어장 <span class="badge accent">${d.wordCount}개</span></h3><p class="muted">해독기에서 저장한 표현을 모아 보고, 나만의 퀴즈로 외워요.</p><span class="track-go">단어장 보기 →</span></a>
       <a class="card lab-card" href="#/talk"><span class="lab-ico">🤖</span><h3>AI 회화</h3><p class="muted">주차별 상황에서 AI가 중국인 역할을 맡아 대화해요.</p><span class="track-go">대화하기 →</span></a>
     </div>
-    ${d.posts.length ? `<div class="section-title">내가 올린 글</div><div class="card">${d.posts.map((p) => `<a class="row between talk-past" href="#/comments/${p.id}"><span class="zh">${p.week ? `<span class="badge">${p.week}주차</span> ` : ''}${esc(p.preview)}</span><span class="muted" style="font-size:13px">댓글 ${p.n} · ${ago(p.created_at)}</span></a>`).join('')}</div>` : ''}
+    ${d.posts.length ? `<div class="section-title">댓글 연습 기록</div><div class="card">${d.posts.map((p) => `<a class="row between talk-past" href="#/comments/${p.id}"><span class="zh">${p.week ? `<span class="badge">${p.week}주차</span> ` : ''}${esc(p.preview)}</span><span class="muted" style="font-size:13px">댓글 ${p.n} · ${ago(p.created_at)}</span></a>`).join('')}</div>` : ''}
     ${d.decodes.length ? `<div class="section-title">최근 해독</div><div class="card">${d.decodes.map((x) => `<a class="row between talk-past" href="#/decode/${x.id}"><span class="zh">${esc(x.preview)}</span><span class="muted" style="font-size:13px">${esc(x.summary || '')} · ${ago(x.created_at)}</span></a>`).join('')}</div>` : ''}
   </div>`;
 }
 
-// ---------------- ① 댓글창 ----------------
+// ---------------- ① AI 댓글 연습 ----------------
+// 학생이 숏폼 게시물에 중국어 댓글을 달면, AI가 중국 네티즌 역할로 답글을 달고 선생님으로서 고쳐 준다.
+const AI_NOTE = '실제 사람이 아니라 AI가 중국 네티즌 역할을 하는 연습이에요.';
+
 export async function renderComments(app) {
   loading(app);
   const d = await get('/api/lab');
-  let draft = '';
-  try { draft = sessionStorage.getItem('ms_cm_draft') || ''; } catch { /* 무시 */ }
-  app.innerHTML = `<div class="page">
-    <div class="page-head"><div>${back()}<h1 style="margin-top:6px">💬 AI 댓글창</h1><p>내가 만든 숏폼의 대본이나 캡션을 올려 보세요. 성격이 다른 중국 네티즌 6명이 댓글을 달아요. 마음에 드는 댓글에 중국어로 답글을 달면 AI가 댓글 말투까지 평가해 줘요.</p></div></div>
-    <div class="card">
-      <label class="vlabel">어느 주차 숏폼인가요? (선택)
-        <select id="cm-week"><option value="">자유 주제</option>${d.weeks.map((w) => `<option value="${w.week}">${w.week}주차 · ${esc(w.title)}</option>`).join('')}</select></label>
-      <label class="vlabel" style="margin-top:10px">대본·캡션 (중국어로 쓰면 더 좋아요)
-        <textarea id="cm-text" rows="5" class="zh" maxlength="600" placeholder="예: 大家好，我是智秀！今天带大家去首尔的一家宝藏小店，人均三十块，真的很好吃！">${esc(draft)}</textarea></label>
-      <div class="row between" style="margin-top:8px"><span class="muted" style="font-size:13px"><span id="cm-n">${draft.length}</span>/600자</span><button class="btn primary" id="cm-go">💬 올리고 댓글 받기</button></div>
-    </div>
-    ${d.posts.length ? `<div class="section-title">내가 올린 글</div><div class="card">${d.posts.map((p) => `<a class="row between talk-past" href="#/comments/${p.id}"><span class="zh">${p.week ? `<span class="badge">${p.week}주차</span> ` : ''}${esc(p.preview)}</span><span class="muted" style="font-size:13px">댓글 ${p.n} · ${ago(p.created_at)}</span></a>`).join('')}</div>` : ''}
-  </div>`;
-  const ta = app.querySelector('#cm-text');
-  ta.oninput = () => {
-    app.querySelector('#cm-n').textContent = ta.value.length;
-    try { sessionStorage.setItem('ms_cm_draft', ta.value); } catch { /* 무시 */ }
-  };
-  app.querySelector('#cm-go').onclick = async (e) => {
-    const content = ta.value.trim();
-    if (content.length < 4) return toast('대본이나 캡션을 조금 더 써 주세요.', 'bad');
-    const b = e.currentTarget;
-    b.disabled = true;
-    b.textContent = '중국 네티즌들이 댓글 다는 중…';
-    try {
-      const r = await post('/api/comments', { content, week: app.querySelector('#cm-week').value || null });
-      try { sessionStorage.removeItem('ms_cm_draft'); } catch { /* 무시 */ }
-      location.hash = `#/comments/${r.id}`;
-    } catch (err) {
-      b.disabled = false;
-      b.textContent = '💬 올리고 댓글 받기';
-      toast(err.message, 'bad');
-    }
-  };
+  let week = '';
+  try { week = sessionStorage.getItem('ms_cm_week') || ''; } catch { /* 무시 */ }
+  if (!week && d.practice.length) week = String(d.practice[0].week);
+  let mode = 'week';
+  function draw() {
+    const pp = d.practice.find((x) => String(x.week) === String(week));
+    app.innerHTML = `<div class="page">
+      <div class="page-head"><div>${back()}<h1 style="margin-top:6px">💬 AI 댓글 연습</h1><p>중국 숏폼에 댓글을 단다고 생각하고 중국어로 써 보세요. <b>AI가 중국 네티즌이 되어 답글을 달고</b>, 내 댓글을 중국 사람들이 실제로 쓰는 말투로 고쳐 줘요.</p><p class="muted" style="font-size:13px;margin-top:4px">ⓘ ${AI_NOTE}</p></div></div>
+      <div class="card">
+        <div class="cm-modes"><button class="tag ${mode === 'week' ? 'on' : ''}" data-mode="week">주차 연습 게시물</button><button class="tag ${mode === 'custom' ? 'on' : ''}" data-mode="custom">내가 본 영상·게시물</button></div>
+        ${mode === 'week' ? `<label class="vlabel" style="margin-top:10px">주차 <select id="cm-week">${d.practice.map((w) => `<option value="${w.week}" ${String(w.week) === String(week) ? 'selected' : ''}>${w.week}주차 · ${esc(w.title)}</option>`).join('')}</select></label>
+          ${pp ? `<div class="cm-postcard"><div class="cm-post-tag">연습용 게시물</div><div class="zh cm-post-zh">${esc(pp.zh)} ${say(pp.zh)}</div><div class="muted" style="font-size:14px">${esc(pp.ko)}</div></div>` : ''}`
+        : `<label class="vlabel" style="margin-top:10px">어떤 영상·게시물에 댓글을 달까요?
+            <textarea id="cm-custom" rows="3" maxlength="300" placeholder="예: 상하이 와이탄 야경을 찍은 브이로그. 캡션: 外滩的夜景太美了！ (한국어로 써도 돼요)"></textarea></label>`}
+        <div class="row end" style="margin-top:12px"><button class="btn primary" id="cm-go">💬 댓글 연습 시작</button></div>
+      </div>
+      ${d.posts.length ? `<div class="section-title">이어서 연습하기</div><div class="card">${d.posts.map((p) => `<a class="row between talk-past" href="#/comments/${p.id}"><span class="zh">${p.week ? `<span class="badge">${p.week}주차</span> ` : ''}${esc(p.preview)}</span><span class="muted" style="font-size:13px">댓글 ${p.n} · ${ago(p.created_at)}</span></a>`).join('')}</div>` : ''}
+    </div>`;
+    app.querySelectorAll('[data-mode]').forEach((b) => (b.onclick = () => { mode = b.dataset.mode; draw(); }));
+    app.querySelector('#cm-week')?.addEventListener('change', (e) => {
+      week = e.target.value;
+      try { sessionStorage.setItem('ms_cm_week', week); } catch { /* 무시 */ }
+      draw();
+    });
+    app.querySelector('#cm-go').onclick = async (e) => {
+      const b = e.currentTarget;
+      const custom = app.querySelector('#cm-custom')?.value.trim() || '';
+      if (mode === 'custom' && custom.length < 4) return toast('영상·게시물 내용을 조금 더 써 주세요.', 'bad');
+      b.disabled = true;
+      try {
+        const r = await post('/api/comments', mode === 'week' ? { week } : { custom, week: null });
+        location.hash = `#/comments/${r.id}`;
+      } catch (err) { b.disabled = false; toast(err.message, 'bad'); }
+    };
+  }
+  draw();
 }
 
-function replyHtml(r) {
-  const v = VERDICT[r.eval?.verdict] || VERDICT.fix;
-  return `<div class="cm-reply">
-    <div class="cm-me"><span class="cm-ava me">나</span><div><div class="zh">${esc(r.text)}</div></div></div>
+// 내 댓글 → 교정 → AI网友 답글
+function myCommentHtml(c) {
+  const v = VERDICT[c.eval?.verdict] || VERDICT.fix;
+  const changed = c.eval?.corrected && c.eval.corrected !== c.text;
+  return `<div class="cm-item">
+    <div class="cm-head"><span class="cm-ava me">나</span><div style="flex:1;min-width:0"><div class="cm-nick">내 댓글</div><div class="zh cm-text">${esc(c.text)}</div></div></div>
     <div class="cm-eval">
-      <div class="row between"><b>${v[0]} ${v[1]}</b><span class="badge accent">${r.eval?.score ?? '–'}점</span></div>
-      ${r.eval?.corrected && r.eval.corrected !== r.text ? `<div class="cm-fix"><span class="muted" style="font-size:12px">고친 답글</span><div class="zh">${esc(r.eval.corrected)} ${say(r.eval.corrected)}</div><div class="py">${esc(r.eval.correctedPy || '')}</div><div class="muted" style="font-size:14px">${esc(r.eval.translation || '')}</div></div>` : ''}
-      <p style="margin:6px 0 0;font-size:14px">${esc(r.eval?.comment || '')}</p>
-      ${(r.eval?.better || []).length ? `<div class="cm-better"><span class="muted" style="font-size:12px">이렇게도 말해요</span>${r.eval.better.map((b) => `<div><span class="zh">${esc(b.zh)}</span> ${say(b.zh)} <span class="py">${esc(b.py)}</span> <span class="muted">· ${esc(b.ko)}</span></div>`).join('')}</div>` : ''}
+      <div class="row between"><b>${v[0]} ${v[1]}</b><span class="badge accent">${c.eval?.score ?? '–'}점</span></div>
+      ${changed ? `<div class="cm-fix"><span class="muted" style="font-size:12px">이렇게 고치면 자연스러워요</span><div class="zh" style="font-size:17px">${esc(c.eval.corrected)} ${say(c.eval.corrected)}</div><div class="py cm-sub">${esc(c.eval.correctedPy || '')}</div><div class="muted cm-sub" style="font-size:14px">${esc(c.eval.translation || '')}</div></div>` : ''}
+      <p style="margin:6px 0 0;font-size:14px">${esc(c.eval?.comment || '')}</p>
+      ${(c.eval?.natives || []).length ? `<div class="cm-better"><span class="muted" style="font-size:12px">중국 네티즌이라면 이렇게도 써요</span>${c.eval.natives.map((b) => `<div><span class="zh">${esc(b.zh)}</span> ${say(b.zh)} <span class="py cm-sub">${esc(b.py)}</span> <span class="muted cm-sub">· ${esc(b.ko)}</span></div>`).join('')}</div>` : ''}
     </div>
-    ${r.follow?.text ? `<div class="cm-follow"><span class="cm-ava">↩</span><div><div class="zh">${esc(r.follow.text)} ${say(r.follow.text)}</div><div class="py">${esc(r.follow.py)}</div><div class="muted" style="font-size:14px">${esc(r.follow.ko)}</div></div></div>` : ''}
+    ${c.reply?.text ? `<div class="cm-reply"><div class="cm-head"><span class="cm-ava ai">AI</span><div style="flex:1;min-width:0"><div class="cm-nick">AI网友 <span class="badge">AI 답글</span></div><div class="zh cm-text">${esc(c.reply.text)} ${say(c.reply.text)}</div><div class="py cm-sub">${esc(c.reply.py)}</div><div class="muted cm-sub" style="font-size:14px">${esc(c.reply.ko)}</div></div></div></div>` : ''}
   </div>`;
 }
 
-function commentHtml(c, i, max) {
-  const left = max - (c.replies || []).length;
-  return `<div class="cm-item" data-i="${i}">
-    <div class="cm-head"><span class="cm-ava">${esc((c.nick || '网')[0])}</span><div style="flex:1;min-width:0"><div class="cm-nick">${esc(c.nick)} <span class="badge">${esc(c.persona)}</span></div>
-      <div class="zh cm-text">${esc(c.text)} ${say(c.text)}</div>
-      <div class="py cm-sub">${esc(c.py)}</div><div class="muted cm-sub" style="font-size:14px">${esc(c.ko)}</div>
-      ${c.learn ? `<div class="cm-learn">📌 ${esc(c.learn)}</div>` : ''}</div>
-      <span class="cm-like" aria-label="좋아요">♥ ${c.likes ?? 0}</span></div>
-    ${(c.replies || []).map(replyHtml).join('')}
-    ${left > 0 ? `<div class="cm-form"><input class="zh" maxlength="200" placeholder="중국어로 답글 달기…" data-in="${i}"><button class="btn small primary" data-send="${i}">답글</button></div>` : '<p class="muted" style="font-size:13px;margin:6px 0 0 46px">이 댓글에는 답글을 다 달았어요.</p>'}
-  </div>`;
+// 이전 형식(AI가 먼저 댓글을 달던 기록)은 읽기 전용으로 보여 준다
+function legacyHtml(c) {
+  return `<div class="cm-item"><div class="cm-head"><span class="cm-ava ai">AI</span><div style="flex:1;min-width:0"><div class="cm-nick">${esc(c.nick || 'AI网友')}</div><div class="zh cm-text">${esc(c.text)}</div><div class="py cm-sub">${esc(c.py || '')}</div><div class="muted cm-sub" style="font-size:14px">${esc(c.ko || '')}</div></div></div>
+    ${(c.replies || []).map((r) => myCommentHtml({ text: r.text, eval: { ...r.eval, natives: r.eval?.better }, reply: r.follow })).join('')}</div>`;
 }
 
 export async function renderCommentPost(app, id) {
@@ -101,47 +101,58 @@ export async function renderCommentPost(app, id) {
   const P = d.post;
   let pyOn = true;
   let koOn = true;
+  let draft = '';
   function draw() {
+    const items = P.comments || [];
+    const mine = items.filter((c) => c.mine).length;
+    const legacy = items.some((c) => !c.mine);
     app.innerHTML = `<div class="page cm-page">
-      <div class="page-head"><div>${back('#/comments', 'AI 댓글창')}<h1 style="margin-top:6px">💬 댓글 ${P.comments.length}개</h1><p>${esc(P.reaction || '')}</p></div></div>
-      <div class="card cm-post"><div class="ai-label">${P.week ? `${P.week}주차 · ` : ''}내가 올린 글</div><div class="zh" style="font-size:18px;white-space:pre-wrap">${esc(P.content)}</div></div>
-      <div class="cm-tools"><span class="muted" style="font-size:13px">보기</span><button class="tag ${pyOn ? 'on' : ''}" data-t="py">병음</button><button class="tag ${koOn ? 'on' : ''}" data-t="ko">한국어 뜻</button><span class="spacer"></span><button class="btn small danger" id="cm-del">글 지우기</button></div>
-      <div class="card cm-list ${pyOn ? '' : 'hide-py'} ${koOn ? '' : 'hide-ko'}">${P.comments.map((c, i) => commentHtml(c, i, d.maxReplies)).join('')}</div>
+      <div class="page-head"><div>${back('#/comments', 'AI 댓글 연습')}<h1 style="margin-top:6px">💬 댓글 연습</h1><p class="muted" style="font-size:13px">ⓘ ${AI_NOTE}</p></div></div>
+      <div class="card cm-postcard"><div class="cm-post-tag">${P.week ? `${P.week}주차 · ` : ''}${P.reaction ? '연습용 게시물' : '내가 본 영상·게시물'}</div><div class="zh cm-post-zh" style="white-space:pre-wrap">${esc(P.content)} ${P.reaction ? say(P.content) : ''}</div>${P.reaction ? `<div class="muted" style="font-size:14px">${esc(P.reaction)}</div>` : ''}</div>
+      ${items.length ? `<div class="cm-tools"><span class="muted" style="font-size:13px">보기</span><button class="tag ${pyOn ? 'on' : ''}" data-t="py">병음</button><button class="tag ${koOn ? 'on' : ''}" data-t="ko">한국어 뜻</button><span class="spacer"></span><button class="btn small danger" id="cm-del">연습 지우기</button></div>
+      <div class="card cm-list ${pyOn ? '' : 'hide-py'} ${koOn ? '' : 'hide-ko'}">${items.map((c) => (c.mine ? myCommentHtml(c) : legacyHtml(c))).join('')}</div>` : ''}
+      ${legacy ? '' : mine < d.max ? `<div class="card cm-write">
+        <div class="ai-label">${items.length ? '이어서 댓글 달기' : '이 게시물에 중국어로 댓글을 달아 보세요'}</div>
+        <div class="cm-form" style="margin:8px 0 0"><input class="zh" id="cm-in" maxlength="200" placeholder="${items.length ? 'AI网友의 답글에 다시 답해 보세요…' : '예: 看起来好好吃！在哪里？'}" value="${esc(draft)}"><button class="btn primary" id="cm-send">댓글 달기</button></div>
+        <p class="muted" style="font-size:12px;margin:6px 0 0">${mine}/${d.max}번 · 한국어로 써도 중국어로 바꿔 알려 줘요</p></div>`
+        : `<p class="muted" style="text-align:center">이 게시물에서는 ${d.max}번 모두 연습했어요. <a href="#/comments">새 게시물로 연습하기</a></p>`}
     </div>`;
     app.querySelectorAll('[data-t]').forEach((b) => (b.onclick = () => {
       if (b.dataset.t === 'py') pyOn = !pyOn;
       else koOn = !koOn;
       draw();
     }));
-    app.querySelector('#cm-del').onclick = async () => {
-      if (!(await confirmBox('이 글과 댓글을 지울까요?'))) return;
+    app.querySelector('#cm-del')?.addEventListener('click', async () => {
+      if (!(await confirmBox('이 연습 기록을 지울까요?'))) return;
       await del(`/api/comments/${P.id}`);
       location.hash = '#/comments';
-    };
-    app.querySelectorAll('[data-send]').forEach((b) => {
-      const i = Number(b.dataset.send);
-      const inp = app.querySelector(`[data-in="${i}"]`);
-      inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) b.click(); };
-      b.onclick = async () => {
-        const text = inp.value.trim();
-        if (!text) return toast('답글을 써 주세요.', 'bad');
-        b.disabled = true;
-        inp.disabled = true;
-        b.textContent = '평가 중…';
-        try {
-          const r = await post(`/api/comments/${P.id}/reply`, { idx: i, text });
-          P.comments[i] = r.comment;
-          draw();
-          app.querySelector(`.cm-item[data-i="${i}"]`)?.scrollIntoView({ block: 'center' });
-          if (r.quota) toast(quotaText(r.quota));
-        } catch (err) {
-          b.disabled = false;
-          inp.disabled = false;
-          b.textContent = '답글';
-          toast(err.message, 'bad');
-        }
-      };
     });
+    const inp = app.querySelector('#cm-in');
+    const send = app.querySelector('#cm-send');
+    if (!inp) return;
+    inp.oninput = () => (draft = inp.value);
+    inp.onkeydown = (e) => { if (e.key === 'Enter' && !e.isComposing) send.click(); };
+    send.onclick = async () => {
+      const text = inp.value.trim();
+      if (!text) return toast('댓글을 써 주세요.', 'bad');
+      send.disabled = true;
+      inp.disabled = true;
+      send.textContent = 'AI网友가 읽는 중…';
+      try {
+        const r = await post(`/api/comments/${P.id}/comment`, { text });
+        P.comments = [...(P.comments || []), r.item];
+        draft = '';
+        draw();
+        const all = app.querySelectorAll('.cm-item');
+        all[all.length - 1]?.scrollIntoView({ block: 'start' });
+        if (r.quota) toast(quotaText(r.quota));
+      } catch (err) {
+        send.disabled = false;
+        inp.disabled = false;
+        send.textContent = '댓글 달기';
+        toast(err.message, 'bad');
+      }
+    };
   }
   draw();
 }

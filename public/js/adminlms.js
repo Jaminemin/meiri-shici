@@ -314,7 +314,7 @@ export async function renderAdminContent(app, ctx) {
 }
 
 // ================= ✨ AI 학습 리포트 (교수자용) =================
-// 학생들의 퀴즈·과제 첨삭·회화·댓글 답글·해독 기록을 모아 AI가 반 전체 약점과 다음 수업 표현을 정리한다.
+// 학생들의 퀴즈·과제 첨삭·회화·댓글 연습·해독 기록을 모아 AI가 반 전체 약점과 다음 수업 표현을 정리한다.
 export async function renderAdminReport(app) {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   let week = '';
@@ -337,7 +337,7 @@ export async function renderAdminReport(app) {
   }
   function draw() {
     app.innerHTML = `<div class="page">
-      <div class="page-head"><div><h1>관리자</h1><p>학생들의 퀴즈·과제 첨삭·AI 회화·댓글 답글·유행어 해독 기록을 AI가 모아, 반 전체의 약점과 다음 수업에서 다룰 표현을 정리합니다.</p></div></div>
+      <div class="page-head"><div><h1>관리자</h1><p>학생들의 퀴즈·과제 첨삭·AI 회화·댓글 연습·유행어 해독 기록을 AI가 모아, 반 전체의 약점과 다음 수업에서 다룰 표현을 정리합니다.</p></div></div>
       ${adminTabs('report')}
       <div class="card row between" style="flex-wrap:wrap;gap:10px">
         <label class="row" style="gap:8px">범위 <select id="rep-week"><option value="">15주 전체</option>${d.weeks.map((w) => `<option value="${w.week}" ${String(w.week) === String(week) ? 'selected' : ''}>${w.week}주차 · ${esc(w.title)}</option>`).join('')}</select></label>
