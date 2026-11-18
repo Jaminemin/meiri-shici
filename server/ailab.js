@@ -1,10 +1,11 @@
-// AI 실습 기능: ① 댓글창 시뮬레이터 ② 유행어 해독기 + 내 단어장 ③ 교수자용 AI 학습 리포트
+// AI 실습 기능: ① AI 댓글 연습 ② 유행어 해독기 + 내 단어장 ③ 교수자용 AI 학습 리포트
 // 학생은 자기 기록만 보고, 리포트는 관리자(교수자)만 만든다. AI 호출은 하루 사용 한도(checkQuota)를 함께 쓴다.
 import { HttpError, sendJson, clampStr } from './lib/util.js';
 import { db, log } from './lib/db.js';
 import { checkQuota } from './lib/ai.js';
-import { genComments, judgeReply, decodeText, classReport } from './lib/ai-lab.js';
+import { judgeComment, decodeText, classReport } from './lib/ai-lab.js';
 import { COURSES, DEFAULT_COURSE, curriculumSummary, localWeek } from './curriculum.js';
+import { SHORTFORM_STUDY } from './shortform-study.js';
 import { getLevel } from './lms.js';
 
 const C = () => COURSES[DEFAULT_COURSE];
@@ -13,79 +14,87 @@ const validLocal = (v) => {
   const n = Number(v);
   return Number.isInteger(n) && n >= 1 && n <= C().weeks.length ? n : null;
 };
-const MAX_REPLIES = 3;
+const MAX_COMMENTS = 10;
 const MY_WORDS_MAX = 500;
 
+// 주차별 연습용 게시물: 그 주 문장 두 개를 숏폼 캡션처럼 묶는다 (AI 호출 없음)
+function practicePosts() {
+  return curriculumSummary(DEFAULT_COURSE).map((w) => {
+    const s = SHORTFORM_STUDY[w.week]?.sentences || [];
+    return { week: w.week, title: w.title, zh: s.slice(0, 2).map((x) => x[0]).join(''), ko: s.slice(0, 2).map((x) => x[2]).join(' ') };
+  });
+}
+
 export function registerAiLab({ route, requireUser, requireAdmin }) {
-  // AI 실습 첫 화면: 최근 댓글창 글, 최근 해독, 단어장 수
+  // AI 실습 첫 화면: 최근 댓글 연습, 최근 해독, 단어장 수
   route('GET', '/api/lab', async (req, res) => {
     const u = await requireUser(req);
-    const posts = await db()`SELECT id, week, left(content, 80) AS preview, jsonb_array_length(comments)::int AS n, created_at FROM comment_posts WHERE user_id = ${u.id} ORDER BY created_at DESC LIMIT 20`;
+    const posts = await db()`SELECT id, week, left(content, 80) AS preview, jsonb_array_length(comments)::int AS n, created_at FROM comment_posts WHERE user_id = ${u.id} ORDER BY updated_at DESC LIMIT 20`;
     const decodes = await db()`SELECT id, left(text, 60) AS preview, result->>'summary' AS summary, created_at FROM decodes WHERE user_id = ${u.id} ORDER BY created_at DESC LIMIT 10`;
     const [{ n }] = await db()`SELECT count(*)::int AS n FROM my_words WHERE user_id = ${u.id}`;
     const weeks = curriculumSummary(DEFAULT_COURSE).map((w) => ({ week: w.week, title: w.title }));
-    sendJson(res, 200, { posts: posts.map((p) => ({ ...p, week: p.week ? localWeek(p.week) : null })), decodes, wordCount: n, weeks, level: await getLevel(u.id) });
+    sendJson(res, 200, { posts: posts.map((p) => ({ ...p, week: p.week ? localWeek(p.week) : null })), decodes, wordCount: n, weeks, practice: practicePosts(), level: await getLevel(u.id) });
   });
 
-  // ================= ① 댓글창 시뮬레이터 =================
+  // ================= ① AI 댓글 연습 =================
+  // 연습할 게시물 정하기: 주차 연습 게시물 또는 내가 본 영상·게시물 설명 (AI 호출 없음)
   route('POST', '/api/comments', async (req, res, { body }) => {
     const u = await requireUser(req);
-    const content = clampStr(body.content, 600).trim();
-    if (content.length < 4) throw new HttpError(400, '대본이나 캡션을 조금 더 써 주세요.', 'too_short');
     const local = validLocal(body.week);
-    const quota = checkQuota(u.id);
+    const custom = clampStr(body.custom, 300).trim();
+    let content = custom;
+    let desc = '';
+    if (!custom) {
+      const pp = practicePosts().find((x) => x.week === local);
+      if (!pp) throw new HttpError(400, '연습할 주차를 고르거나, 내가 본 영상·게시물 내용을 써 주세요.', 'no_post');
+      content = pp.zh;
+      desc = pp.ko;
+    } else if (custom.length < 4) throw new HttpError(400, '영상·게시물 내용을 조금 더 써 주세요.', 'too_short');
     const level = (await getLevel(u.id)) || '초급';
-    const w = local ? curriculumSummary(DEFAULT_COURSE).find((x) => x.week === local) : null;
-    const r = await genComments({ content, weekTitle: w ? `${w.week}주차 ${w.title} (${w.titleZh})` : '', level });
-    const comments = (Array.isArray(r.comments) ? r.comments : []).slice(0, 8).map((c) => ({
-      nick: String(c.nick || '网友').slice(0, 30),
-      persona: String(c.persona || '').slice(0, 20),
-      text: String(c.text || '').slice(0, 200),
-      py: String(c.py || '').slice(0, 400),
-      ko: String(c.ko || '').slice(0, 300),
-      learn: String(c.learn || '').slice(0, 300),
-      likes: Math.max(0, Math.min(999, Math.round(Number(c.likes) || 0))),
-      replies: [],
-    }));
-    if (!comments.length) throw new HttpError(502, 'AI가 댓글을 만들지 못했습니다. 다시 시도해 주세요.', 'ai_empty');
-    const [p] = await db()`INSERT INTO comment_posts (user_id, week, level, content, reaction, comments) VALUES (${u.id}, ${gidOf(local)}, ${level}, ${content}, ${String(r.reaction || '').slice(0, 400)}, ${db().json(comments)}) RETURNING id`;
-    await log(u.id, 'AI 댓글창', `${local ? `${local}주차 · ` : ''}${content.slice(0, 40)}`);
-    sendJson(res, 200, { id: p.id, quota });
+    const [p] = await db()`INSERT INTO comment_posts (user_id, week, level, content, reaction, comments) VALUES (${u.id}, ${gidOf(local)}, ${level}, ${content}, ${desc}, ${db().json([])}) RETURNING id`;
+    sendJson(res, 200, { id: p.id });
   });
 
   route('GET', '/api/comments/:id', async (req, res, { p }) => {
     const u = await requireUser(req);
     const [post] = await db()`SELECT * FROM comment_posts WHERE id = ${Number(p.id)} AND user_id = ${u.id}`;
-    if (!post) throw new HttpError(404, '글을 찾지 못했습니다.', 'no_post');
-    sendJson(res, 200, { post: { ...post, week: post.week ? localWeek(post.week) : null }, maxReplies: MAX_REPLIES });
+    if (!post) throw new HttpError(404, '연습을 찾지 못했습니다.', 'no_post');
+    sendJson(res, 200, { post: { ...post, week: post.week ? localWeek(post.week) : null }, max: MAX_COMMENTS });
   });
 
-  route('POST', '/api/comments/:id/reply', async (req, res, { p, body }) => {
+  // 내 댓글 달기 → AI가 중국 네티즌으로 답하고, 선생님으로 고쳐 준다
+  route('POST', '/api/comments/:id/comment', async (req, res, { p, body }) => {
     const u = await requireUser(req);
     const [post] = await db()`SELECT * FROM comment_posts WHERE id = ${Number(p.id)} AND user_id = ${u.id}`;
-    if (!post) throw new HttpError(404, '글을 찾지 못했습니다.', 'no_post');
-    const idx = Number(body.idx);
-    const c = post.comments[idx];
-    if (!Number.isInteger(idx) || !c) throw new HttpError(400, '답글을 달 댓글을 찾지 못했습니다.', 'no_comment');
-    if ((c.replies || []).length >= MAX_REPLIES) throw new HttpError(400, `한 댓글에는 답글을 ${MAX_REPLIES}번까지 달 수 있어요.`, 'too_many');
+    if (!post) throw new HttpError(404, '연습을 찾지 못했습니다.', 'no_post');
+    const mine = (post.comments || []).filter((x) => x.mine);
+    if (mine.length >= MAX_COMMENTS) throw new HttpError(400, `한 게시물에는 댓글을 ${MAX_COMMENTS}번까지 연습할 수 있어요. 새 게시물로 이어 가 주세요.`, 'too_many');
     const text = clampStr(body.text, 200).trim();
-    if (!text) throw new HttpError(400, '답글을 써 주세요.', 'empty');
+    if (!text) throw new HttpError(400, '댓글을 써 주세요.', 'empty');
     const quota = checkQuota(u.id);
-    const r = await judgeReply({ content: post.content, comment: c, reply: text, level: post.level });
-    const ev = {
-      score: Math.max(0, Math.min(100, Math.round(Number(r.score) || 0))),
-      verdict: ['good', 'fix', 'rewrite'].includes(r.verdict) ? r.verdict : 'fix',
-      corrected: String(r.corrected || '').slice(0, 300),
-      correctedPy: String(r.correctedPy || '').slice(0, 500),
-      translation: String(r.translation || '').slice(0, 300),
-      comment: String(r.comment || '').slice(0, 600),
-      better: (Array.isArray(r.better) ? r.better : []).slice(0, 3).map((b) => ({ zh: String(b.zh || ''), py: String(b.py || ''), ko: String(b.ko || '') })),
+    const local = post.week ? localWeek(post.week) : null;
+    const w = local ? curriculumSummary(DEFAULT_COURSE).find((x) => x.week === local) : null;
+    const history = mine.slice(-4).map((x) => `나: ${x.text}\nAI网友: ${x.reply?.text || ''}`).join('\n');
+    const r = await judgeComment({ post: post.reaction ? `${post.content}\n(뜻: ${post.reaction})` : post.content, history, text, level: post.level, weekTitle: w ? `${w.week}주차 ${w.title} (${w.titleZh})` : '' });
+    const item = {
+      mine: true,
+      text,
+      eval: {
+        score: Math.max(0, Math.min(100, Math.round(Number(r.score) || 0))),
+        verdict: ['good', 'fix', 'rewrite'].includes(r.verdict) ? r.verdict : 'fix',
+        corrected: String(r.corrected || '').slice(0, 300),
+        correctedPy: String(r.correctedPy || '').slice(0, 500),
+        translation: String(r.translation || '').slice(0, 300),
+        comment: String(r.comment || '').slice(0, 600),
+        natives: (Array.isArray(r.natives) ? r.natives : []).slice(0, 3).map((b) => ({ zh: String(b.zh || ''), py: String(b.py || ''), ko: String(b.ko || '') })).filter((b) => b.zh),
+      },
+      reply: { text: String(r.reply?.text || '').slice(0, 200), py: String(r.reply?.py || '').slice(0, 400), ko: String(r.reply?.ko || '').slice(0, 300) },
+      at: new Date().toISOString(),
     };
-    const follow = { text: String(r.followUp?.text || '').slice(0, 200), py: String(r.followUp?.py || '').slice(0, 400), ko: String(r.followUp?.ko || '').slice(0, 300) };
-    const comments = post.comments.map((x, i) => (i === idx ? { ...x, replies: [...(x.replies || []), { text, eval: ev, follow, at: new Date().toISOString() }] } : x));
+    const comments = [...(post.comments || []), item];
     await db()`UPDATE comment_posts SET comments = ${db().json(comments)}, updated_at = now() WHERE id = ${post.id}`;
-    await log(u.id, 'AI 댓글 답글', `${text.slice(0, 40)} (${ev.score}점)`);
-    sendJson(res, 200, { comment: comments[idx], quota });
+    await log(u.id, 'AI 댓글 연습', `${text.slice(0, 40)} (${item.eval.score}점)`);
+    sendJson(res, 200, { item, count: mine.length + 1, quota });
   });
 
   route('DELETE', '/api/comments/:id', async (req, res, { p }) => {
@@ -181,7 +190,11 @@ export function registerAiLab({ route, requireUser, requireAdmin }) {
       const errs = [];
       for (const w of writings.filter((r) => r.user_id === s.id)) for (const e of w.feedback?.errors || []) errs.push(`[과제] ${e.original} → ${e.fixed} (${e.reason})`);
       for (const t of talks.filter((r) => r.user_id === s.id)) for (const e of t.feedback?.errors || []) errs.push(`[회화] ${e.original} → ${e.better} (${e.why})`);
-      for (const po of posts.filter((r) => r.user_id === s.id)) for (const c of po.comments || []) for (const rp of c.replies || []) if (rp.eval?.verdict !== 'good') errs.push(`[댓글 답글] ${rp.text} → ${rp.eval?.corrected}`);
+      for (const po of posts.filter((r) => r.user_id === s.id))
+        for (const c of po.comments || []) {
+          if (c.mine && c.eval?.verdict !== 'good') errs.push(`[댓글] ${c.text} → ${c.eval?.corrected}`);
+          for (const rp of c.replies || []) if (rp.eval?.verdict !== 'good') errs.push(`[댓글] ${rp.text} → ${rp.eval?.corrected}`);
+        }
       const looked = decodes.filter((r) => r.user_id === s.id).flatMap((r) => (r.result?.items || []).map((x) => x.term));
       const sw = writings.filter((r) => r.user_id === s.id);
       const rec = {

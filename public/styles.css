@@ -1019,3 +1019,11 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .word-bar .wb-count b { color: var(--ink); }
 .word-bar .wb-actions { display: flex; gap: 6px; }
 .wb-tip { font-size: 13px; margin: -4px 4px 10px; display: inline-block; background: color-mix(in srgb, var(--bg) 86%, transparent); border-radius: 8px; padding: 2px 8px; }
+/* AI 댓글 연습 */
+.cm-modes { display: flex; gap: 6px; flex-wrap: wrap; }
+.cm-postcard { border-left: 4px solid var(--accent); }
+.card .cm-postcard { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 5%, var(--surface)); border: 1px solid var(--line); border-left: 4px solid var(--accent); }
+.cm-post-tag { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.cm-post-zh { font-size: 18px; margin-bottom: 2px; }
+.cm-ava.ai { background: #111827; color: #fff; font-size: 12px; }
+.cm-write { position: sticky; bottom: 12px; z-index: 2; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
