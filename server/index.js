@@ -8,6 +8,7 @@ import { config } from './lib/config.js';
 import { notifySignup, mailReady } from './lib/mail.js';
 import { registerLms, loadCourseWeeks, getLevel, markSubmitted, weekGradeFor } from './lms.js';
 import { registerAiLab } from './ailab.js';
+import { registerAttendance } from './attendance.js';
 import { HttpError, sendJson, redirect, readJsonBody, nowIso, clampStr } from './lib/util.js';
 import { readSession, sessionCookie, clearCookie, tempCookie, parseCookies } from './lib/session.js';
 import { authUrl, exchangeCode, fetchUserInfo } from './lib/google.js';
@@ -217,7 +218,8 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
   const done = weeks.filter((w) => w.done).length;
   const current = weeks.find((w) => !w.done) || weeks[weeks.length - 1];
   const s = await streakOf(u.id);
-  const [att] = await db()`SELECT 1 FROM activity WHERE user_id = ${u.id} AND action = '출석' AND to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') = ${kstDate(Date.now())} LIMIT 1`;
+  const attRows = await db()`SELECT to_char(s.held_on, 'YYYY-MM-DD') AS d, r.status FROM attendance_records r JOIN attendance_sessions s ON s.id = r.session_id WHERE r.user_id = ${u.id} ORDER BY s.held_on DESC LIMIT 200`;
+  const att = attRows.find((r) => r.d === kstDate(Date.now()));
   const writings = await db()`SELECT id, week, score, created_at, left(content, 80) AS preview FROM writings WHERE user_id = ${u.id} AND week BETWEEN ${c.offset + 1} AND ${c.offset + c.weeks.length} ORDER BY created_at DESC LIMIT 5`;
   const today = weekData(current.gid);
   const dayIdx = Math.floor((Date.now() + 9 * 3600 * 1000) / 86400000);
@@ -229,6 +231,7 @@ route('GET', '/api/dashboard', async (req, res, { url }) => {
     summary: {
       doneWeeks: done,
       attendedToday: Boolean(att),
+      attendDays: attRows.map((r) => r.d),
       totalWeeks: weeks.length,
       wordsLearned: weeks.reduce((a, w) => a + w.words, 0),
       totalWords: weeks.reduce((a, w) => a + (w.wordTotal || WORDS_PER_WEEK), 0),
@@ -258,15 +261,6 @@ route('GET', '/api/weeks/:n', async (req, res, { p }) => {
   const [row] = await db()`SELECT * FROM progress WHERE user_id = ${u.id} AND week = ${n}`;
   const writings = await db()`SELECT id, content, feedback, score, created_at FROM writings WHERE user_id = ${u.id} AND week = ${n} ORDER BY created_at DESC LIMIT 10`;
   sendJson(res, 200, { week: weekData(n), state: weekState(row, n), writings: withLocalWeek(writings), total: courseOf(n).weeks.length, passQuiz: PASS_QUIZ, videos: isClassWeek(n) ? await weekVideos(n) : [], grade: isClassWeek(n) ? await weekGradeFor(u.id, n) : null, level: await getLevel(u.id) });
-});
-
-// 출석체크: 하루에 한 번, 활동 기록에 '출석'으로 남긴다 (달력과 연속 학습일에 반영)
-route('POST', '/api/attendance', async (req, res) => {
-  const u = await requireUser(req);
-  const today = kstDate(Date.now());
-  const [hit] = await db()`SELECT 1 FROM activity WHERE user_id = ${u.id} AND action = '출석' AND to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD') = ${today} LIMIT 1`;
-  if (!hit) await log(u.id, '출석', today);
-  sendJson(res, 200, { ok: true, attendedToday: true, already: Boolean(hit) });
 });
 
 route('POST', '/api/weeks/:n/words', async (req, res, { p, body }) => {
@@ -519,6 +513,7 @@ function serveStatic(req, res, pathname) {
 
 registerLms({ route, requireUser, requireAdmin, weekNo });
 registerAiLab({ route, requireUser, requireAdmin });
+registerAttendance({ route, requireUser, requireAdmin });
 
 const server = http.createServer(async (req, res) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');

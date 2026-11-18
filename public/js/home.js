@@ -118,14 +118,14 @@ export function calendar(days, attended = false) {
   for (let i = 0; i < first.getUTCDay(); i++) cells.push('<span></span>');
   for (let day = 1; day <= count; day++) {
     const k = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const canAttend = !attended && k === today;
+    const canAttend = false;
     const cls = [set.has(k) ? 'on' : '', k === today ? 'today' : '', canAttend ? 'can' : ''].join(' ');
     const hint = canAttend ? ' role="button" tabindex="0" aria-label="오늘 출석체크"' : '';
     cells.push(`<span class="${cls}"${hint} title="${k}${set.has(k) ? ' · 출석' : canAttend ? ' · 눌러서 출석체크' : ''}">${day}${set.has(k) ? '<i>✓</i>' : ''}</span>`);
   }
   const week = ['일', '월', '화', '수', '목', '금', '토'].map((w) => `<span class="dow">${w}</span>`).join('');
   const done = [...set].filter((k) => k.startsWith(`${y}-${String(m + 1).padStart(2, '0')}`)).length;
-  const hint = attended ? '' : '<p class="muted cal-hint" style="font-size:13px;margin:0 0 10px">📅 접속 당일 날짜를 클릭하시면 출석체크가 완료됩니다.</p>';
+  const hint = attended ? '' : '<p class="muted cal-hint" style="font-size:13px;margin:0 0 10px">📲 오프라인 수업 시간에 교실 화면의 QR 코드를 휴대폰 카메라로 스캔하면 출석이 기록돼요.</p>';
   return `${hint}<div class="row between" style="margin-bottom:8px"><b>${y}년 ${m + 1}월</b><span class="muted" style="font-size:13px">이번 달 출석 ${done}일</span></div>
     <div class="cal">${week}${cells.join('')}</div>`;
 }
@@ -164,10 +164,10 @@ export async function renderHome(app, ctx = {}) {
   const s = d.summary;
   app.innerHTML = `
   <div class="page">
-    <div class="page-head"><div><h1>${esc(d.user.name)}님, 加油！</h1><p>${s.attendedToday ? '오늘 출석했어요. 잘하고 있어요!' : '오늘 아직 출석 전이에요. 출석체크를 하고 시작해 볼까요?'}</p></div>
+    <div class="page-head"><div><h1>${esc(d.user.name)}님, 加油！</h1><p>${s.attendedToday ? '오늘 출석했어요. 잘하고 있어요!' : '오늘 아직 출석 전이에요. 수업 시간에 교실 QR을 스캔해 출석해 주세요.'}</p></div>
       <a class="btn big continue-btn" href="#/week/${d.current.gid}">${d.current.week}주차 · ${esc(d.current.title)} 이어 하기 →</a></div>
     <div class="attend-row">
-      <div class="card"><h3>출석 달력</h3>${calendar(s.days, s.attendedToday)}</div>
+      <div class="card"><h3>출석 달력</h3>${calendar(s.attendDays, s.attendedToday)}</div>
     </div>
     <div class="home-weeks">${weekList(d.weeks, d.current.gid)}</div>
     <div class="stats">
@@ -199,30 +199,6 @@ export async function renderHome(app, ctx = {}) {
   </div>`;
   const wl = app.querySelector('.wl');
   if (wl) bindWeekList(wl, d.weeks, d.current.gid);
-  // 출석체크: 출석 버튼 또는 달력의 오늘 날짜를 누르면 한 번만 기록한다
-  let attending = false;
-  const doAttend = async () => {
-    if (attending) return;
-    attending = true;
-    try {
-      await post('/api/attendance', {});
-      toast('출석체크 완료! 오늘도 화이팅 🎉');
-      renderHome(app);
-    } catch (e) {
-      attending = false;
-      toast(e.message, 'bad');
-    }
-  };
-  app.querySelector('#attend-btn')?.addEventListener('click', doAttend);
-  app.querySelectorAll('.cal .can').forEach((el) => {
-    el.addEventListener('click', doAttend);
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        doAttend();
-      }
-    });
-  });
 }
 
 export async function renderCourse(app) {

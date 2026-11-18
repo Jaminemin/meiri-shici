@@ -169,7 +169,7 @@ export function registerLms({ route, requireUser, requireAdmin, weekNo }) {
     const students = await studentsQuery();
     const g = await computeGrades(students.map((s) => s.id));
     const ex = students.length ? await db()`SELECT user_id, participation, note FROM grade_extras WHERE user_id IN ${db()(students.map((s) => s.id))}` : [];
-    const att = students.length ? await db()`SELECT user_id, count(DISTINCT to_char(at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD'))::int AS days FROM activity WHERE action = '출석' AND user_id IN ${db()(students.map((s) => s.id))} GROUP BY user_id` : [];
+    const att = students.length ? await db()`SELECT user_id, count(*)::int AS days FROM attendance_records WHERE status IN ('present', 'late', 'excused') AND user_id IN ${db()(students.map((s) => s.id))} GROUP BY user_id` : [];
     const teams = await db()`SELECT m.user_id, t.name FROM team_members m JOIN teams t ON t.id = m.team_id`;
     sendJson(res, 200, {
       assess: ASSESS,
