@@ -178,6 +178,42 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// 좌우 스와이프로 위쪽 탭(내 학습 · 15주 과정 · AI 실습 …) 사이를 이동한다
+// 입력칸, 영상, 가로로 스크롤되는 영역 안에서 시작한 동작은 건드리지 않는다.
+(() => {
+  let t0 = null;
+  const blocked = (el) => {
+    for (let n = el; n && n !== document.body; n = n.parentElement) {
+      if (n.matches?.('input, textarea, select, video, audio, [contenteditable], .ak-full, #mobile-tabs, .tabs')) return true;
+      const cs = getComputedStyle(n);
+      if ((cs.overflowX === 'auto' || cs.overflowX === 'scroll') && n.scrollWidth > n.clientWidth + 2) return true;
+    }
+    return false;
+  };
+  document.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1 || blocked(e.target) || window.getSelection?.().toString()) { t0 = null; return; }
+    const t = e.touches[0];
+    t0 = { x: t.clientX, y: t.clientY, at: Date.now() };
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (!t0) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - t0.x, dy = t.clientY - t0.y, dt = Date.now() - t0.at;
+    t0 = null;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8 || dt > 700) return;
+    const tabs = [...document.querySelectorAll('#mobile-tabs a')];
+    const i = tabs.findIndex((a) => a.classList.contains('on'));
+    if (i < 0) return;
+    const next = tabs[i + (dx < 0 ? 1 : -1)];
+    if (!next) return;
+    location.hash = next.getAttribute('href');
+    setTimeout(() => {
+      app.animate([{ transform: `translateX(${dx < 0 ? 28 : -28}px)`, opacity: 0.35 }, { transform: 'none', opacity: 1 }], { duration: 220, easing: 'ease-out' });
+      document.querySelector('#mobile-tabs a.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }, 80);
+  }, { passive: true });
+})();
+
 window.addEventListener('hashchange', () => {
   navCount += 1;
   route();
