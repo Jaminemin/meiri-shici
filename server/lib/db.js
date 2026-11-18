@@ -203,6 +203,26 @@ async function migrate() {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`;
   await sql`CREATE INDEX IF NOT EXISTS ai_sessions_user_idx ON ai_sessions (user_id, created_at DESC)`;
+  // 출석부: 수업 시간마다 교수자가 출석을 열고, 교실 화면의 QR을 스캔한 학생이 기록된다
+  await sql`
+    CREATE TABLE IF NOT EXISTS attendance_sessions (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      held_on DATE NOT NULL,
+      secret TEXT NOT NULL,
+      opened_by INT REFERENCES users(id) ON DELETE SET NULL,
+      opened_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      closed_at TIMESTAMPTZ
+    )`;
+  await sql`
+    CREATE TABLE IF NOT EXISTS attendance_records (
+      session_id INT NOT NULL REFERENCES attendance_sessions(id) ON DELETE CASCADE,
+      user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      status TEXT NOT NULL DEFAULT 'present',
+      via TEXT NOT NULL DEFAULT 'qr',
+      at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      PRIMARY KEY (session_id, user_id)
+    )`;
   // AI 실습: 댓글창 시뮬레이터 글, 유행어 해독 기록, 내 단어장, 교수자용 AI 리포트
   await sql`
     CREATE TABLE IF NOT EXISTS comment_posts (

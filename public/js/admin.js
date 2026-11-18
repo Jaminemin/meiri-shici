@@ -17,6 +17,7 @@ export function adminTabs(active) {
     ['content', '주차 콘텐츠'],
     ['videos', '참고 자료'],
     ['writings', '작문·첨삭'],
+    ['attendance', '📋 출석부'],
     ['report', '✨ AI 리포트'],
   ]
     .map(([k, l]) => `<button onclick="location.hash='#/admin${k ? '/' + k : ''}'" class="${active === k ? 'on' : ''}">${l}</button>`)

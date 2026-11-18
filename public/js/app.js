@@ -9,6 +9,7 @@ import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings, re
 import { renderGrades, renderProject, renderTalk, renderTalkSession } from './lms.js';
 import { renderAdminGrading, renderAdminGrade, renderAdminGradebook, renderAdminTeams, renderAdminContent, renderAdminReport } from './adminlms.js';
 import { renderPrivacy, renderGuide } from './info.js';
+import { renderCheckin, renderAdminAttendance } from './attendance.js';
 import { renderLab, renderComments, renderCommentPost, renderDecode, renderMyWords } from './ailab.js';
 
 const app = document.getElementById('app');
@@ -93,6 +94,11 @@ async function route() {
     if (params.get('login') === 'fail') toast('로그인하지 못했습니다. 다시 시도해 주세요.', 'bad');
     if (params.get('login') === 'nodb') toast('데이터베이스가 연결되지 않아 로그인할 수 없습니다. 관리자에게 알려 주세요.', 'bad');
     if (params.get('login') === 'cancel') toast('로그인을 취소했습니다.');
+    if (u && u.status === 'approved' && parts[0] !== 'checkin') {
+      let pend = null;
+      try { pend = sessionStorage.getItem('ms_checkin'); } catch { /* 무시 */ }
+      if (pend) { location.hash = `#/checkin/${pend}`; return; }
+    }
     if (u?.role === 'admin') {
       get('/api/admin/overview')
         .then((o) => {
@@ -106,6 +112,7 @@ async function route() {
     if (parts[0] === 'welcome') return renderLanding(app, { browse: true });
     if (parts[0] === 'preview') return renderPreview(app, parts[1] || '');
     if (parts[0] === 'common') return renderCommonApps(app);
+    if (parts[0] === 'checkin') return renderCheckin(app, parts[1]);
     if (parts[0] === 'privacy') return renderPrivacy(app);
     if (parts[0] === 'guide') return renderGuide(app);
     if (!u) {
@@ -130,6 +137,7 @@ async function route() {
     if (parts[0] === 'week' && parts[1]) return renderWeek(app, { ...ctx, week: Number(parts[1]), tab: parts[2] || '' });
     if (parts[0] === 'admin') {
       if (u.role !== 'admin') return (location.hash = '#/home');
+      if (parts[1] === 'attendance') return renderAdminAttendance(app);
       if (parts[1] === 'users' && parts[2]) return renderAdminUser(app, { ...ctx, id: parts[2] });
       if (parts[1] === 'users') return renderAdminUsers(app, ctx);
       if (parts[1] === 'writings') return renderAdminWritings(app, ctx);
