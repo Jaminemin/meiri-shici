@@ -65,9 +65,8 @@ export async function renderWeek(app, ctx) {
     const st = d.state;
     return `<div class="page-head week-head">
       <div><a href="#/course" class="muted" style="text-decoration:none">← 15주 과정</a>${CLS ? `<div class="cw-stage">${esc(stageLabel(W))}</div>` : ''}
-        <h1 style="margin-top:6px">${W.week}주차 · ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
-        <p>🎯 ${esc(W.goal)}</p></div>
-      <div style="text-align:right">${st.done ? '<div class="seal">完成</div>' : `<div class="muted" style="font-size:13px">진행 ${st.steps}/3</div><div class="steps3" style="width:140px"><span class="${st.words >= W.words.length ? 'on' : ''}"></span><span class="${st.quiz !== null && st.quiz >= d.passQuiz ? 'on' : ''}"></span><span class="${st.writing ? 'on' : ''}"></span></div>`}</div>
+        <h1 style="margin-top:6px">${W.week}주차 · ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1></div>
+      ${st.done ? '<div style="text-align:right"><div class="seal">完成</div></div>' : ''}
     </div>
     ${st.done && st.completedAt ? `<div class="notice info">🎉 이 주차를 모두 마쳤어요! ${W.week < d.total ? `<a href="#/week/${W.gid + 1}">${W.week + 1}주차로 →</a>` : '15주 과정을 모두 마쳤어요. 정말 수고했어요!'}</div>` : ''}
     <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${k === 'words' && st.words >= W.words.length ? ' ✓' : ''}${k === 'quiz' && st.quiz !== null && st.quiz >= d.passQuiz ? ' ✓' : ''}${k === 'writing' && st.writing ? ' ✓' : ''}</button>`).join('')}</div>`;
