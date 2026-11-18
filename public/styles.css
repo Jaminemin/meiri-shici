@@ -1139,3 +1139,10 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .stage-chip .stage-no { width: 28px; height: 28px; font-size: 14px; }
 @media (max-width: 900px) { .stage-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .dy-cm > :last-child { margin-bottom: 0; }
+
+/* 대문: 푸터 정보를 한국외대 로고 아래, 어두운 배경 위에 회색으로 */
+body.on-landing .site-foot { display: none; }
+.gate-foot { margin-top: 14px; font-size: 12.5px; line-height: 1.8; color: #a3a3a3; text-shadow: none; }
+.gate-foot p { margin: 0; }
+.gate-foot a { color: #a3a3a3; text-decoration: underline; text-underline-offset: 3px; }
+.gate-foot a:hover { color: #cfcfcf; }

@@ -42,6 +42,7 @@ export async function renderLanding(app, { browse = false } = {}) {
       </div>
       ${signedIn ? '<a class="btn primary" href="#/home" style="margin-top:14px">내 학습으로 돌아가기</a>' : '<p class="gate-full-note">처음 가입하면 관리자가 승인한 뒤부터 학습할 수 있습니다.</p>'}
       <a class="gate-photo-univ" href="https://www.hufs.ac.kr" target="_blank" rel="noopener noreferrer" aria-label="한국외국어대학교 홈페이지로 이동"><img src="/img/hufs-logo.png" alt="한국외국어대학교" /></a>
+      <div class="gate-foot"><p>제작 한국외국어대학교 한중문화학과 박사과정 민지수</p><p><a href="#/privacy">개인정보처리방침</a> • <a href="#/guide">사용법과 흐름도</a></p><p><a href="mailto:minjeesoo@hufs.ac.kr">📫 minjeesoo@hufs.ac.kr</a></p></div>
     </div>
     ${signedIn ? '' : `<div class="gate-auth">${state.me?.googleReady ? `<a class="gate-auth-btn primary" href="/auth/google">${GOOGLE_G}<span>로그인</span></a>` : `<span class="gate-auth-btn primary" aria-disabled="true" style="opacity:.7">${GOOGLE_G}<span>로그인 준비 중</span></span>`}<a class="gate-auth-btn" href="#/preview">로그인 없이 둘러보기</a></div>`}
     <div class="gate-dots" aria-hidden="true">${SLIDES.map((_, k) => `<i${k ? '' : ' class="on"'}></i>`).join('')}</div>
