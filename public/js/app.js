@@ -8,6 +8,7 @@ import { renderWeek } from './week.js';
 import { renderAdmin, renderAdminUsers, renderAdminUser, renderAdminWritings, renderAdminVideos } from './admin.js';
 import { renderGrades, renderProject, renderTalk, renderTalkSession } from './lms.js';
 import { renderAdminGrading, renderAdminGrade, renderAdminGradebook, renderAdminTeams, renderAdminContent, renderAdminReport } from './adminlms.js';
+import { renderPrivacy, renderGuide } from './info.js';
 import { renderLab, renderComments, renderCommentPost, renderDecode, renderMyWords } from './ailab.js';
 
 const app = document.getElementById('app');
@@ -105,6 +106,8 @@ async function route() {
     if (parts[0] === 'welcome') return renderLanding(app, { browse: true });
     if (parts[0] === 'preview') return renderPreview(app, parts[1] || '');
     if (parts[0] === 'common') return renderCommonApps(app);
+    if (parts[0] === 'privacy') return renderPrivacy(app);
+    if (parts[0] === 'guide') return renderGuide(app);
     if (!u) {
       location.hash = '#/';
       return;
