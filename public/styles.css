@@ -1165,8 +1165,22 @@ body.on-landing .site-foot { display: none; }
   .wl-side .wl-search { background: color-mix(in srgb, var(--surface) 50%, transparent); }
 }
 
-/* 댓글 영역을 영상 높이의 약 50% 지점부터 시작 (영상형 게시물, 넓은 화면) */
+/* 영상 높이에 맞춰 오른쪽 캡션 + 댓글 패널이 같은 높이로 (영상형 게시물, 넓은 화면) */
+.dy-empty { display: none; }
 @media (min-width: 761px) {
-  .dy-wrap:not(.img) .dy-right { display: grid; grid-template-rows: minmax(max-content, 1fr) 1fr; align-content: stretch; gap: 12px; }
-  .dy-wrap:not(.img) .dy-cm { margin-top: 0; align-self: start; }
+  .dy-wrap:not(.img) .dy-right { display: flex; flex-direction: column; gap: 14px; height: 0; min-height: 100%; }
+  .dy-wrap:not(.img) .dy-under { padding: 20px 24px; }
+  .dy-wrap:not(.img) .dy-cm { flex: 1; min-height: 0; margin: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px 14px; box-shadow: 0 6px 22px rgba(20,24,40,.10); }
+  .dy-wrap:not(.img) .dy-comments-head { background: none; padding: 0 0 10px; margin: 0 0 6px; border-bottom: 1px solid var(--line); font-size: 17px; border-radius: 0; }
+  .dy-wrap:not(.img) .dy-cm .cm-list { flex: 1; min-height: 0; overflow-y: auto; background: none; border: 0; box-shadow: none; padding: 4px 0; margin: 0; }
+  .dy-wrap:not(.img) .dy-cm .cm-write { margin: 10px 0 0; background: var(--surface-2, var(--bg)); border: 1px solid var(--line); box-shadow: none; border-radius: 14px; }
+  .dy-wrap:not(.img) .dy-cm .cm-tools { margin: 6px 0 0; }
+  .dy-wrap:not(.img) .dy-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; color: var(--muted); font-size: 13.5px; line-height: 1.6; padding: 10px; }
+  .dy-wrap:not(.img) .dy-empty b { color: var(--ink); font-size: 16px; }
+  .dy-empty-ico { font-size: 40px; line-height: 1; opacity: .85; }
+  /* 댓글이 생기면 오른쪽이 아래로 늘어나고, 영상은 위에 붙어 따라온다 */
+  .dy-wrap.has-cm:not(.img) .dy-right { height: auto; min-height: 100%; }
+  .dy-wrap.has-cm:not(.img) .dy-cm { flex: none; }
+  .dy-wrap.has-cm:not(.img) .dy-cm .cm-list { flex: none; overflow: visible; }
+  .dy-wrap.has-cm:not(.img) .dy-player { align-self: start; position: sticky; top: 74px; }
 }

@@ -109,6 +109,7 @@ export async function renderCommentPost(app, id) {
     const legacy = items.some((c) => !c.mine);
     const comments = `
       ${V ? `<div class="dy-comments-head"><b>评论区</b> <span class="muted">댓글 ${items.filter((c) => c.mine).length * 2}</span></div>` : ''}
+      ${V && !items.length ? '<div class="dy-empty"><div class="dy-empty-ico">💬</div><b>아직 댓글이 없어요</b><span>영상을 보고 중국어로 첫 댓글을 남겨 보세요.<br>AI网友가 답글을 달고 내 댓글을 고쳐 줘요.</span></div>' : ''}
       ${items.length ? `<div class="cm-tools"><span class="muted" style="font-size:13px">보기</span><button class="tag ${pyOn ? 'on' : ''}" data-t="py">병음</button><button class="tag ${koOn ? 'on' : ''}" data-t="ko">한국어 뜻</button><span class="spacer"></span><button class="btn small danger" id="cm-del">연습 지우기</button></div>
       <div class="card cm-list ${pyOn ? '' : 'hide-py'} ${koOn ? '' : 'hide-ko'}">${items.map((c) => (c.mine ? myCommentHtml(c) : legacyHtml(c))).join('')}</div>` : ''}
       ${legacy ? '' : mine < d.max ? `<div class="card cm-write">
@@ -118,7 +119,7 @@ export async function renderCommentPost(app, id) {
         : `<p class="muted" style="text-align:center">이 게시물에서는 ${d.max}번 모두 연습했어요. <a href="#/comments">새 게시물로 연습하기</a></p>`}
 `;
     app.innerHTML = `<div class="page cm-page">
-      ${V ? `<div class="dy-wrap ${V.kind === 'image' ? 'img' : ''}"><div class="dy-player">
+      ${V ? `<div class="dy-wrap ${V.kind === 'image' ? 'img' : ''} ${items.length ? 'has-cm' : ''}"><div class="dy-player">
           ${V.kind === 'image'
             ? `<img class="dy-img-main" src="${esc(V.src)}" alt="${esc(P.week)}주차 게시물 그림"><span class="dy-badge">图文</span>`
             : `<video id="dy-video" playsinline loop preload="metadata" poster="${esc(V.poster)}"><source src="${esc(V.src)}" type="video/mp4"></video>
