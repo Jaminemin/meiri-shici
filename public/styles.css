@@ -1207,3 +1207,14 @@ body.on-landing .site-foot { display: none; }
 @media (min-width: 761px) {
   body.on-landing .gate-auth-btn:not(.primary) { background: var(--surface); color: var(--ink); border-color: var(--line); }
 }
+/* 이번 주 문장: 한 줄에 두 문장, 가운데는 회색 구분선 */
+.ex-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ex-grid .example:nth-child(odd) { padding-right: 22px; border-right: 1px solid #c4c8cf; }
+.ex-grid .example:nth-child(even) { padding-left: 22px; }
+.ex-grid .example:last-child, .ex-grid .example:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+@media (max-width: 720px) {
+  .ex-grid { grid-template-columns: minmax(0, 1fr); }
+  .ex-grid .example:nth-child(odd) { padding-right: 0; border-right: 0; }
+  .ex-grid .example:nth-child(even) { padding-left: 0; }
+  .ex-grid .example:nth-last-child(2):nth-child(odd) { border-bottom: 1px solid var(--line); }
+}
