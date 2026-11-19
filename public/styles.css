@@ -1191,3 +1191,5 @@ body.on-landing .site-foot { display: none; }
   .topbar { position: sticky; }
   .topbar .topnav { position: absolute; left: calc(var(--wl-w) + 40px); top: 50%; transform: translateY(-50%); margin-left: 0; }
 }
+.course-page .week-grid { margin-bottom: 14px; }
+.course-page .course-two { margin-bottom: 14px; }
