@@ -1164,3 +1164,9 @@ body.on-landing .site-foot { display: none; }
   .wl-side { background: color-mix(in srgb, var(--surface) 50%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
   .wl-side .wl-search { background: color-mix(in srgb, var(--surface) 50%, transparent); }
 }
+
+/* 댓글 영역을 영상 높이의 약 50% 지점부터 시작 (영상형 게시물, 넓은 화면) */
+@media (min-width: 761px) {
+  .dy-wrap:not(.img) .dy-right { display: grid; grid-template-rows: minmax(max-content, 1fr) 1fr; align-content: stretch; gap: 12px; }
+  .dy-wrap:not(.img) .dy-cm { margin-top: 0; align-self: start; }
+}
