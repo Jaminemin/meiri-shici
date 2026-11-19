@@ -1198,3 +1198,12 @@ body.on-landing .site-foot { display: none; }
   .wl-item { grid-template-columns: 31px minmax(0, 1fr) auto; gap: 17px; }
   .wl-subs-in { padding-left: 33px; }
 }
+
+/* 대문(웹): 로그인 버튼을 위쪽 바(topbar)의 우측에 좌우로 일렬 배치 */
+@media (min-width: 761px) {
+  body.on-landing .gate-auth { position: fixed; top: 8px; right: 86px; z-index: 25; width: auto; flex-direction: row; gap: 8px; }
+  body.on-landing .gate-auth-btn { padding: 6px 14px; font-size: 14px; border-radius: 10px; white-space: nowrap; }
+}
+@media (min-width: 761px) {
+  body.on-landing .gate-auth-btn:not(.primary) { background: var(--surface); color: var(--ink); border-color: var(--line); }
+}
