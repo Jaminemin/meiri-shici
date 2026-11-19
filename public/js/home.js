@@ -223,7 +223,6 @@ export async function renderCourse(app) {
       <div class="zh" style="font-size:20px;color:var(--accent)">${esc(I.nameZh)}</div>
       <div class="muted" style="font-style:italic;font-size:14px">${esc(I.nameEn)}</div>
     </div></div>
-    <div class="course-meta">${I.meta.map(([k, v]) => `<div class="stat"><div class="label">${esc(k)}</div><div class="value" style="font-size:18px">${esc(v)}</div></div>`).join('')}</div>
     <div class="card"><div class="ai-label">교과목 개요</div><p style="line-height:1.8;margin:6px 0 0">${esc(I.summary)}</p></div>
     <div class="card"><div class="ai-label">교육 목표 — 15주를 마치면</div><ol class="cw-goals">${I.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol></div>
 
