@@ -1249,3 +1249,8 @@ body.on-landing .site-foot { display: none; }
 .word .mn { order: 1; }
 .word .tools { order: 2; }
 .word-list { align-items: start; }
+/* 이번 주 문장: 가리기 버튼을 제목 줄 오른쪽에 둔다 */
+@media (min-width: 901px) {
+  .card:has(> .ex-wrap) { position: relative; }
+  .card:has(> .ex-wrap) .ex-bar { position: absolute; top: 12px; right: 18px; margin: 0; gap: 14px; }
+}

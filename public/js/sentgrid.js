@@ -1,6 +1,7 @@
 // 이번 주 문장: 한 줄 두 문장 + 번호(회색 동그라미) + 가리기 / 외우기
 import { esc } from './core.js';
 
+const HIDE_LABEL = '다 외우셨나요? 그럼 뜻을 가려주세요, 클릭!';
 const KEY = (k) => `ms_exmem_${k}`;
 function load(k) {
   try { return new Set(JSON.parse(localStorage.getItem(KEY(k)) || '[]')); } catch { return new Set(); }
@@ -16,7 +17,7 @@ export function exGridHtml(examples, key, aria = '듣기') {
     <div class="row" style="flex:1;min-width:0;flex-wrap:nowrap;align-items:flex-start"><div class="ex-text" style="flex:1;min-width:0"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted ko">${esc(e.ko)}</div></div>
       <div class="ex-tools"><button class="speak" data-speak="${esc(e.zh)}" aria-label="${aria}">🔊</button><button class="ex-mem" data-ex-mem="${i}" aria-label="외웠어요" aria-pressed="${mem.has(i)}">✓</button></div></div></div>`).join('');
   return `<div class="ex-wrap" data-exkey="${esc(key)}" data-total="${examples.length}">
-    <div class="ex-bar"><button class="btn small" data-ex-hide aria-pressed="false">가리기</button><span class="muted ex-count">외운 문장 <b>${mem.size}</b>/${examples.length}</span></div>
+    <div class="ex-bar"><button class="btn small" data-ex-hide aria-pressed="false">${HIDE_LABEL}</button><span class="muted ex-count">외운 문장 <b>${mem.size}</b>/${examples.length}</span></div>
     <div class="ex-grid">${items}</div></div>`;
 }
 
@@ -39,7 +40,7 @@ export function bindExGrids(root) {
         const on = !w.classList.contains('hide');
         w.classList.toggle('hide', on);
         hide.setAttribute('aria-pressed', String(on));
-        hide.textContent = on ? '보이기' : '가리기';
+        hide.textContent = on ? '뜻 다시 보기' : HIDE_LABEL;
         w.querySelectorAll('.example.peek').forEach((x) => x.classList.remove('peek'));
         return;
       }
