@@ -1229,3 +1229,23 @@ body.on-landing .site-foot { display: none; }
   .ex-grid .example:nth-child(even) { padding-left: 0; }
   .ex-grid .example:nth-last-child(2):nth-child(odd) { border-bottom: 1px solid var(--line); }
 }
+
+/* 단어 카드: 한자 옆에 병음, 동그란 ✓로 줄여 아래 흰 공백을 최소화 */
+.word .top { flex-wrap: wrap; align-items: flex-start; gap: 4px 8px; }
+.word .hzline { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px; min-width: 0; flex: 1 1 auto; }
+.word .hzline .py { margin-top: 0; font-size: 13px; white-space: nowrap; }
+.word .body { padding: 10px 12px 10px; }
+.word .mn { margin-top: 2px; line-height: 1.35; }
+.word .tools { margin-left: auto; gap: 4px; }
+.word .tools .speak { width: 28px; height: 28px; font-size: 13px; }
+.word .tools .btn[data-know] { font-size: 0; width: 28px; height: 28px; min-height: 28px; padding: 0; border-radius: 50%; display: grid; place-items: center; }
+.word .tools .btn[data-know]::before { content: '✓'; font-size: 14px; font-weight: 800; }
+/* 1줄: 한자+병음 / 2줄: 뜻 + 듣기·✓ (뜻이 길면 ✓가 아래 줄로) */
+.word .body { display: flex; flex-wrap: wrap; align-content: flex-start; align-items: center; gap: 2px 6px; }
+.word .top { display: contents; }
+.word .hzline { flex: 0 0 100%; }
+.word .mn { flex: 1 1 auto; min-width: 0; margin-top: 0; }
+.word .tools { margin-left: auto; margin-top: 0; }
+.word .mn { order: 1; }
+.word .tools { order: 2; }
+.word-list { align-items: start; }

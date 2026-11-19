@@ -133,9 +133,8 @@ function drawWords(app, words) {
       <div class="word-list ${hide ? 'hide-mean' : ''}">${words.map((w, i) => `<div class="word ${known.has(i) ? 'known' : ''}" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
           <div class="num">${i + 1}</div>
           <div class="body">
-            <div class="top"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}${w.hanzi.length >= 4 ? ' xl' : ''}">${esc(w.hanzi)}</div>
+            <div class="top"><div class="hzline"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}${w.hanzi.length >= 4 ? ' xl' : ''}">${esc(w.hanzi)}</div><div class="py">${esc(w.pinyin)}</div></div>
               <div class="tools"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button><button class="btn small ${known.has(i) ? 'primary' : ''}" data-know="${i}">${known.has(i) ? '✓ 외움' : '외웠어요'}</button></div></div>
-            <div class="py">${esc(w.pinyin)}</div>
             <div class="mn">${esc(w.meaning)}</div>
           </div></div>`).join('')}</div>`;
     box.querySelector('#pv-hide').onclick = () => { hide = !hide; draw(); };
