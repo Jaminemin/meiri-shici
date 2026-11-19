@@ -224,11 +224,12 @@ export async function renderCourse(app) {
       <div class="muted" style="font-style:italic;font-size:14px">${esc(I.nameEn)}</div>
     </div></div>
     <div class="card"><div class="ai-label">교과목 개요</div><p style="line-height:1.8;margin:6px 0 0">${esc(I.summary)}</p></div>
-    <div class="card"><div class="ai-label">교육 목표 — 15주를 마치면</div><ol class="cw-goals">${I.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol></div>
 
     <div class="section-title">주차별 수업 (4단계)</div>
     <div class="stage-legend">${I.stages.map((st) => `<div class="stage-chip"><span class="stage-no">${st.no}</span><div><b>${esc(st.name)}</b> <span class="muted">${esc(st.weeks)}</span><div class="muted" style="font-size:12.5px">${esc(st.desc)}</div></div></div>`).join('')}</div>
     ${weekCards(d.weeks, d.current.gid)}
+
+    <div class="card"><div class="ai-label">교육 목표 — 15주를 마치면</div><ol class="cw-goals">${I.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol></div>
 
     <div class="grid2 course-two">
       <div class="card"><div class="ai-label">초급·중급 혼합 수업</div><p class="muted" style="font-size:14px">${esc(I.mixed.note)}</p>
