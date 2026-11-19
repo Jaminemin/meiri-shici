@@ -1,5 +1,6 @@
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
 import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.js';
+import { weekList, bindWeekList } from './home.js';
 import { classWeekBody, bindClassWeek, taskBlock, gradeHtml, stageLabel } from './classweek.js';
 import { startTalkFromWeek } from './lms.js';
 import { feedbackHtml } from './fb.js';
@@ -34,8 +35,11 @@ function saveKnown(week, set) {
 
 export async function renderWeek(app, ctx) {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
+  // 넓은 화면에서는 주차 목록을 왼쪽에 계속 보여 준다 (홈과 같은 목차)
+  const wlP = window.matchMedia('(min-width: 1100px)').matches ? get('/api/dashboard').then((x) => x.weeks).catch(() => null) : Promise.resolve(null);
   let d = await get(`/api/weeks/${ctx.week}`);
   const W = d.week;
+  const wlWeeks = await wlP;
   // 숏폼(수업형) 주차: 수업 안내 · 단어 · 문장 · 퀴즈 · 과제
   const CLS = W.format === 'class';
   const OLD_TAB = { task: 'writing', videos: 'class', creator: 'class', pattern: 'pattern' };
@@ -86,7 +90,13 @@ export async function renderWeek(app, ctx) {
     if (tab === 'quiz') body = quizIntro();
     if (tab === 'writing') body = writingTab();
     if (tab === 'mock') body = mockIntro();
-    app.innerHTML = `<div class="page${CLS ? ' cw-page' : ''}">${head()}<div id="body">${body}</div>${nav()}</div>`;
+    app.innerHTML = `<div class="page${CLS ? ' cw-page' : ''}${wlWeeks ? ' wk-with-wl' : ''}">${wlWeeks ? weekList(wlWeeks, W.gid) : ''}${head()}<div id="body">${body}</div>${nav()}</div>`;
+    if (wlWeeks) {
+      const wl = app.querySelector('.wl');
+      bindWeekList(wl, wlWeeks, W.gid);
+      wl.querySelectorAll('.wl-group.open .wl-sub').forEach((a) => a.classList.toggle('on', a.getAttribute('href').endsWith(`/${tab}`)));
+      wl.querySelector('.wl-group.open')?.scrollIntoView({ block: 'nearest' });
+    }
     app.querySelectorAll('[data-tab]').forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), history.replaceState(null, '', `#/week/${W.gid}/${tab}`), draw())));
     bind();
   }
