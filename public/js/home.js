@@ -68,12 +68,7 @@ export function weekList(weeks, currentGid) {
 // 목차 항목을 누르면 그 주차 아래에 단어·퀴즈·작문이 펼쳐지고 오른쪽 상세가 바뀐다.
 // 왼쪽 목록 너비를 위쪽 메뉴의 📖(15주 과정) 이모지 앞까지 맞춘다
 let fitBound = false;
-export function fitWeekSide() {
-  const a = document.querySelector('#topnav a[href="#/course"]');
-  if (!a || innerWidth < 1100) return;
-  const w = Math.round(a.getBoundingClientRect().left + parseFloat(getComputedStyle(a).paddingLeft));
-  document.documentElement.style.setProperty('--wl-w', `${Math.min(420, Math.max(250, w))}px`);
-}
+export function fitWeekSide() {} // 목록 너비는 CSS(--wl-w)로 고정
 export function bindWeekList(root, weeks, currentGid) {
   fitWeekSide();
   document.fonts?.ready?.then(fitWeekSide);
@@ -216,7 +211,7 @@ export async function renderCourse(app) {
   app.innerHTML = '<div class="page"><div class="empty">불러오는 중…</div></div>';
   const [d, ci] = await Promise.all([get('/api/dashboard'), get('/api/course-info')]);
   if (d.course?.format !== 'class') {
-    app.innerHTML = `<div class="page"><div class="page-head"><div><h1>15주 과정</h1></div></div>${weekCards(d.weeks, d.current.gid)}</div>`;
+    app.innerHTML = `<div class="page"><div class="page-head"><div><h1>수업</h1></div></div>${weekCards(d.weeks, d.current.gid)}</div>`;
     return;
   }
   const I = ci.info;

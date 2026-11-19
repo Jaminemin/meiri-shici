@@ -23,12 +23,12 @@ function navLinks(active) {
   const u = state.me?.user;
   if (!u || u.status !== 'approved') return [];
   const links = [
-    ['home', '🧑‍🎓 내 학습'],
-    ['course', '📖 15주 과정'],
+    ['course', '📖 수업'],
     ['lab', '✨ AI 실습'],
-    ['project', '👥 팀 프로젝트'],
-    ['grades', '📊 내 성적'],
     ['writings', '✏️ 내 작문<small class="nav-sub">AI 첨삭 작문 연습</small>'],
+    ['project', '👥 팀 프로젝트'],
+    ['home', '🧑‍🎓 내 학습'],
+    ['grades', '📊 내 성적'],
   ];
   if (u.role === 'admin') links.push(['admin', '관리자']);
   return links.map(([k, l]) => `<a href="#/${k}" class="${active === k ? 'on' : ''}">${l}${k === 'admin' && state.pendingCount ? `<span class="count">${state.pendingCount}</span>` : ''}</a>`).join('');
@@ -178,7 +178,7 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// 좌우 스와이프로 위쪽 탭(내 학습 · 15주 과정 · AI 실습 …) 사이를 이동한다
+// 좌우 스와이프로 위쪽 탭(수업 · AI 실습 · 내 작문 · 팀 프로젝트 · 내 학습 · 내 성적) 사이를 이동한다
 // 입력칸, 영상, 가로로 스크롤되는 영역 안에서 시작한 동작은 건드리지 않는다.
 (() => {
   let t0 = null;
