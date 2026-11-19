@@ -1207,11 +1207,22 @@ body.on-landing .site-foot { display: none; }
 @media (min-width: 761px) {
   body.on-landing .gate-auth-btn:not(.primary) { background: var(--surface); color: var(--ink); border-color: var(--line); }
 }
-/* 이번 주 문장: 한 줄에 두 문장, 가운데는 회색 구분선 */
+/* 이번 주 문장: 한 줄에 두 문장, 번호(회색 동그라미), 가리기·외우기 */
+.ex-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: -2px 0 8px; }
+.ex-count b { color: var(--accent); }
 .ex-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ex-grid .example { display: flex; align-items: flex-start; gap: 12px; }
 .ex-grid .example:nth-child(odd) { padding-right: 22px; border-right: 1px solid #c4c8cf; }
 .ex-grid .example:nth-child(even) { padding-left: 22px; }
 .ex-grid .example:last-child, .ex-grid .example:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+.ex-n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: #e3e5e9; color: #6b7280; font-size: 12px; font-weight: 700; display: grid; place-items: center; margin-top: 2px; }
+.ex-tools { display: flex; flex-direction: column; gap: 6px; flex: none; }
+.ex-mem { border: 1px solid var(--line); background: var(--surface); color: #b3b8c0; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 15px; font-weight: 800; }
+.ex-mem:hover { border-color: var(--accent); }
+.ex-mem[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.example.mem .zh { color: var(--accent); }
+.ex-wrap.hide .example:not(.peek) .py, .ex-wrap.hide .example:not(.peek) .ko { visibility: hidden; }
+.ex-wrap.hide .example { cursor: pointer; }
 @media (max-width: 720px) {
   .ex-grid { grid-template-columns: minmax(0, 1fr); }
   .ex-grid .example:nth-child(odd) { padding-right: 0; border-right: 0; }
