@@ -1136,7 +1136,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
   .gate-auth-btn:hover { filter: brightness(1.1); }
 }
 
-.stage-legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 8px 0 16px; }
+.stage-legend { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 16px 0 0; }
 .stage-chip { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
 .stage-chip .stage-no { width: 28px; height: 28px; font-size: 14px; }
 @media (max-width: 900px) { .stage-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
