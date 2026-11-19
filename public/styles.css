@@ -1254,3 +1254,17 @@ body.on-landing .site-foot { display: none; }
   .card:has(> .ex-wrap) { position: relative; }
   .card:has(> .ex-wrap) .ex-bar { position: absolute; top: 12px; right: 18px; margin: 0; gap: 14px; }
 }
+/* 단어 카드: 한자 크기 약 30% 축소, 카드 크기 통일 */
+.word-list { align-items: stretch; grid-auto-rows: 1fr; }
+.word .hz { font-size: 21px; }
+.word .hz.long { font-size: 17px; }
+.word .hz.xl { font-size: 15px; }
+@media (max-width: 680px) {
+  .word .hz { font-size: 18px; }
+  .word .hz.long { font-size: 15px; }
+  .word .hz.xl { font-size: 13px; }
+}
+.word .body { flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 2px; }
+.word .hzline { flex: none; }
+.word .mn { flex: none; }
+.word .tools { margin-top: auto; align-self: flex-end; padding-top: 4px; }
