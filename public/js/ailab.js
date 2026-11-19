@@ -114,11 +114,10 @@ export async function renderCommentPost(app, id) {
       ${legacy ? '' : mine < d.max ? `<div class="card cm-write">
         <div class="ai-label">${items.length ? '이어서 댓글 달기' : '이 게시물에 중국어로 댓글을 달아 보세요'}</div>
         <div class="cm-form" style="margin:8px 0 0"><input class="zh" id="cm-in" maxlength="200" placeholder="${items.length ? 'AI网友의 답글에 다시 답해 보세요…' : '예: 看起来好好吃！在哪里？'}" value="${esc(draft)}"><button class="btn primary" id="cm-send">댓글 달기</button></div>
-        <p class="muted" style="font-size:12px;margin:6px 0 0">${mine}/${d.max}번 · 한국어로 써도 중국어로 바꿔 알려 줘요</p></div>`
+        <p class="muted" style="font-size:12px;margin:6px 0 0">${mine}/${d.max}번 · 한국어로 써도 중국어로 바꿔 알려 줘요<br>ⓘ ${AI_NOTE}</p></div>`
         : `<p class="muted" style="text-align:center">이 게시물에서는 ${d.max}번 모두 연습했어요. <a href="#/comments">새 게시물로 연습하기</a></p>`}
 `;
     app.innerHTML = `<div class="page cm-page">
-      <div class="page-head"><div>${back('#/comments', 'AI 댓글 연습')}<h1 style="margin-top:6px">💬 댓글 연습</h1><p class="muted" style="font-size:13px">ⓘ ${AI_NOTE}</p></div></div>
       ${V ? `<div class="dy-wrap ${V.kind === 'image' ? 'img' : ''}"><div class="dy-player">
           ${V.kind === 'image'
             ? `<img class="dy-img-main" src="${esc(V.src)}" alt="${esc(P.week)}주차 게시물 그림"><span class="dy-badge">图文</span>`
