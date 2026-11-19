@@ -1161,8 +1161,8 @@ body.on-landing .site-foot { display: none; }
 
 /* 왼쪽 주차 목록: 투명도 50% 유리 느낌 */
 @media (min-width: 1100px) {
-  .wl-side { background: color-mix(in srgb, var(--surface) 50%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-  .wl-side .wl-search { background: color-mix(in srgb, var(--surface) 50%, transparent); }
+  .wl-side { background: color-mix(in srgb, var(--surface) 20%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  .wl-side .wl-search { background: color-mix(in srgb, var(--surface) 20%, transparent); }
 }
 
 /* 영상 높이에 맞춰 오른쪽 캡션 + 댓글 패널이 같은 높이로 (영상형 게시물, 넓은 화면) */
