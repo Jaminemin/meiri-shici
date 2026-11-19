@@ -20,9 +20,6 @@ export async function renderPreview(app, course = '') {
   }
   const W = d.week;
   if (W.format === 'class') return previewClass(app, d);
-  const loginCta = state.me?.googleReady
-    ? `<a class="btn primary big" href="/auth/google">${GOOGLE_G} 구글 계정으로 시작하기</a>`
-    : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
 
   app.innerHTML = `
   <div class="page">
@@ -32,7 +29,6 @@ export async function renderPreview(app, course = '') {
         <h1 style="margin-top:6px">맛보기 · ${W.week}주차 ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
         <p>🎯 ${esc(W.goal)}</p>
       </div>
-      <div class="cta">${loginCta}</div>
     </div>
 
     <div class="notice info">로그인 없이 1주차 내용을 둘러보는 중입니다. 퀴즈, 작문 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
@@ -94,7 +90,6 @@ export async function renderPreview(app, course = '') {
       <p class="muted" style="font-size:13px">로그인하면 AI 선생님이 문장을 고쳐 주고, 퀴즈와 학습 기록이 저장됩니다.</p>
     </div>
 
-    <div class="row" style="justify-content:center;margin-top:28px">${loginCta}</div>
   </div>`;
 
   app.querySelectorAll('[data-say]').forEach((b) => b.addEventListener('click', () => speak(b.dataset.say)));
@@ -103,23 +98,19 @@ export async function renderPreview(app, course = '') {
 // 숏폼 과정 맛보기: 1주차 수업 안내·단어·문장을 보여 준다 (퀴즈·과제 제출은 로그인 후)
 function previewClass(app, d) {
   const W = d.week;
-  const loginCta = state.me?.googleReady
-    ? `<a class="btn primary big" href="/auth/google">${GOOGLE_G} 구글 계정으로 시작하기</a>`
-    : '<span class="btn big" aria-disabled="true" style="opacity:.6">구글 로그인 준비 중</span>';
   app.innerHTML = `<div class="page cw-page">
     <div class="page-head">
       <div><a href="#/" class="muted" style="text-decoration:none">← 처음으로</a>
         <div class="cw-stage">${esc(stageLabel(W))}</div>
         <h1 style="margin-top:4px">맛보기 · ${W.week}주차 ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
         <p>🎯 ${esc(W.goal)}</p></div>
-      <div class="cta">${loginCta}</div>
     </div>
     <div class="notice info">로그인 없이 1주차를 둘러보는 중입니다. 퀴즈, 과제 제출과 AI 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
     ${classWeekBody(W, d.videos)}
     <div class="card"><h3>① 이번 주 단어 <small class="muted" style="font-weight:400">${(W.words || []).length}개</small></h3>
       <div id="pv-wordbox"></div></div>
     <div class="card"><h3>② 이번 주 문장</h3>${(W.examples || []).map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="듣기">🔊</button></div></div>`).join('')}</div>
-    <div class="card" style="text-align:center;margin-top:16px"><h3 style="margin:0 0 6px">15주 전체 과정이 궁금하다면</h3><p class="muted" style="margin:0 0 12px">로그인하면 15주 과정 소개, 주차별 수업, 과제 제출과 AI 첨삭을 이용할 수 있어요.</p>${loginCta}</div>
+    <div class="card" style="text-align:center;margin-top:16px"><h3 style="margin:0 0 6px">15주 전체 과정이 궁금하다면</h3><p class="muted" style="margin:0 0 12px">로그인하면 15주 과정 소개, 주차별 수업, 과제 제출과 AI 첨삭을 이용할 수 있어요.</p></div>
   </div>`;
   bindClassWeek(app);
   drawWords(app, W.words || []);
