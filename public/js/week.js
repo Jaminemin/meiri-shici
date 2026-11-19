@@ -160,7 +160,7 @@ export async function renderWeek(app, ctx) {
         .map((e) => `<div class="example"><div class="row" style="flex-wrap:nowrap;align-items:flex-start"><div style="flex:1"><div class="zh">${esc(e.zh)}</div><div class="py">${esc(e.py)}</div><div class="muted">${esc(e.ko)}</div></div><button class="speak" data-speak="${esc(e.zh)}" aria-label="예문 듣기">🔊</button></div></div>`)
         .join('')}</div>`;
     const next = `<div class="row end"><button class="btn primary" data-go="${CLS ? 'quiz' : 'listen'}">${CLS ? '다음: ③ 퀴즈 →' : '다음: 듣기 연습 →'}</button></div>`;
-    if (CLS) return `${sentences}${patterns}${next}`;
+    if (CLS) return `${patterns}${sentences}${next}`;
     return `${W.course === 'travel' ? sceneCard(W.week, W.scene) : ''}${patterns}${sentences}${next}`;
   }
 
