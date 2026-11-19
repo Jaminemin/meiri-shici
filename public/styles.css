@@ -1193,3 +1193,8 @@ body.on-landing .site-foot { display: none; }
 }
 .course-page .week-grid { margin-bottom: 14px; }
 .course-page .course-two { margin-bottom: 14px; }
+/* 주차 목록: 숫자와 제목 사이, 하위 메뉴(수업 안내·단어…)를 왼쪽으로 약 50% 당김 */
+@media (min-width: 681px) {
+  .wl-item { grid-template-columns: 31px minmax(0, 1fr) auto; gap: 17px; }
+  .wl-subs-in { padding-left: 33px; }
+}
