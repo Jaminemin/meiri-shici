@@ -1273,3 +1273,6 @@ body.on-landing .site-foot { display: none; }
 .app-div { align-self: stretch; background: #c4c8cf; }
 .app-ic { width: 60px; height: 60px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; justify-self: center; background: color-mix(in srgb, var(--ic, #6b7280) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ic, #6b7280) 35%, transparent); }
 @media (max-width: 520px) { .common-list .app-li { grid-template-columns: minmax(0, 1fr) 1px 56px; column-gap: 12px; } .app-ic { width: 46px; height: 46px; font-size: 24px; border-radius: 12px; } }
+/* 캡션 듣기 안내: 작성자(@…) 오른쪽에 둔다 */
+.dy-author { flex-wrap: wrap; }
+.dy-hint { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font-size: 13px; }
