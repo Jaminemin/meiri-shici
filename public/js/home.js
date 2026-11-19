@@ -219,9 +219,7 @@ export async function renderCourse(app) {
   app.innerHTML = `<div class="page course-page">
     <div class="page-head"><div>
       <div class="ai-label">15주 과정 소개</div>
-      <h1 style="margin-top:4px">${esc(I.name)}</h1>
-      <div class="zh" style="font-size:20px;color:var(--accent)">${esc(I.nameZh)}</div>
-      <div class="muted" style="font-style:italic;font-size:14px">${esc(I.nameEn)}</div>
+      <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-top:2px"><h1 style="margin:0">${esc(I.name)}</h1><span class="zh" style="font-size:20px;color:var(--accent)">${esc(I.nameZh)}</span></div>
     </div></div>
     <div class="card"><div class="ai-label">교과목 개요 및 주차별 수업 4단계</div><p style="line-height:1.8;margin:6px 0 0">${esc(I.summary)}</p>
       <div class="stage-legend">${I.stages.map((st) => `<div class="stage-chip"><span class="stage-no">${st.no}</span><div><b>${esc(st.name)}</b> <span class="muted">${esc(st.weeks)}</span><div class="muted" style="font-size:12.5px">${esc(st.desc)}</div></div></div>`).join('')}</div></div>
