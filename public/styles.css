@@ -1146,3 +1146,9 @@ body.on-landing .site-foot { display: none; }
 .gate-foot p { margin: 0; }
 .gate-foot a { color: #a3a3a3; text-decoration: underline; text-underline-offset: 3px; }
 .gate-foot a:hover { color: #cfcfcf; }
+
+/* 주차 화면에서도 왼쪽 주차 목록 유지 (넓은 화면) */
+.wl-sub.on { background: var(--accent-soft); color: var(--accent); font-weight: 800; }
+@media (min-width: 1100px) {
+  .page.wk-with-wl { max-width: 960px; margin-left: max(270px, calc(125px + (100vw - 960px) / 2)); margin-right: 16px; }
+}
