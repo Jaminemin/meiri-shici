@@ -39,6 +39,15 @@ const GROUPS = [
   },
 ];
 
+// 앱 로고는 저작물이라 쓰지 않고, 쓰임새를 나타내는 그림 글자(이모지)를 타일에 담아 보여 준다.
+const APP_ICON = {
+  '위챗페이': ['💬', '#07c160'], '알리페이': ['💙', '#1677ff'],
+  '디디추싱': ['🚕', '#ff7a1a'], '가오더지도': ['🗺️', '#2f80ed'], '12306': ['🚄', '#2563eb'],
+  '대중점평': ['⭐', '#f59e0b'], '메이퇀': ['🛵', '#facc15'], '어러머': ['🍱', '#3b82f6'],
+  '더우바오': ['🤖', '#8b5cf6'], '바이두 번역': ['🔤', '#4f46e5'], '유다오 출국 번역관': ['🌐', '#ef4444'],
+};
+const appIcon = (n) => { const [g, c] = APP_ICON[n] || ['📱', '#6b7280']; return `<div class="app-ic" style="--ic:${c}" aria-hidden="true">${g}</div>`; };
+
 const EMERGENCY = [
   { name: '경찰', zh: '报警', num: '110', use: '도난, 사고, 분쟁 등' },
   { name: '구급차', zh: '急救', num: '120', use: '응급 의료' },
@@ -68,7 +77,8 @@ export function renderCommonApps(app) {
         <p class="muted common-desc">${esc(g.desc)}</p>
         <ul class="common-list">
           ${g.apps.map((a) => `
-            <li>
+            <li class="app-li">
+              <div class="app-main">
               <b>${esc(a.name)}</b> <span class="zh">${esc(a.zh)}</span>
               <div class="py">${esc(a.py)}</div>
               <div class="muted common-use">${esc(a.use)}</div>
@@ -76,6 +86,9 @@ export function renderCommonApps(app) {
                 <a class="btn small" href="https://apps.apple.com/app/id${a.ios}" target="_blank" rel="noopener noreferrer">🍎 iPhone</a>
                 <a class="btn small" href="${a.android ? `https://play.google.com/store/apps/details?id=${a.android}` : `https://play.google.com/store/search?q=${encodeURIComponent(a.name)}&c=apps`}" target="_blank" rel="noopener noreferrer">🤖 Android</a>
               </div>
+              </div>
+              <div class="app-div" aria-hidden="true"></div>
+              ${appIcon(a.name)}
             </li>`).join('')}
         </ul>
       </section>`).join('')}

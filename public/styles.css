@@ -1268,3 +1268,8 @@ body.on-landing .site-foot { display: none; }
 .word .hzline { flex: none; }
 .word .mn { flex: none; }
 .word .tools { margin-top: auto; align-self: flex-end; padding-top: 4px; }
+/* 필수 앱: 왼쪽 설명 | 회색 구분선 | 오른쪽 아이콘 */
+.common-list .app-li { display: grid; grid-template-columns: minmax(0, 1fr) 1px 76px; column-gap: 18px; align-items: center; }
+.app-div { align-self: stretch; background: #c4c8cf; }
+.app-ic { width: 60px; height: 60px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; justify-self: center; background: color-mix(in srgb, var(--ic, #6b7280) 16%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ic, #6b7280) 35%, transparent); }
+@media (max-width: 520px) { .common-list .app-li { grid-template-columns: minmax(0, 1fr) 1px 56px; column-gap: 12px; } .app-ic { width: 46px; height: 46px; font-size: 24px; border-radius: 12px; } }
