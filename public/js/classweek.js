@@ -114,7 +114,7 @@ export function renderClassWeek(app, ctx, d) {
 
   function head() {
     return `<div class="page-head week-head">
-      <div><a href="#/course" class="muted" style="text-decoration:none">← 15주 과정</a>
+      <div><a href="#/course" class="muted" style="text-decoration:none">← 수업</a>
         <div class="cw-stage">${esc(stageLabel(W))}</div>
         <h1 style="margin-top:4px">${W.week}주차 · ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
         <p>🎯 ${esc(W.goal)}</p></div>
