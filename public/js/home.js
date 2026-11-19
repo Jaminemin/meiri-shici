@@ -66,7 +66,18 @@ export function weekList(weeks, currentGid) {
 }
 
 // 목차 항목을 누르면 그 주차 아래에 단어·퀴즈·작문이 펼쳐지고 오른쪽 상세가 바뀐다.
+// 왼쪽 목록 너비를 위쪽 메뉴의 📖(15주 과정) 이모지 앞까지 맞춘다
+let fitBound = false;
+export function fitWeekSide() {
+  const a = document.querySelector('#topnav a[href="#/course"]');
+  if (!a || innerWidth < 1100) return;
+  const w = Math.round(a.getBoundingClientRect().left + parseFloat(getComputedStyle(a).paddingLeft));
+  document.documentElement.style.setProperty('--wl-w', `${Math.min(420, Math.max(250, w))}px`);
+}
 export function bindWeekList(root, weeks, currentGid) {
+  fitWeekSide();
+  document.fonts?.ready?.then(fitWeekSide);
+  if (!fitBound) { fitBound = true; window.addEventListener('resize', fitWeekSide); }
   root.querySelectorAll('.wl-item').forEach((btn) =>
     btn.addEventListener('click', () => {
       root.querySelectorAll('.wl-group').forEach((g) => {
