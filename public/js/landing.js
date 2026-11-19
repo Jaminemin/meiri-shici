@@ -57,7 +57,7 @@ export async function renderLanding(app, { browse = false } = {}) {
       slides.forEach((el, k) => el.classList.toggle('on', k === i));
       app.querySelectorAll('.gate-dots i').forEach((el, k) => el.classList.toggle('on', k === i));
     };
-    const t = setInterval(tick, 6000);
+    const t = setInterval(tick, 3000);
   }
 }
 
