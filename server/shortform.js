@@ -117,6 +117,8 @@ export const SHORTFORM_WEEKS = [
   },
   {
     week: 2, stage: 1, title: '브이로그로 배우는 일상 중국어', titleZh: '一天的生活与日常表达',
+    // 학습 목표 안내 영상(직접 만든 AI 영상, public/media)
+    intro: { src: '/media/w02-intro.mp4', poster: '/media/w02-intro.jpg', title: '2주차 학습 목표 안내' },
     goal: '시간·일과·빈도 표현으로 나의 하루를 중국어로 설명한다.',
     goals: ["시간과 일상생활을 나타내는 어휘를 습득한다.", "브이로그 크리에이터가 쓰는 시작·연결·마무리 멘트를 익힌다.", "빈도와 습관을 설명하는 문장을 구성한다."],
     videos: ["나의 하루 브이로그", "아침 루틴(早起vlog)", "공부 인증(学习打卡)"],
