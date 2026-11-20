@@ -148,6 +148,8 @@ export const SHORTFORM_WEEKS = [
   },
   {
     week: 3, stage: 1, title: '먹방과 음식 리뷰 중국어', titleZh: '美食、探店与味觉表达',
+    // 학습 목표 안내 영상(직접 만든 AI 영상, public/media)
+    intro: { src: '/media/w03-intro.mp4', poster: '/media/w03-intro.jpg', title: '3주차 학습 목표 안내' },
     goal: '맛·식감·가격을 표현하고 음식점에서 의견을 말한다.',
     goals: ['중국 음식과 식문화 관련 어휘를 습득한다.', '맛과 식감을 구체적으로 설명한다.', '음식점 이용 상황에서 의견을 표현한다.'],
     videos: ["30초 맛집 소개(探店)", "음식 맛 리뷰", "실패한 가게 솔직 후기(避雷)"],
