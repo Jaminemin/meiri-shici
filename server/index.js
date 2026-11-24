@@ -285,9 +285,12 @@ route('POST', '/api/weeks/:n/check', async (req, res, { p }) => {
 route('POST', '/api/weeks/:n/quiz', async (req, res, { p, body }) => {
   const u = await requireUser(req);
   const n = weekNo(p.n);
-  const score = Math.max(0, Math.min(10, Math.round(Number(body.score) || 0)));
+  // 문제 수는 5~30개 중 학생이 고른다. 저장 점수는 항상 10점 만점으로 환산(통과 기준 8점 = 80%)
+  const total = Math.max(5, Math.min(30, Math.round(Number(body.total) || 10)));
+  const raw = Math.max(0, Math.min(total, Math.round(Number(body.score) || 0)));
+  const score = Math.round((raw * 10) / total);
   const r = await touchProgress(u.id, n, () => db()`UPDATE progress SET quiz_best = GREATEST(COALESCE(quiz_best, 0), ${score}), quiz_count = quiz_count + 1 WHERE user_id = ${u.id} AND week = ${n}`);
-  await log(u.id, '퀴즈', `${n}주차 퀴즈 ${score}/10`);
+  await log(u.id, '퀴즈', total === 10 ? `${n}주차 퀴즈 ${raw}/10` : `${n}주차 퀴즈 ${raw}/${total} (10점 환산 ${score})`);
   sendJson(res, 200, r);
 });
 

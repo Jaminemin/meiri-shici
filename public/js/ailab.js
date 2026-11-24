@@ -285,11 +285,14 @@ export async function renderMyWords(app) {
   let words = (await get('/api/my/words')).words;
   let hide = false;
   let quiz = null;
+  let qn = 10;
+  const qOpts = () => { const o = [5, 10, 15, 20, 30].filter((n) => n <= words.length); return o.length ? o : [Math.max(words.length, 1)]; };
+  const curQn = () => { const o = qOpts(); return o.includes(qn) ? qn : o.includes(10) ? 10 : o[o.length - 1]; };
 
   function list() {
     return `<div class="page">
       <div class="page-head"><div>${back()}<h1 style="margin-top:6px">📒 내 단어장 <span class="badge accent">${words.length}개</span></h1><p>유행어 해독기에서 저장한 표현이에요. 4개 이상 모이면 나만의 퀴즈를 풀 수 있어요.</p></div>
-        <div class="row" style="gap:6px"><a class="btn" href="#/decode">🔍 더 찾아보기</a><button class="btn primary" id="mw-quiz" ${words.length < 4 ? 'disabled title="4개 이상 모이면 열려요"' : ''}>📝 퀴즈 풀기</button></div></div>
+        <div class="row" style="gap:6px"><a class="btn" href="#/decode">🔍 더 찾아보기</a><label class="row" style="gap:4px;font-size:13px">문제 수 <select id="mw-qn" aria-label="퀴즈 문제 수">${qOpts().map((n) => `<option value="${n}" ${n === curQn() ? 'selected' : ''}>${n}문제</option>`).join('')}</select></label><button class="btn primary" id="mw-quiz" ${words.length < 4 ? 'disabled title="4개 이상 모이면 열려요"' : ''}>📝 퀴즈 풀기</button></div></div>
       ${words.length ? `<div class="row between" style="margin-bottom:10px"><label class="row" style="font-size:14px;gap:6px"><input type="checkbox" id="mw-hide" ${hide ? 'checked' : ''}> 뜻 가리기(외우기 모드)</label></div>
       <div class="mw-list ${hide ? 'hide-mean' : ''}">${words.map((w) => `<div class="card mw-item"><div class="row between" style="align-items:flex-start"><div><span class="zh mw-hz">${esc(w.hanzi)}</span> ${say(w.hanzi)}<div class="py">${esc(w.pinyin)}</div><div class="mw-mean"><b>${esc(w.meaning)}</b>${w.note ? `<div class="muted" style="font-size:13px;margin-top:4px">${esc(w.note)}</div>` : ''}</div></div><button class="btn small ghost" data-del="${w.id}" aria-label="지우기">✕</button></div>${w.source ? `<div class="muted mw-src zh">“${esc(w.source)}”</div>` : ''}</div>`).join('')}</div>`
         : '<div class="card empty" style="padding:30px">아직 저장한 표현이 없어요. <a href="#/decode">유행어 해독기</a>에서 본 중국어를 풀어 보고 저장해 보세요.</div>'}
@@ -303,13 +306,15 @@ export async function renderMyWords(app) {
       words = words.filter((w) => String(w.id) !== b.dataset.del);
       draw();
     }));
+    app.querySelector('#mw-qn')?.addEventListener('change', (e) => { qn = Number(e.target.value); });
     app.querySelector('#mw-quiz')?.addEventListener('click', () => {
+      qn = curQn();
       quiz = { list: makeQuiz(), i: 0, score: 0 };
       step();
     });
   }
   function makeQuiz() {
-    return shuffle(words).slice(0, 10).map((w, i) => {
+    return shuffle(words).slice(0, qn).map((w, i) => {
       const others = shuffle(words.filter((x) => x.id !== w.id)).slice(0, 3);
       const opts = shuffle([w, ...others]);
       return i % 2

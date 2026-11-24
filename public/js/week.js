@@ -262,9 +262,18 @@ export async function renderWeek(app, ctx) {
 
   // ---------- 퀴즈 ----------
   let quiz = null;
+  // 문제 수: 5·10·15·20·30 중 이 주차 단어 수 이하만 고를 수 있다(기본 10). 마지막 선택을 기억한다.
+  const quizCounts = () => [5, 10, 15, 20, 30].filter((n) => n <= W.words.length);
+  let quizN = (() => {
+    let v = 10;
+    try { v = Number(localStorage.getItem('ms_quiz_n')) || 10; } catch {}
+    const ok = quizCounts();
+    return ok.includes(v) ? v : ok.includes(10) ? 10 : ok[ok.length - 1] || 5;
+  })();
+  const passNeed = (total) => Math.ceil(total * (d.passQuiz / 10)); // 통과 기준은 10문제 중 8개 = 80%
   function makeQuiz() {
     const words = W.words;
-    return shuffle(words).slice(0, 10).map((w, i) => {
+    return shuffle(words).slice(0, quizN).map((w, i) => {
       const type = i % 3;
       const others = shuffle(words.filter((x) => x.id !== w.id)).slice(0, 3);
       const opts = shuffle([w, ...others]);
@@ -277,9 +286,11 @@ export async function renderWeek(app, ctx) {
     const st = d.state;
     return `<div class="card" style="text-align:center;padding:36px 20px">
       <div class="seal" style="margin-bottom:14px">测验</div>
-      <h2>${W.week}주차 단어 퀴즈 10문제</h2>
-      <p class="muted">뜻·한자·병음을 고르는 문제예요. ${d.passQuiz}개 이상 맞히면 통과!</p>
-      ${st.quiz !== null ? `<p>최고 점수 <b>${st.quiz}/10</b> · ${st.quizCount}번 풀었어요</p>` : ''}
+      <h2>${W.week}주차 단어 퀴즈</h2>
+      <div style="margin:14px 0 4px;font-size:13px" class="muted">문제 수를 고르세요</div>
+      <div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap" id="q-counts" role="group" aria-label="문제 수">${quizCounts().map((n) => `<button type="button" class="btn ${n === quizN ? 'primary' : ''}" data-qn="${n}" aria-pressed="${n === quizN}">${n}문제</button>`).join('')}</div>
+      <p class="muted" id="q-rule" style="margin-top:12px">뜻·한자·병음을 고르는 문제예요. ${quizN}문제 중 ${passNeed(quizN)}개 이상 맞히면 통과!</p>
+      ${st.quiz !== null ? `<p>최고 점수 <b>${st.quiz}/10</b> <small class="muted">(문제 수와 관계없이 10점으로 환산)</small> · ${st.quizCount}번 풀었어요</p>` : ''}
       <button class="btn primary big" id="q-start">${st.quiz !== null ? '다시 풀기' : '시작하기'}</button></div>`;
   }
   function quizStep() {
@@ -341,17 +352,19 @@ export async function renderWeek(app, ctx) {
     const score = quiz.score;
     body.innerHTML = '<div class="empty">점수 저장 중…</div>';
     try {
-      const r = await post(`/api/weeks/${W.gid}/quiz`, { score });
+      const r = await post(`/api/weeks/${W.gid}/quiz`, { score, total: quiz.list.length });
       d.state = r.state;
       if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
     } catch (e) {
       fail(e);
     }
-    const pass = score >= d.passQuiz;
+    const total = quiz.list.length;
+    const need = passNeed(total);
+    const pass = score >= need;
     body.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px">
-      <div class="fb-score">${score}<small class="muted" style="font-size:20px"> / 10</small></div>
-      <h2 style="margin-top:10px">${score === 10 ? '모두 맞췄습니다! 축하드려요~ 🎉' : pass ? '통과! 🎉' : '아쉽지만 복습 후 다시 시도해보세요~'}</h2>
-      <p class="muted">${pass ? '작문 미션으로 배운 단어를 직접 써 보세요.' : `${d.passQuiz}개 이상 맞히면 통과예요. 단어를 한 번 더 보고 다시 도전해 보세요.`}</p>
+      <div class="fb-score">${score}<small class="muted" style="font-size:20px"> / ${total}</small></div>
+      <h2 style="margin-top:10px">${score === total ? '모두 맞췄습니다! 축하드려요~ 🎉' : pass ? '통과! 🎉' : '아쉽지만 복습 후 다시 시도해보세요~'}</h2>
+      <p class="muted">${pass ? '작문 미션으로 배운 단어를 직접 써 보세요.' : `${total}문제 중 ${need}개 이상 맞히면 통과예요. 단어를 한 번 더 보고 다시 도전해 보세요.`}</p>
       <div class="row" style="justify-content:center"><button class="btn" id="q-retry">다시 풀기</button><button class="btn primary" data-go="${pass ? 'writing' : 'words'}">${pass ? (CLS ? '④ 과제 →' : '작문 미션 →') : '단어 다시 보기'}</button></div></div>`;
     body.querySelector('#q-retry').onclick = () => {
       quiz = { list: makeQuiz(), i: 0, score: 0 };
@@ -641,6 +654,18 @@ export async function renderWeek(app, ctx) {
         mockStep();
       };
     // 퀴즈
+    $('#q-counts')?.querySelectorAll('[data-qn]').forEach((b) => {
+      b.onclick = () => {
+        quizN = Number(b.dataset.qn);
+        try { localStorage.setItem('ms_quiz_n', String(quizN)); } catch {}
+        $('#q-counts').querySelectorAll('[data-qn]').forEach((x) => {
+          const on = Number(x.dataset.qn) === quizN;
+          x.classList.toggle('primary', on);
+          x.setAttribute('aria-pressed', String(on));
+        });
+        $('#q-rule').textContent = `뜻·한자·병음을 고르는 문제예요. ${quizN}문제 중 ${passNeed(quizN)}개 이상 맞히면 통과!`;
+      };
+    });
     if ($('#q-start'))
       $('#q-start').onclick = () => {
         quiz = { list: makeQuiz(), i: 0, score: 0 };
