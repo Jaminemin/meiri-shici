@@ -1276,3 +1276,37 @@ body.on-landing .site-foot { display: none; }
 /* 캡션 듣기 안내: 작성자(@…) 오른쪽에 둔다 */
 .dy-author { flex-wrap: wrap; }
 .dy-hint { display: inline-flex; align-items: center; gap: 6px; margin-left: 10px; font-size: 13px; }
+
+/* ===== 모션: 한자 쓰기 · 퀴즈 연출 · 주차 완료 ===== */
+.wi { display: inline-block; clip-path: inset(0 100% 0 0); filter: blur(1.5px); opacity: .3; transform: translateY(-3px) scale(.97); transform-origin: 0 60%;
+  animation: wi .6s cubic-bezier(.3,.7,.2,1) forwards; animation-delay: var(--d, 0s); }
+@keyframes wi { 60% { filter: blur(.6px); opacity: .95; } to { clip-path: inset(-4% -4% -4% -4%); filter: none; opacity: 1; transform: none; } }
+.fx { position: absolute; inset: 0; pointer-events: none; z-index: 6; overflow: visible; }
+.bp { position: absolute; left: 50%; top: 45%; width: 8px; height: 13px; border-radius: 2px; background: var(--bc, #f43f5e); opacity: 0; animation: bp .95s cubic-bezier(.15,.7,.3,1) forwards; }
+@keyframes bp { 0% { opacity: 1; transform: translate(0,0) rotate(0); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 60px)) rotate(var(--r)); } }
+.q3-card.pop { animation: q3pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes q3pop { 0% { transform: scale(1); } 35% { transform: scale(1.06); } 100% { transform: scale(1); } }
+.streak { font-size: 13px; font-weight: 800; color: var(--muted, #888); opacity: .6; transition: color .2s, opacity .2s; }
+.streak.on { color: #ea580c; opacity: 1; }
+.streak.hit { animation: sthit .5s cubic-bezier(.3,1.7,.5,1); }
+@keyframes sthit { 0% { transform: scale(1); } 40% { transform: scale(1.5) rotate(-4deg); } 100% { transform: scale(1); } }
+.q3-progress i.just { animation: dotpop .5s cubic-bezier(.3,1.7,.5,1); }
+@keyframes dotpop { 0% { transform: scaleY(1); } 40% { transform: scaleY(2.6); } 100% { transform: scaleY(1); } }
+.fb-score { font-variant-numeric: tabular-nums; }
+.cele { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: rgba(15,15,30,.55); backdrop-filter: blur(3px); animation: celein .25s ease-out; }
+.cele.out { opacity: 0; transition: opacity .25s; }
+@keyframes celein { from { opacity: 0; } }
+.cele-card { position: relative; width: min(440px, 92vw); text-align: center; background: var(--card, #fff); color: var(--ink, #1c1c28); border-radius: 22px; padding: 34px 24px 26px; box-shadow: 0 30px 80px -20px rgba(0,0,0,.5); animation: celecard .5s cubic-bezier(.3,1.4,.5,1); }
+@keyframes celecard { from { transform: translateY(30px) scale(.92); opacity: 0; } }
+.cele-title { font-size: 30px; font-weight: 800; letter-spacing: -.01em; }
+.cele-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 20px 0 8px; }
+.cele-st { font-weight: 800; font-size: 15px; padding: 8px 14px; border: 2px solid #16a34a; color: #15803d; border-radius: 10px; background: #f0fdf4; opacity: 0; animation: stamp .45s cubic-bezier(.2,1.5,.4,1) forwards; animation-delay: var(--d); }
+@keyframes stamp { 0% { opacity: 0; transform: scale(2.4) rotate(-12deg); } 70% { opacity: 1; transform: scale(.94) rotate(3deg); } 100% { opacity: 1; transform: scale(1) rotate(-2deg); } }
+.cele-seal { display: inline-block; margin: 14px 0 6px; font-family: var(--serif, "Noto Serif KR", serif); font-weight: 900; font-size: 40px; color: #c8102e; border: 4px solid #c8102e; border-radius: 10px; padding: 6px 18px; letter-spacing: .12em; opacity: 0; animation: bigstamp .6s cubic-bezier(.2,1.6,.4,1) forwards; animation-delay: var(--d); }
+@keyframes bigstamp { 0% { opacity: 0; transform: scale(3.2) rotate(-18deg); } 65% { opacity: 1; transform: scale(.9) rotate(5deg); } 100% { opacity: .95; transform: scale(1) rotate(-6deg); } }
+.cele-sub { color: var(--muted, #666); font-size: 14px; margin: 8px 0 18px; }
+@media (prefers-reduced-motion: reduce) {
+  .wi { animation: none; clip-path: none; filter: none; opacity: 1; transform: none; }
+  .q3-card.pop, .streak.hit, .q3-progress i.just, .cele, .cele-card { animation: none; }
+  .cele-st, .cele-seal { animation: none; opacity: 1; }
+}

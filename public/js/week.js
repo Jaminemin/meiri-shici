@@ -7,6 +7,7 @@ import { exGridHtml, bindExGrids } from './sentgrid.js';
 import { feedbackHtml } from './fb.js';
 import { arrangeItems, sentenceChoiceItems } from './practice.js';
 import { sceneCard } from './scenes.js';
+import { writeIn, burst, countUp, celebrate } from './motion.js';
 
 // 번호 띠 색 (단어·문형 카드)
 const NUM_COLORS = ['#2d5bd1', '#1c9a8f', '#7a4fd0', '#e0821a', '#3c9a4e', '#d4456f'];
@@ -122,7 +123,7 @@ export async function renderWeek(app, ctx) {
           <div class="num">${i + 1}</div>
           <div class="body">
             <div class="top"><div class="hzline"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}${w.hanzi.length >= 4 ? ' xl' : ''}">${esc(w.hanzi)}</div><div class="py">${esc(w.pinyin)}</div></div>
-              <div class="tools"><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button><button class="btn small ${known.has(w.id) ? 'primary' : ''}" data-know="${w.id}">${known.has(w.id) ? '✓ 외움' : '외웠어요'}</button></div></div>
+              <div class="tools"><button class="speak" data-write="${w.id}" aria-label="${esc(w.hanzi)} 쓰기 애니메이션 다시 보기" title="쓰는 모습 다시 보기">✍</button><button class="speak" data-speak="${esc(w.hanzi)}" aria-label="${esc(w.hanzi)} 발음 듣기">🔊</button><button class="btn small ${known.has(w.id) ? 'primary' : ''}" data-know="${w.id}">${known.has(w.id) ? '✓ 외움' : '외웠어요'}</button></div></div>
             <div class="mn">${esc(w.meaning)}</div>
           </div></div>`,
         )
@@ -137,7 +138,7 @@ export async function renderWeek(app, ctx) {
       try {
         const r = await post(`/api/weeks/${W.gid}/words`, { count: known.size });
         d.state = r.state;
-        if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
+        if (r.justDone) celebrate(`${W.week}주차`, CLS ? ['안내', '단어', '문장', '퀴즈', '과제'] : ['단어', '퀴즈', '작문']);
       } catch (e) {
         fail(e);
       }
@@ -300,9 +301,9 @@ export async function renderWeek(app, ctx) {
     const it = list[i];
     const dots = list.map((_, k) => `<i class="${k < i ? 'done' : k === i ? 'on' : ''}"></i>`).join('');
     body.innerHTML = `
-      <div class="q3-top"><span class="muted">${i + 1} / ${list.length}</span><span class="badge accent">맞힘 ${score}</span></div>
+      <div class="q3-top"><span class="muted">${i + 1} / ${list.length}</span><span class="streak ${(quiz.streak || 0) >= 2 ? 'on' : ''}" id="q-streak" aria-live="polite">🔥 ${quiz.streak || 0}연속</span><span class="badge accent" id="q-score">맞힘 ${score}</span></div>
       <div class="q3-progress">${dots}</div>
-      <div class="q3-wrap">
+      <div class="q3-wrap" style="position:relative">
         <div class="q3-card" id="q3-card">
           <div class="q3-kicker">${esc(it.q)}</div>
           <div class="q3-prompt ${it.zh ? 'zh' : ''} ${it.py ? 'py' : ''}">${esc(it.prompt)}</div>
@@ -322,6 +323,7 @@ export async function renderWeek(app, ctx) {
     };
     card.onpointerleave = () => (card.style.transform = '');
     body.querySelector('#q3-speak').onclick = () => speak(it.say);
+    if (it.zh) writeIn(body.querySelector('.q3-prompt.zh'), { delay: 0.1, step: 0.28 });
     speak(it.say);
 
     body.querySelectorAll('.q3-choice').forEach(
@@ -333,8 +335,24 @@ export async function renderWeek(app, ctx) {
             c.disabled = true;
             if (it.opts[j].ok) c.classList.add('right');
           });
-          if (!ok) b.classList.add('wrong');
-          else quiz.score++;
+          const dot = body.querySelectorAll('.q3-progress i')[i];
+          if (dot) dot.classList.add('just');
+          if (!ok) {
+            b.classList.add('wrong');
+            quiz.streak = 0;
+            body.querySelector('#q-streak').classList.remove('on');
+            body.querySelector('#q-streak').textContent = '🔥 0연속';
+          } else {
+            quiz.score++;
+            quiz.streak = (quiz.streak || 0) + 1;
+            const sk = body.querySelector('#q-streak');
+            sk.textContent = `🔥 ${quiz.streak}연속`;
+            sk.classList.toggle('on', quiz.streak >= 2);
+            sk.classList.remove('hit'); void sk.offsetWidth; sk.classList.add('hit');
+            body.querySelector('#q-score').textContent = `맞힘 ${quiz.score}`;
+            card.classList.remove('pop'); void card.offsetWidth; card.classList.add('pop');
+            burst(body.querySelector('.q3-wrap'), { n: quiz.streak >= 3 ? 36 : 22 });
+          }
           const nx = body.querySelector('#q-next');
           nx.hidden = false;
           nx.innerHTML = `<div class="q3-msg ${ok ? 'good' : 'bad'}"><b>${ok ? '정답이에요! 👏' : '아쉬워요'}</b>${ok ? '' : `<span>정답: ${esc(it.opts.find((o) => o.ok).label)}</span>`}</div>
@@ -354,7 +372,7 @@ export async function renderWeek(app, ctx) {
     try {
       const r = await post(`/api/weeks/${W.gid}/quiz`, { score, total: quiz.list.length });
       d.state = r.state;
-      if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
+      if (r.justDone) celebrate(`${W.week}주차`, CLS ? ['안내', '단어', '문장', '퀴즈', '과제'] : ['단어', '퀴즈', '작문']);
     } catch (e) {
       fail(e);
     }
@@ -362,10 +380,12 @@ export async function renderWeek(app, ctx) {
     const need = passNeed(total);
     const pass = score >= need;
     body.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px">
-      <div class="fb-score">${score}<small class="muted" style="font-size:20px"> / ${total}</small></div>
+      <div class="fb-score"><span id="fb-n">${score}</span><small class="muted" style="font-size:20px"> / ${total}</small></div>
       <h2 style="margin-top:10px">${score === total ? '모두 맞췄습니다! 축하드려요~ 🎉' : pass ? '통과! 🎉' : '아쉽지만 복습 후 다시 시도해보세요~'}</h2>
       <p class="muted">${pass ? '작문 미션으로 배운 단어를 직접 써 보세요.' : `${total}문제 중 ${need}개 이상 맞히면 통과예요. 단어를 한 번 더 보고 다시 도전해 보세요.`}</p>
       <div class="row" style="justify-content:center"><button class="btn" id="q-retry">다시 풀기</button><button class="btn primary" data-go="${pass ? 'writing' : 'words'}">${pass ? (CLS ? '④ 과제 →' : '작문 미션 →') : '단어 다시 보기'}</button></div></div>`;
+    countUp(body.querySelector('#fb-n'), score);
+    if (pass) burst(body.querySelector('.card'), { n: score === total ? 48 : 30 });
     body.querySelector('#q-retry').onclick = () => {
       quiz = { list: makeQuiz(), i: 0, score: 0 };
       quizStep();
@@ -528,7 +548,14 @@ export async function renderWeek(app, ctx) {
       });
     }
     app.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
-    // 단어
+    // 단어: 한자가 차례로 쓰이듯 나타나고, ✍ 버튼으로 다시 볼 수 있다
+    if (tab === 'words') {
+      app.querySelectorAll('.word .hz').forEach((h, i) => writeIn(h, { delay: i * 0.07, step: 0.3 }));
+      app.querySelectorAll('[data-write]').forEach((b) => (b.onclick = (e) => {
+        e.stopPropagation();
+        writeIn(b.closest('.word').querySelector('.hz'), { step: 0.45 });
+      }));
+    }
     app.querySelectorAll('[data-know]').forEach(
       (b) =>
         (b.onclick = (e) => {
@@ -735,7 +762,7 @@ export async function renderWeek(app, ctx) {
           $('#fb-out').innerHTML = `<h3 style="margin-top:16px">AI 선생님의 첨삭</h3>${feedbackHtml(r.writing)}`;
           wr.value = '';
           $('#wc').textContent = 0;
-          if (r.justDone) toast(`🎉 ${W.week}주차 완료!`);
+          if (r.justDone) celebrate(`${W.week}주차`, CLS ? ['안내', '단어', '문장', '퀴즈', '과제'] : ['단어', '퀴즈', '작문']);
           $('#fb-out').scrollIntoView({ behavior: 'smooth' });
         }, 'AI 선생님이 읽는 중…').catch(fail);
     }

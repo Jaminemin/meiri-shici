@@ -2,6 +2,7 @@
 import { state, esc, post, toast } from './core.js';
 import { statusBadge, dueText, startTalkFromWeek } from './lms.js';
 import { coverHtml } from './cover.js';
+import { celebrate } from './motion.js';
 import { feedbackHtml } from './fb.js';
 
 export const STAGE_NAME = { 1: '일상 중국어 적응', 2: '실제 의사소통', 3: '사회문화와 언어 분석', 4: '표현의 생산과 활용' };
@@ -166,7 +167,7 @@ export function renderClassWeek(app, ctx, d) {
       try {
         const r = await post(`/api/weeks/${W.gid}/check`, {});
         st = r.state;
-        toast(r.justDone ? '🎉 이번 주를 마쳤어요!' : '수업 안내를 확인했어요.');
+        if (r.justDone) celebrate('이번 주', ['안내', '단어', '문장', '퀴즈', '과제']); else toast('수업 안내를 확인했어요.');
         draw();
       } catch (err) {
         e.target.disabled = false;
@@ -185,7 +186,7 @@ export function renderClassWeek(app, ctx, d) {
         const r = await post(`/api/weeks/${W.gid}/writing`, { content });
         st = r.state;
         writings = [r.writing, ...writings];
-        toast(r.justDone ? '🎉 이번 주를 마쳤어요!' : '과제를 냈어요.');
+        if (r.justDone) celebrate('이번 주', ['안내', '단어', '문장', '퀴즈', '과제']); else toast('과제를 냈어요.');
         draw();
         app.querySelector('#cw-task')?.scrollIntoView({ block: 'start' });
       } catch (err) {
