@@ -86,8 +86,8 @@ export async function renderWeek(app, ctx) {
     const st = d.state;
     return [
       { key: 'class:goal', go: 'class:goal', icon: '🎯', label: '학습 목표', sub: '이번 주 목표', done: !!st.checked },
+      { key: 'class:plan', go: 'class:plan', icon: '🕒', label: '수업 내용 확인', sub: '180분 시간표', done: !!st.checked },
       { key: 'class:creator', go: 'class:creator', icon: '🎬', label: '크리에이터 표현', sub: `${(W.creator || []).length}개`, done: !!st.checked },
-      { key: 'class:plan', go: 'class:plan', icon: '🕒', label: '180분 수업 흐름', sub: '시간표', done: !!st.checked },
       { key: 'words', go: 'words', icon: '📖', label: '필수 단어', sub: `${W.words.length}개`, done: st.words >= W.words.length },
       { key: 'pattern', go: 'pattern', icon: '💬', label: '필수 문장', sub: `${(W.examples || []).length}개`, done: false },
       { key: 'quiz', go: 'quiz', icon: '🎮', label: '퀴즈', sub: '개수 선택', done: st.quiz !== null && st.quiz >= d.passQuiz },

@@ -106,8 +106,8 @@ function previewClass(app, d) {
   const P = classParts(W, d.videos);
   const items = [
     { key: 'goal', icon: '🎯', label: '학습 목표', sub: `${W.week}주차`, real: true },
+    { key: 'plan', icon: '🕒', label: '수업 내용 확인', sub: '180분 시간표', real: true },
     { key: 'creator', icon: '🎬', label: '크리에이터 표현', sub: `${(W.creator || []).length}개`, real: true },
-    { key: 'plan', icon: '🕒', label: '180분 수업 흐름', sub: '시간표', real: true },
     { key: 'words', icon: '📖', label: '필수 단어', sub: `${nW}개`, real: true },
     { key: 'sent', icon: '💬', label: '필수 문장', sub: `${nS}개`, real: true },
     { key: 'lock', icon: '🧩', label: '퀴즈 · 과제', sub: '로그인 후 이용', locked: true },
@@ -124,8 +124,8 @@ function previewClass(app, d) {
       ${railHtml({ title: `${W.week}주차 맛보기`, sub: W.titleZh, items, active: 'goal', doneCount: 1, label: '둘러본 단계', foot })}
       <div class="rail-body">
         ${panel('goal', P.goal)}
-        ${panel('creator', P.creator)}
         ${panel('plan', P.plan)}
+        ${panel('creator', P.creator)}
         ${panel('words', `<div class="card"><h3>필수 단어 <small class="muted" style="font-weight:400">${nW}개</small></h3><div id="pv-wordbox"></div></div>`)}
         ${panel('sent', `<div class="card"><h3>필수 문장 <small class="muted" style="font-weight:400">${nS}개 · 🔊를 눌러 듣고 따라 읽어 보세요</small></h3>${exGridHtml(W.examples || [], 'preview', '듣기')}</div>`)}
         ${panel('lock', `<div class="card rail-lockcard"><div class="rail-lock-ic" aria-hidden="true">🔒</div><h3>퀴즈와 과제는 로그인 후에 열려요</h3>
