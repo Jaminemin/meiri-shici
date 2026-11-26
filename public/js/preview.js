@@ -120,7 +120,6 @@ function previewClass(app, d) {
         <h1 style="margin-top:4px">맛보기 · ${W.week}주차 ${esc(W.title)} <span class="zh" style="color:var(--accent)">${esc(W.titleZh)}</span></h1>
         <p>🎯 ${esc(W.goal)}</p></div>
     </div>
-    <div class="notice info">로그인 없이 1주차를 둘러보는 중입니다. 퀴즈, 과제 제출과 AI 첨삭, 학습 기록 저장은 로그인 후에 이용할 수 있습니다. (전체 ${d.total}주 과정)</div>
     <div class="rail-shell">
       ${railHtml({ title: `${W.week}주차 맛보기`, sub: W.titleZh, items, active: 'goal', doneCount: 1, label: '둘러본 단계', foot })}
       <div class="rail-body">
