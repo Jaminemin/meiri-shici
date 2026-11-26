@@ -1440,3 +1440,19 @@ body.on-landing .site-foot { display: none; }
 }
 .rail-list:has(> .rail-i:nth-child(8)) .rail-tx small { display: none; }
 .rail-list:has(> .rail-i:nth-child(8)) .rail-i { padding-right: 10px; gap: 8px; }
+
+/* ===== 필수 앱: 상단 메뉴 + 카드 모션 ===== */
+.common-group h2, .common-page h2 { display: flex; align-items: center; gap: 8px; }
+.cg-ic { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 11px; background: var(--accent-soft); font-size: 18px; animation: railPop .6s cubic-bezier(.3, 1.6, .5, 1) both; }
+.rail-panel .common-list > li { animation: railUp .5s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.12s + var(--n, 0) * .09s); }
+.common-page .app-li { padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); transition: transform .25s, box-shadow .25s, border-color .25s; }
+.common-page .app-li:hover { transform: translateY(-3px); box-shadow: var(--shadow); border-color: var(--ic-hover, var(--accent)); }
+.common-page .app-ic { animation: appBob 3.4s ease-in-out infinite; animation-delay: calc(var(--n, 0) * -.7s); transition: transform .3s; }
+.common-page .app-li:hover .app-ic { transform: rotate(-8deg) scale(1.12); animation-play-state: paused; }
+.common-page .store-links .btn { transition: transform .15s; }
+.common-page .store-links .btn:hover { transform: translateY(-2px); }
+.common-page .emg-num { position: relative; display: inline-block; animation: emgGlow 2.4s ease-in-out infinite; animation-delay: calc(var(--n, 0) * -.4s); }
+.common-page .tip-li { padding: 12px 14px 12px 16px; border-radius: 12px; background: var(--surface-2); border-left: 4px solid var(--accent); }
+@keyframes appBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes emgGlow { 0%, 100% { text-shadow: 0 0 0 transparent; } 50% { text-shadow: 0 0 14px color-mix(in srgb, var(--bad) 50%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .cg-ic, .rail-panel .common-list > li, .common-page .app-ic, .common-page .emg-num { animation: none !important; } }

@@ -1,5 +1,6 @@
 // 공통: 중국 여행 필수 앱 정리 (결제 · 교통 · 식당). 로그인 없이 볼 수 있다.
 import { esc } from './core.js';
+import { railHtml, pagerHtml, mountRail } from './rail.js';
 
 const GROUPS = [
   {
@@ -62,38 +63,45 @@ const TIPS = [
   '앱 가입 방법과 결제 수단 등록 절차는 업데이트에 따라 달라질 수 있으니 출국 직전에 한 번 더 확인하세요.',
 ];
 
+// 상단 메뉴: 결제 · 교통 · 식당 · 통역 · 입국 준비 · 긴급 전화 · 여행 전 체크
+const SPLIT = (t) => { const [ic, ...r] = t.split(' '); return [ic, r.join(' ')]; };
+
+function groupPanel(g) {
+  const [ic, label] = SPLIT(g.title);
+  return `<section class="card common-group">
+    <h2><span class="cg-ic" aria-hidden="true">${ic}</span>${esc(label)}</h2>
+    <p class="muted common-desc">${esc(g.desc)}</p>
+    <ul class="common-list">
+      ${g.apps.map((a) => `
+        <li class="app-li" style="--n:${g.apps.indexOf(a)}">
+          <div class="app-main">
+          <b>${esc(a.name)}</b> <span class="zh">${esc(a.zh)}</span>
+          <div class="py">${esc(a.py)}</div>
+          <div class="muted common-use">${esc(a.use)}</div>
+          <div class="store-links">
+            <a class="btn small" href="https://apps.apple.com/app/id${a.ios}" target="_blank" rel="noopener noreferrer">🍎 iPhone</a>
+            <a class="btn small" href="${a.android ? `https://play.google.com/store/apps/details?id=${a.android}` : `https://play.google.com/store/search?q=${encodeURIComponent(a.name)}&c=apps`}" target="_blank" rel="noopener noreferrer">🤖 Android</a>
+          </div>
+          </div>
+          <div class="app-div" aria-hidden="true"></div>
+          ${appIcon(a.name)}
+        </li>`).join('')}
+    </ul>
+  </section>`;
+}
+
 export function renderCommonApps(app) {
-  app.innerHTML = `
-  <div class="page">
-    <div class="page-head common-head">
-      <div>
-        <h1>중국 방문 필수 앱</h1>
-        <p class="muted">결제 · 교통 · 식당, 여행 전에 꼭 설치해 두면 좋은 앱입니다.</p>
-      </div>
-    </div>
-    ${GROUPS.map((g) => `
-      <section class="card common-group">
-        <h2>${esc(g.title)}</h2>
-        <p class="muted common-desc">${esc(g.desc)}</p>
-        <ul class="common-list">
-          ${g.apps.map((a) => `
-            <li class="app-li">
-              <div class="app-main">
-              <b>${esc(a.name)}</b> <span class="zh">${esc(a.zh)}</span>
-              <div class="py">${esc(a.py)}</div>
-              <div class="muted common-use">${esc(a.use)}</div>
-              <div class="store-links">
-                <a class="btn small" href="https://apps.apple.com/app/id${a.ios}" target="_blank" rel="noopener noreferrer">🍎 iPhone</a>
-                <a class="btn small" href="${a.android ? `https://play.google.com/store/apps/details?id=${a.android}` : `https://play.google.com/store/search?q=${encodeURIComponent(a.name)}&c=apps`}" target="_blank" rel="noopener noreferrer">🤖 Android</a>
-              </div>
-              </div>
-              <div class="app-div" aria-hidden="true"></div>
-              ${appIcon(a.name)}
-            </li>`).join('')}
-        </ul>
-      </section>`).join('')}
-    <section class="card">
-      <h2>🛂 중국 입국 전 준비 (전자 입국카드)</h2>
+  const items = [
+    ...GROUPS.map((g, i) => { const [ic, label] = SPLIT(g.title); return { key: 'g' + i, icon: ic, label: label.replace(/ \(.*\)/, ''), sub: `앱 ${g.apps.length}개`, real: true }; }),
+    { key: 'entry', icon: '🛂', label: '입국 준비', sub: '전자 입국카드', real: true },
+    { key: 'sos', icon: '🆘', label: '긴급 전화', sub: '중국 현지', real: true },
+    { key: 'tips', icon: '📌', label: '여행 전 체크', sub: `${TIPS.length}가지`, real: true },
+  ];
+  const panel = (key, html) => `<section class="rail-panel" data-panel="${key}" ${key === items[0].key ? '' : 'hidden'} role="tabpanel">${html}${pagerHtml(items, key)}</section>`;
+  const panels = [
+    ...GROUPS.map((g, i) => panel('g' + i, groupPanel(g))),
+    panel('entry', `<section class="card">
+      <h2><span class="cg-ic" aria-hidden="true">🛂</span>중국 입국 전 준비 (전자 입국카드)</h2>
       <p class="muted common-desc">중국 입국 시 QR 코드로 입국 신청을 합니다. 도착 72시간 이내에 작성해야 합니다.</p>
       <ul class="common-list">
         <li class="common-use"><b>신청 방법</b><br>국가이민관리국(NIA) 공식 사이트, NIA 12367 앱(iOS·Android), 위챗·알리페이 미니프로그램 ‘국가이민관리국’ 검색. 한국어로 작성할 수 있습니다.</li>
@@ -107,25 +115,39 @@ export function renderCommonApps(app) {
         <a class="btn small" href="https://s.nia.gov.cn/ArrivalCardFillingPC/" target="_blank" rel="noopener noreferrer">🌐 NIA 공식 사이트</a>
       </div>
       <p class="muted common-use" style="margin-top:10px">※ 출처: Wego 안내글(2026). 출발 전 국가이민관리국 공식 안내에서 최신 내용을 한 번 더 확인하세요.</p>
-    </section>
-    <section class="card">
-      <h2>🆘 긴급 전화 (중국 현지)</h2>
+    </section>`),
+    panel('sos', `<section class="card">
+      <h2><span class="cg-ic" aria-hidden="true">🆘</span>긴급 전화 (중국 현지)</h2>
       <p class="muted common-desc">중국 안에서는 +86 없이 그대로 누르세요.</p>
       <ul class="common-list">
-        ${EMERGENCY.map((e) => `
-          <li>
+        ${EMERGENCY.map((e, i) => `
+          <li style="--n:${i}">
             <b>${esc(e.name)}</b> <span class="zh">${esc(e.zh)}</span>
             <div class="emg-num">${esc(e.num)}</div>
             <div class="muted common-use">${esc(e.use)}</div>
           </li>`).join('')}
       </ul>
       <p class="muted common-use" style="margin-top:12px">한국에서 중국의 식당·호텔·회사 등 일반 번호에 전화할 때는 <b>+86</b>을 붙이고, 지역번호 맨 앞 0은 뺍니다. (예: 베이징 010-1234-5678 → +86 10-1234-5678)</p>
-    </section>
-    <section class="card">
-      <h2>📌 여행 전 체크</h2>
+    </section>`),
+    panel('tips', `<section class="card">
+      <h2><span class="cg-ic" aria-hidden="true">📌</span>여행 전 체크</h2>
       <ul class="common-list">
-        ${TIPS.map((t) => `<li class="common-use">${esc(t)}</li>`).join('')}
+        ${TIPS.map((t, i) => `<li class="common-use tip-li" style="--n:${i}">${esc(t)}</li>`).join('')}
       </ul>
-    </section>
+    </section>`),
+  ];
+  app.innerHTML = `
+  <div class="page cw-page rail-page common-page">
+    <div class="page-head common-head">
+      <div>
+        <h1>중국 방문 필수 앱</h1>
+        <p class="muted">결제 · 교통 · 식당, 여행 전에 꼭 설치해 두면 좋은 앱입니다.</p>
+      </div>
+    </div>
+    <div class="rail-shell">
+      ${railHtml({ title: '여행 준비', sub: '出发前准备', items, active: items[0].key, doneCount: 1, label: '둘러본 항목' })}
+      <div class="rail-body">${panels.join('')}</div>
+    </div>
   </div>`;
+  mountRail(app.querySelector('.rail-page'), { keys: items });
 }
