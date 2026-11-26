@@ -4,7 +4,7 @@ import { esc } from './core.js';
 
 let lastY = 0; // 직전 강조 위치 — 다시 그려도 표시 막대가 미끄러지듯 움직이게
 
-export function railHtml({ title = '', sub = '', items, active, doneCount = 0, attr = 'data-rail', foot = '', label = '진행', total: tot = 0 }) {
+export function railHtml({ title = '', sub = '', items, active, doneCount = 0, attr = 'data-rail', foot = '', label = '진행', total: tot = 0, track = true }) {
   const total = tot || items.filter((i) => !i.locked).length || 1;
   const pct = Math.round((doneCount / total) * 100);
   return `<nav class="rail" aria-label="${esc(title)} 학습 메뉴">
@@ -12,8 +12,8 @@ export function railHtml({ title = '', sub = '', items, active, doneCount = 0, a
       <i class="rail-blob b1"></i><i class="rail-blob b2"></i>
       <div class="rail-title">${esc(title)}</div>
       ${sub ? `<div class="rail-sub zh">${esc(sub)}</div>` : ''}
-      <div class="rail-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${doneCount}" aria-label="${esc(label)}"><i style="--p:${pct}%"></i></div>
-      <div class="rail-prog-t">${esc(label)} <b>${doneCount}</b>/${total}</div>
+      ${track ? `<div class="rail-prog" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${doneCount}" aria-label="${esc(label)}"><i style="--p:${pct}%"></i></div>
+      <div class="rail-prog-t">${esc(label)} <b>${doneCount}</b>/${total}</div>` : ''}
     </div>
     <div class="rail-list" role="tablist" aria-orientation="vertical">
       <span class="rail-ind" aria-hidden="true"></span>
@@ -61,7 +61,7 @@ export function pagerHtml(items, key, attr = 'data-rail-go') {
 }
 
 // 맛보기용: 패널 전환. root 안의 [data-panel]을 하나씩 보여 준다.
-export function mountRail(root, { onShow, keys }) {
+export function mountRail(root, { onShow, keys, track = true }) {
   const seen = new Set();
   const show = (key, { focus = false } = {}) => {
     root.querySelectorAll('[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== key; });
@@ -71,6 +71,7 @@ export function mountRail(root, { onShow, keys }) {
       b.setAttribute('aria-selected', String(on));
     });
     seen.add(key);
+    if (track) {
     const real = keys.filter((k) => k.real);
     const n = real.filter((k) => seen.has(k.key)).length;
     const pbar = root.querySelector('.rail-prog i');
@@ -78,6 +79,7 @@ export function mountRail(root, { onShow, keys }) {
     const pt = root.querySelector('.rail-prog-t b');
     if (pt) pt.textContent = n;
     root.querySelectorAll('.rail-i').forEach((b) => b.classList.toggle('done', seen.has(b.dataset.key) && !b.classList.contains('lock')));
+    }
     placeIndicator(root);
     onShow?.(key);
     if (focus) {

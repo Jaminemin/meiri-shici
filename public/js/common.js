@@ -145,9 +145,9 @@ export function renderCommonApps(app) {
       </div>
     </div>
     <div class="rail-shell">
-      ${railHtml({ title: '여행 준비', sub: '出发前准备', items, active: items[0].key, doneCount: 1, label: '둘러본 항목' })}
+      ${railHtml({ title: '여행 준비', sub: '出发前准备', items, active: items[0].key, track: false })}
       <div class="rail-body">${panels.join('')}</div>
     </div>
   </div>`;
-  mountRail(app.querySelector('.rail-page'), { keys: items });
+  mountRail(app.querySelector('.rail-page'), { keys: items, track: false });
 }
