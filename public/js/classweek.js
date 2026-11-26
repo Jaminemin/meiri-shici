@@ -78,10 +78,9 @@ export function taskBlock(W, level) {
   <p class="muted" style="font-size:14px;margin:6px 2px 0">📝 평가: ${esc(W.assess)}</p>`;
 }
 
-// 수업 안내 본문 (맛보기와 학습 화면이 같이 쓴다)
-export function classWeekBody(W, videos, level = '') {
-  return `
-    <div class="card cw-goal-card">
+// 수업 안내를 세 덩어리로 나눈다: 학습 목표 · 크리에이터 표현 · 수업 흐름 (맛보기와 학습 화면이 같이 쓴다)
+export function classParts(W, videos) {
+  const goal = `<div class="card cw-goal-card">
       <div class="cw-goal-head"><span class="ai-label">학습 목표</span><span class="zh cw-goal-zh">${esc(W.titleZh)}</span></div>
       <div class="cw-media ${W.intro?.src ? 'two' : ''}">
         ${coverHtml({ ...W, caption: W.patterns?.[0]?.zh || W.titleZh })}
@@ -89,11 +88,20 @@ export function classWeekBody(W, videos, level = '') {
       </div>
       <ol class="cw-goals">${W.goals.map((g) => `<li>${esc(g)}</li>`).join('')}</ol>
       <div class="muted" style="font-size:14px">핵심 언어 학습: <b style="color:var(--ink)">${esc(W.focus)}</b></div>
-    </div>
-    ${creatorBlock(W, videos)}
-    ${planBlock(W)}
-    ${W.convo && state.me?.user ? `<div class="card cw-convo"><div><div class="ai-label">AI 회화로 연습하기</div><b>${esc(W.convo.situation)}</b><div class="muted" style="font-size:14px">AI 역할: ${esc(W.convo.role)}</div></div><button class="btn" id="cw-talk">🤖 대화 시작</button></div>` : ''}`;
+    </div>`;
+  return { goal, creator: creatorBlock(W, videos), plan: planBlock(W) };
 }
+
+function convoCard(W) {
+  return W.convo && state.me?.user ? `<div class="card cw-convo"><div><div class="ai-label">AI 회화로 연습하기</div><b>${esc(W.convo.situation)}</b><div class="muted" style="font-size:14px">AI 역할: ${esc(W.convo.role)}</div></div><button class="btn" id="cw-talk">🤖 대화 시작</button></div>` : '';
+}
+
+export function classWeekBody(W, videos, level = '') {
+  const p = classParts(W, videos);
+  return `${p.goal}${p.creator}${p.plan}${convoCard(W)}`;
+}
+
+export { convoCard };
 
 // 교수님 평가 상자 (과제 탭에서 쓴다)
 export function gradeHtml(g) {

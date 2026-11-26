@@ -1,7 +1,8 @@
 // 주차 학습: 단어 → 문형·예문 → 퀴즈 → 작문 미션(AI 첨삭)
 import { state, esc, get, post, fail, toast, busy, speak, modal } from './core.js';
 import { weekList, bindWeekList } from './home.js';
-import { classWeekBody, bindClassWeek, taskBlock, gradeHtml, stageLabel } from './classweek.js';
+import { classParts, convoCard, bindClassWeek, taskBlock, gradeHtml, stageLabel } from './classweek.js';
+import { railHtml, pagerHtml, placeIndicator } from './rail.js';
 import { startTalkFromWeek } from './lms.js';
 import { exGridHtml, bindExGrids } from './sentgrid.js';
 import { feedbackHtml } from './fb.js';
@@ -47,6 +48,8 @@ export async function renderWeek(app, ctx) {
   const OLD_TAB = { task: 'writing', videos: 'class', creator: 'class', pattern: 'pattern' };
   let tab = CLS ? OLD_TAB[ctx.tab] || ctx.tab || 'class' : ctx.tab || 'words';
   if (CLS && !['class', 'words', 'pattern', 'quiz', 'writing'].includes(tab)) tab = 'class';
+  let sec = 'goal'; // 수업 안내 안의 쪽: goal · creator · plan
+  let wpage = W.words.length > 20 ? 0 : -1; // 단어 쪽(15개씩), -1 전체
   let known = loadKnown(W.gid, d.state.words, W.words.length);
   if (known.has('all')) known = new Set(W.words.map((w) => w.id));
 
@@ -75,8 +78,36 @@ export async function renderWeek(app, ctx) {
       ${st.done ? '<div style="text-align:right"><div class="seal">完成</div></div>' : ''}
     </div>
     ${st.done && st.completedAt ? `<div class="notice info">🎉 이 주차를 모두 마쳤어요! ${W.week < d.total ? `<a href="#/week/${W.gid + 1}">${W.week + 1}주차로 →</a>` : '15주 과정을 모두 마쳤어요. 정말 수고했어요!'}</div>` : ''}
-    <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${k === 'words' && st.words >= W.words.length ? ' ✓' : ''}${k === 'quiz' && st.quiz !== null && st.quiz >= d.passQuiz ? ' ✓' : ''}${k === 'writing' && st.writing ? ' ✓' : ''}</button>`).join('')}</div>`;
+    ${CLS ? '' : `<div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" data-tab="${k}" class="${tab === k ? 'on' : ''}">${l}${k === 'words' && st.words >= W.words.length ? ' ✓' : ''}${k === 'quiz' && st.quiz !== null && st.quiz >= d.passQuiz ? ' ✓' : ''}${k === 'writing' && st.writing ? ' ✓' : ''}</button>`).join('')}</div>`}`;
   }
+
+  // 숏폼 주차: 왼쪽 학습 메뉴
+  function railItems() {
+    const st = d.state;
+    return [
+      { key: 'class:goal', go: 'class:goal', icon: '🎯', label: '학습 목표', sub: '이번 주 목표', done: !!st.checked },
+      { key: 'class:creator', go: 'class:creator', icon: '🎬', label: '크리에이터 표현', sub: `${(W.creator || []).length}개`, done: !!st.checked },
+      { key: 'class:plan', go: 'class:plan', icon: '🕒', label: '180분 수업 흐름', sub: '시간표', done: !!st.checked },
+      { key: 'words', go: 'words', icon: '📖', label: '필수 단어', sub: `${W.words.length}개`, done: st.words >= W.words.length },
+      { key: 'pattern', go: 'pattern', icon: '💬', label: '필수 문장', sub: `${(W.examples || []).length}개`, done: false },
+      { key: 'quiz', go: 'quiz', icon: '🎮', label: '퀴즈', sub: '개수 선택', done: st.quiz !== null && st.quiz >= d.passQuiz },
+      { key: 'writing', go: 'writing', icon: '✍️', label: '과제', sub: '작문 · AI 첨삭', done: !!st.writing },
+    ];
+  }
+  const railKey = () => (tab === 'class' ? `class:${sec}` : tab);
+  function railBox() {
+    const items = railItems();
+    const steps = items.filter((i) => ['class:goal', 'words', 'quiz', 'writing'].includes(i.key)); // 수업 안내 · 단어 · 퀴즈 · 과제
+    return railHtml({ title: `${W.week}주차`, sub: W.titleZh, items, active: railKey(), doneCount: steps.filter((i) => i.done).length, total: steps.length, label: '완료', attr: 'data-go' });
+  }
+  const go = (v) => {
+    const [t, s2] = String(v).split(':');
+    tab = t;
+    if (s2) sec = s2;
+    history.replaceState(null, '', `#/week/${W.gid}/${tab}`);
+    draw();
+    if (CLS) { const top = app.querySelector('.rail-shell')?.getBoundingClientRect().top + scrollY - 72; if (scrollY > top) scrollTo({ top, behavior: 'smooth' }); }
+  };
 
   function nav() {
     return `<div class="row between" style="margin-top:20px">${W.week > 1 ? `<a class="btn" href="#/week/${W.gid - 1}">← ${W.week - 1}주차</a>` : '<span></span>'}${W.week < d.total ? `<a class="btn" href="#/week/${W.gid + 1}">${W.week + 1}주차 →</a>` : ''}</div>`;
@@ -92,7 +123,9 @@ export async function renderWeek(app, ctx) {
     if (tab === 'quiz') body = quizIntro();
     if (tab === 'writing') body = writingTab();
     if (tab === 'mock') body = mockIntro();
-    app.innerHTML = `<div class="page${CLS ? ' cw-page' : ''}${wlWeeks ? ' wk-with-wl' : ''}">${wlWeeks ? weekList(wlWeeks, W.gid) : ''}${head()}<div id="body">${body}</div>${nav()}</div>`;
+    const main = CLS ? `<div class="rail-shell">${railBox()}<div class="rail-body"><div id="body" class="rail-panel" data-k="${railKey()}">${body}</div></div></div>` : `<div id="body">${body}</div>`;
+    app.innerHTML = `<div class="page${CLS ? ' cw-page rail-page' : ''}${wlWeeks ? ' wk-with-wl' : ''}">${wlWeeks ? weekList(wlWeeks, W.gid) : ''}${head()}${main}${nav()}</div>`;
+    if (CLS) placeIndicator(app);
     bindExGrids(app);
     if (wlWeeks) {
       const wl = app.querySelector('.wl');
@@ -106,7 +139,9 @@ export async function renderWeek(app, ctx) {
 
   // ---------- 수업 안내 (숏폼) ----------
   function classTab() {
-    return `${classWeekBody(W, d.videos, d.level)}<div class="row end" style="margin-top:14px"><button class="btn primary" data-go="words">다음: ① 단어 →</button></div>`;
+    const P = classParts(W, d.videos);
+    const items = railItems();
+    return `${P[sec] || P.goal}${sec === 'plan' ? convoCard(W) : ''}${pagerHtml(items, `class:${sec}`, 'data-go')}`;
   }
 
   // ---------- 단어 ----------
@@ -116,10 +151,13 @@ export async function renderWeek(app, ctx) {
         <span class="wb-count">외운 단어 <b id="kn">${known.size}</b>/${W.words.length}</span>
         <div class="wb-actions"><button class="btn small ${hideMean ? 'primary' : ''}" id="hide" aria-pressed="${hideMean}">${hideMean ? '🙈 뜻 가리는 중' : '🙈 뜻 가리기'}</button>
         <button class="btn small" id="all-known">✓ 모두 외웠어요</button></div></div>
+      ${W.words.length > 20 ? `<div class="pager" role="group" aria-label="단어 쪽 선택">${Array.from({ length: Math.ceil(W.words.length / 15) }, (_, k) => `<button type="button" class="${wpage === k ? 'on' : ''}" data-pg="${k}">${k * 15 + 1}–${Math.min(W.words.length, (k + 1) * 15)}</button>`).join('')}<button type="button" class="${wpage === -1 ? 'on' : ''}" data-pg="-1">전체</button></div>` : ''}
       ${hideMean ? '<p class="muted wb-tip">카드를 누르면 가린 뜻이 잠깐 보여요.</p>' : ''}
       <div class="word-list ${hideMean ? 'hide-mean' : ''}" id="wl">${W.words
+        .map((w, i) => [w, i])
+        .filter(([, i]) => wpage === -1 || Math.floor(i / 15) === wpage)
         .map(
-          (w, i) => `<div class="word ${known.has(w.id) ? 'known' : ''}" data-w="${w.id}" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
+          ([w, i]) => `<div class="word ${known.has(w.id) ? 'known' : ''}" data-w="${w.id}" style="--c:${NUM_COLORS[i % NUM_COLORS.length]}">
           <div class="num">${i + 1}</div>
           <div class="body">
             <div class="top"><div class="hzline"><div class="hz zh${w.hanzi.length >= 3 ? ' long' : ''}${w.hanzi.length >= 4 ? ' xl' : ''}">${esc(w.hanzi)}</div><div class="py">${esc(w.pinyin)}</div></div>
@@ -390,7 +428,7 @@ export async function renderWeek(app, ctx) {
       quiz = { list: makeQuiz(), i: 0, score: 0 };
       quizStep();
     };
-    body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
+    body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => go(b.dataset.go)));
     // 머리 부분 진행 표시 갱신
     const headEl = app.querySelector('.page');
     if (headEl) app.querySelector('.tabs').outerHTML = (() => {
@@ -535,7 +573,7 @@ export async function renderWeek(app, ctx) {
       mock = { i: 0, picks: [], ok: 0 };
       mockStep();
     };
-    body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
+    body.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => go(b.dataset.go)));
   }
 
   function bind() {
@@ -547,7 +585,7 @@ export async function renderWeek(app, ctx) {
         try { await startTalkFromWeek(W.week); } catch (err) { e.target.disabled = false; toast(err.message, 'bad'); }
       });
     }
-    app.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => ((tab = b.dataset.go), draw())));
+    app.querySelectorAll('[data-go]').forEach((b) => (b.onclick = () => go(b.dataset.go)));
     // 단어: 한자가 차례로 쓰이듯 나타나고, ✍ 버튼으로 다시 볼 수 있다
     if (tab === 'words') {
       app.querySelectorAll('.word .hz').forEach((h, i) => writeIn(h, { delay: i * 0.07, step: 0.3 }));
@@ -556,6 +594,7 @@ export async function renderWeek(app, ctx) {
         writeIn(b.closest('.word').querySelector('.hz'), { step: 0.45 });
       }));
     }
+    app.querySelectorAll('[data-pg]').forEach((b) => (b.onclick = () => { wpage = Number(b.dataset.pg); draw(); }));
     app.querySelectorAll('[data-know]').forEach(
       (b) =>
         (b.onclick = (e) => {
